@@ -74,7 +74,64 @@ Zakk 的回饋:「**AI 感還是太強**」。診斷後認定問題不在做得�
 
 ---
 
-## 70. 本機 repo 建好了,等 Zakk 自己 push(2026-08-03,**目前狀態**)
+## 71. ✅ 上線了 —— https://zakkg5.github.io/(2026-08-03,**目前狀態**)
+
+Zakk 自己建好空 repo(`zakkg5.github.io`,Public)並接上 remote,
+push 那一步他要我直接做。`gh` 已經以 `zakkg5` 登入(scope 有 `repo`),
+所以不必開互動視窗:
+
+```bash
+git config --local credential.helper '!gh auth git-credential'
+git push -u origin main
+```
+
+⚠️ 憑證助手設在 **`--local`**,沒有動 Zakk 的全域 git 設定。
+
+`gh api repos/zakkg5/zakkg5.github.io/pages` 回報 `"status":"built"`,
+使用者站台不需要在設定裡開任何開關 —— **推上去就自動啟用**。
+
+### 🔴 又一次量測陷阱:tab 沒 fronted → lazy 圖不會載
+
+線上第一次量到「**33 張圖全部沒載入**」,差點以為檔名大小寫出事(Windows 不分、
+GitHub 的伺服器分,這是最典型的上線破圖原因)。
+
+其實 network log 只發了 5 個請求(HTML / CSS / JS / 字型 / dragon.webp)全部 200 ——
+根本沒有請求圖片。原因跟 §66 ④ 一樣:**畫面沒在渲染,`loading="lazy"` 不會觸發**。
+
+**改用 `fetch(url, {method:'HEAD'})` 驗** —— 它不受渲染狀態影響,是這件事的正解。
+
+### 線上實測(全部用 fetch,不靠渲染)
+
+| 頁 | 狀態 | 圖 | 壞掉 |
+|---|---|---|---|
+| `/` | 200 | 21 | 0 |
+| `/works/kaxabu/` | 200 | 7 | 0 |
+| `/works/vegic/` | 200 | 19 | 0 |
+| `/works/catchu/` | 200 | 21 | 0 |
+| `/works/mermaid/` | 200 | 2 | 0 |
+| `/works/antique/` | 200 | 8 | 0 |
+| `/works/dragon/` | 200 | 4 | 0 |
+| `/works/sketches/` | 200 | 4 | 0 |
+
+`og-cover.png` / `zakk-tseng-cv.pdf` / `sitemap.xml` / `robots.txt` / `.nojekyll` 也都 200。
+**檔名大小寫沒有任何問題。** 首屏頭骨正常聚攏、無 console 錯誤、無橫向捲動。
+
+### 🔜 上線後還沒處理的(都不影響瀏覽)
+
+- **CV 公開中**:`assets/cv/zakk-tseng-cv.pdf` 裡有手機 0909675369。
+  Zakk 看過提醒後仍選擇上線 —— 這符合他首頁掛著「Open to work」的意圖,
+  但**要下架的話光刪檔不夠**,搜尋引擎快取還會留一陣子。
+- **內部文件公開中**:`PROGRESS.md`(124KB)、`SPEC.md`、`DECISIONS.md`、
+  `PORTFOLIO-PDF-MAP.md`。要收起來就加進 `.gitignore` 再 commit。
+- **6.5MB 沒用到的圖**(占 17MB 的三分之一):`about-portrait.webp` 1.3MB、
+  `hero-portrait.webp` 1.2MB、`assets/3d/螢幕擷取畫面 2026-07-26 124541.png` 623KB
+  (中文檔名,網址會是一長串 %E8%9E...)、`assets/3d/bones/*.svg`、所有 `@sm.webp`。
+- `works/farmily/` 與 `works/elderly/` 首頁沒連、sitemap 沒有,**但線上打網址進得去**。
+- 以後改完要重新部署:`git add -A` → `git commit` → `git push`,約一分鐘後生效。
+
+---
+
+## 70. 本機 repo 建好了(2026-08-03)
 
 ### 網址定案:`https://zakkg5.github.io/`
 
