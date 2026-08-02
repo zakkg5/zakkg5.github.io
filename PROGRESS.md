@@ -74,7 +74,66 @@ Zakk 的回饋:「**AI 感還是太強**」。診斷後認定問題不在做得�
 
 ---
 
-## 69. 上線前檢查(2026-08-03,**目前狀態 —— 卡在網址還沒確認**)
+## 70. 本機 repo 建好了,等 Zakk 自己 push(2026-08-03,**目前狀態**)
+
+### 網址定案:`https://zakkg5.github.io/`
+
+Zakk 確認 GitHub 帳號是 **`zakkg5`**(跟 About 區的連結一致,
+`zakktseng` 那個是佔位的)。全站置換 **13 處**:
+
+| 檔 | 處數 |
+|---|---|
+| `index.html`(canonical / og:url / og:image) | 4 |
+| `sitemap.xml` | 8 |
+| `robots.txt` | 1 |
+
+⚠️ **`instagram.com/zakktseng` 不能一起換** —— 那是 IG 帳號,跟網域無關。
+(用整串取代 `zakktseng.github.io` 就不會誤傷,只換 `zakktseng` 會出事。)
+
+### 本機 repo
+
+```
+分支 main / 1 個 commit c11dcb8 / 263 個檔 / 17.0 MB
+```
+
+- `.nojekyll` 已加。GitHub Pages 預設跑 Jekyll,**會忽略底線開頭的資料夾** ——
+  這個專案剛好有 `_source/` 與 `_dev/`(雖然都 gitignore 了),
+  加這個檔就不必擔心以後多出別的底線路徑
+- git 身分設在**這個 repo 裡**(`git config user.name/email`),
+  沒有動 Zakk 的全域設定
+- 實測 `_source/` 與 `_dev/` 一個檔都沒進去
+
+⚠️ **踩到的**:commit 訊息用了 PowerShell 的 here-string 語法 `@'...'@` 餵給 bash,
+結果第一行變成一個孤零零的 `@`(而且那行就是 subject)。
+**bash 要用 heredoc `-F - <<'EOF'`。** 已 amend 修掉。
+
+### 🔴 push 之前 Zakk 要知道的三件事
+
+1. **CV 會公開下載。** `assets/cv/zakk-tseng-cv.pdf` 是 About 區「Download CV」連的檔,
+   裡面有**手機 0909675369** 與 email。放上 GitHub Pages 之後會被搜尋引擎索引、
+   被爬蟲抓走,而且刪掉之後快取還在。這是他自己加的連結,但「在自己電腦上」跟
+   「永久公開」是兩回事,要他自己決定。
+2. **內部文件會一起公開** —— `PROGRESS.md`(124KB)、`SPEC.md`、`DECISIONS.md`、
+   `PORTFOLIO-PDF-MAP.md` 都在 commit 裡。GitHub Pages 免費方案的 repo 必須是公開的,
+   所以任何人都讀得到這些工作筆記(包含我犯過的錯)。不想公開就 gitignore 掉。
+3. **6.5MB 沒用到的圖也在裡面**,最大的是 `about-portrait.webp` 1.3MB +
+   `hero-portrait.webp` 1.2MB(換掉的舊人像)。刪檔要先問,沒動。
+
+### push 指令(給 Zakk)
+
+```bash
+# 1. 在 GitHub 開一個**空的**公開 repo,名字必須剛好是 zakkg5.github.io
+#    (不要勾 README / .gitignore / license,勾了會衝突)
+git remote add origin https://github.com/zakkg5/zakkg5.github.io.git
+git push -u origin main
+```
+
+使用者站台(`<帳號>.github.io`)推上去就會自動啟用 Pages,約一分鐘後上線。
+沒自動啟用的話:Settings → Pages → Source 選 `Deploy from a branch` → `main` / `(root)`。
+
+---
+
+## 69. 上線前檢查(2026-08-03)
 
 Zakk:「可以上線了」。跑了一輪上線前檢查,**有一個真的會出事的問題**。
 
