@@ -1,0 +1,1956 @@
+/* ═══════════════════════════════════════════════════════
+   ZAKK PORTFOLIO
+   色票、間距、字級都寫成「變數」(var) — 改一個地方,全站跟著變
+   ═══════════════════════════════════════════════════════ */
+
+/* ═══════════ 字型 ═══════════
+   字型檔放在自己的專案裡,不連外部伺服器。
+   Archivo 是「可變字型」:一個檔案就含 wdth 62–125、wght 400–700 的
+   所有中間狀態,所以下面才能用 font-stretch 自由指定寬度。 */
+
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url('../assets/fonts/archivo-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'Archivo';
+  font-style: normal;
+  font-weight: 400 700;
+  font-stretch: 62% 125%;
+  font-display: swap;
+  src: url('../assets/fonts/archivo-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('../assets/fonts/jetbrains-mono-latin.woff2') format('woff2');
+  unicode-range: U+0000-00FF, U+0131, U+0152-0153, U+02BB-02BC, U+02C6, U+02DA, U+02DC, U+0304, U+0308, U+0329, U+2000-206F, U+20AC, U+2122, U+2191, U+2193, U+2212, U+2215, U+FEFF, U+FFFD;
+}
+@font-face {
+  font-family: 'JetBrains Mono';
+  font-style: normal;
+  font-weight: 400 500;
+  font-display: swap;
+  src: url('../assets/fonts/jetbrains-mono-latin-ext.woff2') format('woff2');
+  unicode-range: U+0100-02BA, U+02BD-02C5, U+02C7-02CC, U+02CE-02D7, U+02DD-02FF, U+0304, U+0308, U+0329, U+1D00-1DBF, U+1E00-1E9F, U+1EF2-1EFF, U+2020, U+20A0-20AB, U+20AD-20C0, U+2113, U+2C60-2C7F, U+A720-A7FF;
+}
+
+
+:root {
+  /* ── 色票 ── */
+  /* 試過暖米灰 #EFEDE8,Zakk 看了實機說改回來 —— 留白的問題不在顏色,
+     在版面(內容全擠左上、右下一整片死區),所以走版面的解法。
+     ⚠️ 底色一動,所有對比值都要重測(當時 --stone 掉到 4.45,低於 AA)。 */
+  --paper:   #F4F6F7;   /* 底色:冷紙白 */
+  --mist:    #E8ECEE;   /* 次層:淺霧 */
+
+  --ink:     #171B1E;   /* 內文墨:中性 — 長文閱讀不該有色偏 */
+  --ink-dsp: #16232C;   /* 顯示墨:偏藍 — 只給大標題,全站最大的色塊 */
+
+  /* 對比值是 2026-07-28 用程式對 --paper 實測的,不是估的。
+     舊值 #6B767D 只有 4.29:1,沒過 WCAG AA 的 4.5 —— 壓暗 3% 就過了,
+     肉眼幾乎看不出差別,但 --stone 用在導覽、圖說、章節編號,影響範圍很大。 */
+  --stone:   #646E75;   /* 次字:石灰(對比 4.81:1) */
+  --slate:   #5B7386;   /* 湖藍灰:副標、連結、所有 hover(對比 4.57:1) */
+  --hair:    #C9D4DA;   /* 分隔線:1.39:1,只能畫線,**絕對不可拿來寫字** */
+
+  --ember:   #B4552A;   /* 餘燼橘:全站唯一的暖色(對比 4.53:1,低空飛過) */
+
+  /* ── 間距尺標 ── 所有垂直間距只能從這組挑,節奏才會一致 */
+  --s1: 4px;
+  --s2: 8px;
+  --s3: 16px;
+  --s4: 24px;
+  --s5: 40px;
+  --s6: 64px;
+  --s7: 104px;
+  --s8: 168px;
+
+  /* ── 字型 ── */
+  --sans: "Archivo", system-ui, sans-serif;
+  --mono: "JetBrains Mono", ui-monospace, monospace;
+  /* 中文暫時用系統內建字型,不下載。之後再自製「台北黑體」子集檔 */
+  --han:  "PingFang TC", "Microsoft JhengHei", var(--sans);
+
+  /* ── 版面 ── */
+  --gutter: clamp(20px, 4vw, 56px);
+  --maxw: 1440px;
+  --topbar-h: 52px;
+
+  /* ══ 動態系統 ══
+     性格定為 **Premium**:優雅、克制、不彈跳(無 overshoot),
+     跟編輯極簡的底一致。
+
+     時長只有這四檔,全站不准出現第五個數字 ——
+     之前散落 30 個各自為政的值(150/180/220/240/260/300/340/480/600/700/800/900…),
+     沒有一致的性格,所以動起來像很多人各做各的。
+
+     前三檔是介面用的;--t-draw 是不同類別:「戲劇性揭示」,
+     motion-design 對它的區間是 600–1200ms,本來就該比介面慢。 */
+  --t-quick: 160ms;   /* hover、變色、按壓 —— 要「即時」 */
+  --t-base:  320ms;   /* 狀態切換、預覽圖跟隨、線條展開 */
+  --t-slow:  620ms;   /* 進場、換頁、遮罩升起 */
+  --t-draw: 1100ms;   /* 描線:骨架 SVG、圖面的繪圖機掃描 */
+
+  /* 進場要減速(東西「落定」),退場要加速(東西「走得乾脆」)。
+     之前不分進退都用同一條 ease-out,所以消失時會拖泥帶水。 */
+  --ease:      cubic-bezier(0.22, 0.61, 0.36, 1);   /* 簽名曲線:進場與一般狀態 */
+  --ease-exit: cubic-bezier(0.4, 0, 1, 1);          /* 退場:加速離開 */
+}
+
+
+/* ═══════════ 基礎重置 ═══════════ */
+
+*, *::before, *::after { box-sizing: border-box; }
+
+html {
+  -webkit-text-size-adjust: 100%;
+  scroll-behavior: smooth;
+  /* 點導覽跳過去時,不要讓標題被固定的導覽列蓋住 */
+  scroll-padding-top: var(--topbar-h);
+
+  /* 藏掉捲軸 —— 有一條可以拉的長條就會提醒人「這是網頁在捲」,
+     而不是「畫面在播」(Zakk:「把往下拉的條拿掉,這樣很不像在跑影片」)。
+     ⚠️ 要下在 html 不是 body —— 實際在捲的是 documentElement,
+     下在 body 上捲軸照樣佔 15px。
+     捲動本身完全沒被禁用:滾輪、鍵盤、觸控、Page Up/Down 都照常。 */
+  scrollbar-width: none;          /* Firefox */
+  -ms-overflow-style: none;       /* 舊 Edge */
+
+  /* ⚠️ 2026-08-01 拿掉 scroll-snap。
+     它只是「強制停到下一段」,不是影片 —— Zakk 說得對:
+     「你只是把它從可以慢慢滾變到強制停到下一頁,這並不是影片」。
+
+     改用 **pin + 捲動當播放頭**(ScrollTrigger 的機制,但用原生 sticky 實作):
+     畫面被釘住不動,捲動只推進這一幀的「播放進度」,內容在原地演進出場。
+     那才是「頁面整體固定,畫面往下一幀跑動」。
+     snap 跟 pin 會互相打架,所以移除。 */
+}
+
+body {
+  margin: 0;
+
+
+  /* 滿版出血的元素(Photos 橫幅)用到 100vw,含捲軸時會多幾 px —
+     這裡擋掉,避免整頁能左右晃動 */
+  overflow-x: hidden;
+  background: var(--paper);
+  color: var(--ink);
+  font-family: var(--sans);
+  font-size: 17px;
+  line-height: 1.6;
+  font-weight: 400;
+  -webkit-font-smoothing: antialiased;
+}
+
+h1, h2, p, ul { margin: 0; }
+ul { list-style: none; padding: 0; }
+img { display: block; max-width: 100%; height: auto; }
+a { color: inherit; text-decoration: none; }
+
+/* 鍵盤操作時才顯示的外框 — 滑鼠點擊不會出現 */
+:focus-visible {
+  outline: 2px solid var(--slate);
+  outline-offset: 4px;
+}
+
+.skip-link {
+  position: fixed;
+  top: 0; left: 0;
+  z-index: 99;
+  padding: 12px 20px;
+  background: var(--ink);
+  color: var(--paper);
+  font-family: var(--mono);
+  font-size: 12px;
+  transform: translateY(-120%);
+}
+.skip-link:focus { transform: translateY(0); }
+
+
+/* ═══════════ 共用小元件 ═══════════ */
+
+/* 全大寫、寬字距的等寬小標籤 — 導覽、編號、圖說都用它 */
+.wordmark,
+.nav a,
+.status,
+.hero__place,
+.section__num,
+.footer p {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+}
+
+
+/* ═══════════ 導覽列(sticky) ═══════════ */
+
+.topbar {
+  position: sticky;
+  top: 0;
+  z-index: 20;
+  height: var(--topbar-h);
+  padding: 0 var(--gutter);
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  background: var(--paper);
+  border-bottom: 1px solid var(--hair);
+}
+
+.wordmark { color: var(--ink); }
+
+.nav {
+  display: flex;
+  gap: clamp(16px, 2.4vw, 36px);
+}
+.nav a {
+  color: var(--stone);
+  display: inline-flex;
+  align-items: center;
+  /* 編號和文字用同一個行高,兩者才對得齊(下面 rolling 的位移量也靠它) */
+  line-height: 1.3;
+  gap: 0.55em;
+  padding: 4px 0;
+  transition: color var(--t-quick) var(--ease);
+}
+
+/* ── rolling text:滑過時字往上捲,換成下面那一份 ──
+   訣竅是「下面那一份」根本不存在 —— 它是 text-shadow
+   在正下方剛好一個行高的地方畫出來的同色複製品。
+   .nav__label 當裁切窗,平常只看得到原本那一份。 */
+.nav__label {
+  display: flex;
+  overflow: hidden;
+}
+.nav__label .ch {
+  display: block;
+  text-shadow: 0 1.3em 0 currentColor;
+  transition: transform var(--t-base) var(--ease);
+  /* 每個字母慢一點點進場,捲動才有由左往右的方向感 */
+  transition-delay: calc(var(--i) * 16ms);
+}
+.nav a:hover .ch,
+.nav a:focus-visible .ch { transform: translateY(-1.3em); }
+/* 桌機不顯示編號 —— 文字本身就講得夠清楚,數字只是多一層雜訊。
+   手機版會再打開(那裡放不下四個英文字,只能靠編號) */
+.nav__num {
+  display: none;
+  color: var(--hair);
+  transition: color var(--t-quick) var(--ease);
+}
+
+/* hover:全站的「可互動」訊號統一是湖藍灰 */
+.nav a:hover,
+.nav a:hover .nav__num { color: var(--slate); }
+
+/* 「你在這裡」:當前章節用最深的墨,不用顏色 —
+   餘燼橘要留給整站唯一的那一個地方 */
+.nav a.is-active { color: var(--ink); }
+.nav a.is-active .nav__num { color: var(--slate); }
+
+
+/* ═══════════ 影片式翻頁:pin + 捲動當播放頭 ═══════════
+   一幀 = 一段捲動距離,但畫面被 sticky 釘住不動 ——
+   捲動推進的是「這一幀播到哪」,不是「頁面移到哪」。
+
+   .frame      外殼,高度就是這一幀的「播放時間」
+   .frame__pin 真正看得到的那一屏,position: sticky 釘在視窗上
+
+   進度由 JS 寫進 --p(0→1),CSS 用它算進場與退場。 */
+
+.frame {
+  position: relative;
+  height: 150svh;              /* 一幀的播放長度。200svh 要滾太多圈才換頁(Zakk 回報)*/
+}
+
+.frame__pin {
+  position: sticky;
+  top: 0;
+  height: 100svh;
+  overflow: hidden;
+}
+
+/* ── 這一幀的內容 = 一張正在被描出來的圖紙 ──
+   進場不是淡入,是**由上往下被畫出來**。
+   元素的錯開是自然發生的:筆掃到誰,誰才出現 ——
+   不用另外寫 stagger,而且它是真的(筆就是照順序經過)。
+
+   這讓載入(比例尺被描出來)、換頁(繪圖機掃過)、幀轉場
+   變成同一個動作:**東西正在被畫出來**。 */
+.frame__sheet {
+  /* ⚠️ 一定要是定位基準。首屏的大字 / 左下說明 / 狀態列都是 position: absolute,
+     沒有這行的話它們會以 .hero-b(200svh 的外殼)為基準 ——
+     top: 64px 就變成「從外殼頂端算」,大字直接飛到畫面上方看不見。
+     實際踩過:點 Intro 過去只看得到左下小字,標題不見了。 */
+  position: relative;
+  height: 100%;
+  display: flex;
+  flex-direction: column;
+  justify-content: center;
+
+  clip-path: inset(0 0 calc((1 - var(--in, 1)) * 100%) 0);
+
+  /* 退場:圖紙往上抽走 + 微縮 + 淡出。比進場快 —— 退場要乾脆。 */
+  opacity: calc(1 - var(--out, 0));
+  transform:
+    translateY(calc(var(--out, 0) * -52px))
+    scale(calc(1 - var(--out, 0) * 0.04));
+  will-change: clip-path, opacity, transform;
+}
+
+/* 筆:騎在描繪邊緣的 ember 細線。
+   opacity 用 4·t·(1−t) 的拋物線 —— 兩端是 0、中途最亮,
+   所以筆只在「正在畫」的時候出現,畫完就不留痕跡。 */
+.frame__pen {
+  position: absolute;
+  left: 0;
+  right: 0;
+  height: 1px;
+  background: var(--ember);
+  top: calc(var(--in, 1) * 100%);
+  opacity: calc(var(--in, 1) * (1 - var(--in, 1)) * 4);
+  pointer-events: none;
+}
+
+/* 關掉動畫時:全部靜止顯示,不做進出場 */
+@media (prefers-reduced-motion: reduce) {
+  .frame { height: auto; }
+  .frame__pin { position: static; height: auto; overflow: visible; }
+  .frame__sheet { clip-path: none; opacity: 1; transform: none; height: auto; }
+  .frame__pen { display: none; }
+}
+
+
+/* ═══════════ HERO ═══════════ */
+
+.hero {
+  /* svh = 手機瀏覽器網址列收合時也不會破版的視窗高度 */
+  min-height: calc(100svh - var(--topbar-h));
+  padding: 0 var(--gutter);
+  display: flex;
+  flex-direction: column;
+}
+
+/* ── 垂直結構 ──────────────────────────────────
+   用 Grid 把 hero 明確切成四列,每一列的空間各自指定:
+
+     第 1 列  標題上方的呼吸   最少 40px,可伸縮(權重 1.1)
+     第 2 列  標題             由內容決定
+     第 3 列  標題↔副標之間    最少 40px,可伸縮(權重 1.0)
+     第 4 列  副標             由內容決定
+
+   關鍵:多餘高度由「第 1 列」和「第 3 列」按 1.1 : 1 分攤,
+   不會全部堆在同一個縫隙。副標移到下方後,下方不再是空的,
+   空間變成「兩塊內容之間的距離」而不是「最後一塊之後的空白」。 */
+
+.hero__center {
+  flex: 1;
+  display: grid;
+  grid-template-rows:
+    minmax(var(--s5), 1.1fr)   /* 1 上方呼吸 */
+    auto                        /* 2 標題 */
+    minmax(var(--s5), 1fr)      /* 3 中間呼吸 */
+    auto;                       /* 4 副標 */
+  padding-bottom: var(--s6);
+  max-width: var(--maxw);
+  width: 100%;
+}
+
+/* ── 主角:巨大定位句 ── */
+.hero__title {
+  grid-row: 2;
+  /* 字級同時跟著「寬度」和「高度」縮放 —
+     視窗越高字越大,文字與留白的比例才會固定,不會被拉散 */
+  font-size: clamp(3rem, min(9.2vw, 17vh), 11rem);
+  color: var(--ink-dsp);
+  font-weight: 500;
+  font-stretch: 125%;                          /* 靜態字型走這行 */
+  font-variation-settings: 'wdth' 125, 'wght' 500;  /* 可變字型走這行(雙保險) */
+  line-height: 0.92;
+  letter-spacing: -0.03em;
+}
+
+/* 每一行包一層 overflow:hidden,文字才能從下方「升」上來 */
+.hero__title .line { display: block; overflow: hidden; }
+.hero__title .line__inner { display: block; }
+
+.hero__lede {
+  grid-row: 4;
+  max-width: 34ch;
+  color: var(--slate);
+  font-size: clamp(15px, 1.15vw, 17px);
+  line-height: 1.55;
+}
+
+
+/* ── 底部狀態列 ── */
+.hero__bar {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--hair);
+  flex-shrink: 0;
+}
+
+.status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  color: var(--ink);
+}
+/* 全站唯一的暖色。圓形能承載顏色,而且這個位置本來就該有色點 */
+.status__dot {
+  width: 7px;
+  height: 7px;
+  border-radius: 50%;
+  background: var(--ember);
+  flex-shrink: 0;
+}
+
+.hero__place { color: var(--stone); }
+
+.scroll-cue {
+  font-size: 14px;
+  line-height: 1;
+  color: var(--stone);
+  padding: var(--s1) 6px;
+  transition: color var(--t-quick) var(--ease),
+              transform var(--t-base) var(--ease);
+}
+.scroll-cue:hover {
+  color: var(--slate);
+  transform: translateY(3px);
+}
+
+
+/* ═══════════ 章節骨架(P08 編號章節) ═══════════ */
+
+.section {
+  max-width: var(--maxw);
+  margin: 0 auto;
+
+  /* ── 一區 = 一幀 ──
+     每個區塊剛好一個視窗高、內容垂直置中 → 捲動吸附就變成真正的「翻頁」,
+     像播影片一樣一格一格跳(Zakk:「我想要播影片的感覺」)。
+     原本上下各 168px 內距是為了連續捲動的呼吸感;
+     現在空間改由 justify-content: center 給,內距只留最小值。 */
+  padding: var(--s6) var(--gutter);
+  border-bottom: 0;            /* 幀與幀之間不用線分隔 —— 它們是不同鏡頭,不是同一頁 */
+  width: 100%;
+}
+.section--last { border-bottom: 0; }
+
+.section__head {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(16px, 2.5vw, 32px);
+  margin-bottom: var(--s5);
+  flex: none;
+}
+.section__num { color: var(--stone); }
+
+.section__title {
+  font-size: clamp(1.75rem, 3.2vw, 2.5rem);   /* 手機 28px → 桌機 40px */
+  color: var(--ink-dsp);
+  font-weight: 500;
+  font-stretch: 112.5%;
+  font-variation-settings: 'wdth' 112, 'wght' 500;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+}
+
+/* ═══════════════════════════════════════════════════════
+   01 WORKS — P05 Hover 換圖清單
+   文字清單本身是排版主角;預覽圖是輔助,不能搶戲
+   ═══════════════════════════════════════════════════════ */
+
+.works { border-top: 1px solid var(--hair); }
+.works__row { border-bottom: 1px solid var(--hair); }
+
+.works__line {
+  display: grid;
+  grid-template-columns: 3.25rem minmax(0, 1fr) auto 4rem;
+  align-items: baseline;
+  gap: var(--s4);
+  /* 上下內距 24 → 14。曾經為了塞十一列收到 8.5px,
+     但 Zakk 隨後拿掉三列 —— 八列在 14px 下內容高只有 621px,
+     連 640px 的視窗都放得下,沒有再縮的理由了,所以收回來。
+     ⚠️ 要縮的話收內距不要收字級 —— 作品名是這一幀唯一的大字。 */
+  padding: 14px 0;
+  color: var(--ink-dsp);
+  transition: color var(--t-quick) var(--ease);
+}
+
+.works__num,
+.works__type,
+.works__year {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+  transition: color var(--t-quick) var(--ease);
+}
+.works__year { text-align: right; }
+
+.works__name {
+  font-size: clamp(1.25rem, 2.6vw, 2.05rem);
+  font-weight: 500;
+  font-stretch: 112.5%;
+  font-variation-settings: 'wdth' 112, 'wght' 500;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+/* 滑過清單時,其他列退到石灰 — 被指到的那列留在深墨藍。
+   「聚焦」用的是明暗,不是顏色,才不會跟照片搶戲 */
+.works:hover .works__line { color: var(--stone); }
+.works__row:hover .works__line { color: var(--ink-dsp); }
+.works__row:hover .works__num { color: var(--slate); }
+
+/* 鍵盤操作也要看得出來現在在哪一列 */
+.works__line:focus-visible { outline-offset: -4px; }
+
+
+/* ── 預覽圖 ──
+   手機:直接顯示在該列下方(不能用 hover)
+   桌機:改成跟著游標的浮動預覽(下面的 media query) */
+
+.works__thumb {
+  margin: 0 0 var(--s4);
+  background: var(--mist);
+}
+.works__thumb img { width: 100%; }
+
+.works__thumb--empty {
+  display: grid;
+  place-items: center;
+  aspect-ratio: 16 / 10;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+
+
+/* 只有「真的有游標」的裝置才啟用 P05,觸控裝置完全不套用 */
+@media (hover: hover) and (pointer: fine) {
+
+  .works__thumb {
+    position: fixed;
+    top: 0;
+    left: 0;
+    z-index: 5;
+    width: clamp(240px, 22vw, 360px);
+    margin: 0;
+    opacity: 0;
+    pointer-events: none;         /* 預覽圖不能擋住游標事件 */
+    transition: opacity var(--t-quick) var(--ease);
+    will-change: transform;
+  }
+
+  /* ⚠️ 預覽圖在啟用時會被 JS 搬到 <body> 底下 —— 因為 `.works` 帶著進場動畫的
+     transform,而**祖先只要有 transform(連 identity 都算),position: fixed
+     就會改用它當基準,不再對齊視窗**,JS 給的視窗座標就全錯了(實測差 417px)。
+     搬走之後它不再是某一列的子元素,所以顯示狀態掛在自己身上。
+     `.works__row.is-hover` 那條留著:JS 沒跑或搬移失敗時還有作用。 */
+  .works__thumb.is-hover,
+  .works__row.is-hover .works__thumb { opacity: 1; }
+
+  .works__thumb--empty { width: clamp(240px, 22vw, 360px); }
+}
+
+
+/* 暫時的佔位文字,做到該區時會被換掉 */
+.placeholder {
+  color: var(--stone);
+  font-family: var(--mono);
+  font-size: 13px;
+  letter-spacing: 0.04em;
+}
+
+
+/* ── Contact ── */
+.contact-list {
+  display: flex;
+  flex-wrap: wrap;
+  gap: clamp(20px, 3vw, 48px);
+  font-size: clamp(1.25rem, 2.2vw, 1.75rem);
+}
+.contact-list a {
+  padding-bottom: 3px;
+  border-bottom: 1px solid var(--hair);
+  transition: color var(--t-quick) var(--ease),
+              border-color var(--t-quick) var(--ease);
+}
+.contact-list a:hover {
+  color: var(--slate);
+  border-color: var(--slate);
+}
+
+
+/* ═══════════ Footer ═══════════ */
+
+.footer {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: var(--s5) var(--gutter) var(--s6);
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s4);
+  border-top: 1px solid var(--hair);
+}
+.footer p { color: var(--stone); }
+
+
+/* ═══════════════════════════════════════════════════════
+   P07 滾動揭示 — 這是「地」不是「圖」,要做到察覺不到
+   只動 opacity 和 transform(效能底線)
+   ═══════════════════════════════════════════════════════ */
+
+.reveal {
+  opacity: 0;
+  transform: translateY(20px);
+  /* 失焦 → 對焦。文字像「浮上來對準」,而不是「飄進來」 */
+  filter: blur(10px);
+  transition: opacity var(--t-slow) var(--ease),
+              transform var(--t-slow) var(--ease),
+              /* 清晰度比位置早到,字先看得懂,再落定 — 太慢會顯得拖 */
+              filter calc(var(--t-slow) - 80ms) var(--ease);
+  transition-delay: var(--delay, 0ms);
+}
+.reveal.is-visible {
+  opacity: 1;
+  transform: none;
+  filter: blur(0);
+}
+
+/* Hero 標題改用「逐行升起」:外層裁切,內層從下方推上來 */
+/* 大標不加模糊(實測後定案)——
+   遮罩已經在講「還沒成形」,再疊模糊是同一句話說兩次,
+   而且模糊的字邊碰到裁切線會被硬切。 */
+.hero__title.reveal { opacity: 1; transform: none; filter: none; }
+.hero__title .line__inner {
+  transform: translateY(105%);
+  transition: transform var(--t-slow) var(--ease);
+}
+.hero__title.is-visible .line__inner { transform: none; }
+/* 第二行晚 90ms 進場(品味規則:同組 stagger 60–90ms) */
+.hero__title .line:nth-child(2) .line__inner { transition-delay: 90ms; }
+
+
+/* ═══════════ 手機 ═══════════ */
+
+@media (max-width: 640px) {
+  body { font-size: 16px; }
+
+  /* 單頁四個章節而已,不做漢堡選單 —
+     直接把導覽縮成 01 02 03 04,不用 JS、鍵盤也能用 */
+  .nav__label { display: none; }
+  .nav__num { display: block; }
+  .nav { gap: 14px; }
+
+  .section { padding: var(--s7) var(--gutter); }
+  .section__head { margin-bottom: var(--s5); }
+
+  .hero__center {
+    grid-template-rows:
+      minmax(var(--s4), 1.1fr)
+      auto
+      minmax(var(--s4), 1fr)
+      auto;
+    padding-bottom: var(--s5);
+  }
+
+  .hero__bar { flex-wrap: wrap; row-gap: 6px; }
+  .status      { order: 1; width: 100%; }
+  .hero__place { order: 2; }
+  .scroll-cue  { order: 3; margin-left: auto; }
+
+  .footer { flex-direction: column; gap: var(--s2); }
+}
+
+
+/* ═══════════ 無障礙:使用者關掉動畫時,全部直接顯示 ═══════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  html { scroll-behavior: auto; }
+
+  *, *::before, *::after {
+    animation-duration: 0.01ms !important;
+    transition-duration: 0.01ms !important;
+  }
+
+  .reveal { opacity: 1; transform: none; filter: none; }
+  .hero__title .line__inner,
+  .hb2-title .line__inner { transform: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   HERO B — 實驗版:原版文字(左) + 直式氛圍人像(右)
+   參考 kalinsky.design:暗調側臉 + 輕微 RGB 色差 glitch。
+   B 版是預設主頁;?hero=a 時 JS 給 <html> 加 .hero-a-on 顯示舊 A 版。
+   JS 失效時預設仍是 A 版,不會開天窗。
+   ═══════════════════════════════════════════════════════ */
+
+.hero { display: none; }                     /* A 版退役,?hero=a 才顯示 */
+.hero-a-on .hero { display: flex; }
+.hero-a-on .hero-b { display: none; }
+
+.hero-b {
+  display: grid;
+  grid-template-columns: 1.05fr 0.95fr;      /* 左字 右像 */
+  grid-template-rows: 1fr auto;              /* 內容 + 底部狀態列 */
+  align-items: center;
+  gap: var(--gutter);
+  min-height: calc(100svh - var(--topbar-h));
+  padding: 0 var(--gutter);
+  position: relative;
+  overflow: hidden;                          /* 龍骨放大後超出的部分裁掉 */
+}
+
+/* ── 背景鬼影:龍骨雕塑 ──
+   multiply 混色讓白底融進紙色,只剩骨的墨影;
+   滑鼠視差由 --mx/--my(JS 寫入)驅動,沒有 JS 時就是靜態鬼影。 */
+.hb2-ghost {
+  position: absolute;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+}
+.hb2-ghost img {
+  position: absolute;
+  left: 50%;
+  top: 50%;
+  width: min(105vw, 1360px);
+  height: auto;
+  transform: translate(calc(-50% + var(--mx, 0) * 28px),
+                       calc(-52% + var(--my, 0) * 18px));
+  filter: blur(11px) grayscale(0.25);
+  opacity: 0.22;                             /* 平常更看得到一點 */
+  mix-blend-mode: multiply;
+}
+
+/* 內容都墊在鬼影上面 */
+.hb2-text, .hb2-fig, .hb2-bar { position: relative; z-index: 1; }
+
+/* 視差:照片與文字往反方向微移,畫面就有「深度」 */
+.hb2-fig  { transform: translate(calc(var(--mx, 0) * -12px), calc(var(--my, 0) * -8px)); }
+.hb2-text { transform: translate(calc(var(--mx, 0) *   6px), calc(var(--my, 0) *  4px)); }
+
+/* ── 頂部 ember 紅細線 + 一抹暖漸層氛圍 ── */
+.hero-b::before {
+  content: "";
+  position: absolute;
+  top: 0; left: var(--gutter); right: var(--gutter);
+  height: 2px;
+  background: linear-gradient(90deg, var(--ember), transparent 62%);
+  z-index: 1;
+}
+/* 氛圍色移到 .page-atmos(整頁連續),首屏不再自己畫 —— 否則首屏結束處會有接縫 */
+.hero-b::after { display: none; }
+
+/* 全站氛圍:固定不動,所以捲到哪都是同一片色,不會有分界 */
+.page-atmos {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background:
+    radial-gradient(58% 52% at 10% 88%, rgba(180, 85, 42, 0.085), transparent 70%),
+    radial-gradient(44% 40% at 94% 10%, rgba(180, 85, 42, 0.055), transparent 70%),
+    radial-gradient(66% 58% at 80% 62%, rgba(91, 115, 134, 0.06), transparent 72%),
+    radial-gradient(50% 46% at 26% 34%, rgba(91, 115, 134, 0.045), transparent 72%);
+}
+
+/* 大標左側一道 ember 紅刻線(視覺錨點,也讓紅色多一處) */
+.hb2-text { padding-left: var(--s4); border-left: 2px solid var(--ember); }
+
+/* ── hover 大標:龍骨鬼影「顯影」──
+   平常是模糊淡影,滑過大標時變清楚、上色、浮出來,字與骨互動。 */
+.hb2-ghost img { transition: opacity var(--t-base) var(--ease), filter var(--t-base) var(--ease); }
+.hero-b.ghost-lit .hb2-ghost img {
+  opacity: 0.42;
+  filter: blur(3px) grayscale(0);
+}
+
+/* hover 大標時,字本身也來一道紅/藍色差(呼應照片的 glitch) */
+.hb2-title { transition: text-shadow var(--t-quick) var(--ease); }
+.hero-b.ghost-lit .hb2-title {
+  text-shadow: -2px 0 rgba(180, 85, 42, 0.45), 2px 0 rgba(91, 115, 134, 0.42);
+}
+
+/* 副標與關鍵字:載入時跟著大標往上浮 */
+.hb2-lede, .hb2-tags {
+  opacity: 0;
+  transform: translateY(12px);
+  animation: hbRise var(--t-slow) var(--ease) forwards;
+}
+.hb2-lede { animation-delay: 260ms; }
+.hb2-tags { animation-delay: 400ms; }
+@keyframes hbRise { to { opacity: 1; transform: none; } }
+
+/* ── 大標進場:遮罩升起(與舊 A 版同語言) ── */
+.hb2-title .line { display: block; overflow: hidden; }
+.hb2-title .line__inner {
+  display: block;
+  transform: translateY(105%);
+  transition: transform var(--t-slow) var(--ease);
+}
+.hb2-title.is-visible .line__inner { transform: none; }
+.hb2-title .line:nth-child(2) .line__inner { transition-delay: 90ms; }
+
+/* 碎片走廊 canvas:固定鋪滿視窗,墊在所有內容後面。
+   ⚠️ 一定要 fixed 而不是 absolute —— 碎片要能飛過整頁,
+   放在 hero 裡的話捲走就不見了。 */
+.fragments {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+
+
+/* ── Logo mark:一點透視「房間框」 ── */
+.lgm {
+  display: block;
+  width: clamp(140px, 17vw, 230px);
+  height: auto;
+  margin-bottom: var(--s4);
+  overflow: visible;
+}
+.lgm-frame, .lgm-inner, .lgm-edge {
+  fill: none; stroke: var(--ink-dsp);
+  stroke-width: 2.4; stroke-linejoin: round; stroke-linecap: round;
+}
+.lgm-edge { stroke: var(--stone); }
+.lgm-dot { fill: var(--ember); transform-box: fill-box; transform-origin: center; }
+
+/* 進場:紅點 → 透視線 → 內框 → 外框 */
+.lgm-frame, .lgm-inner, .lgm-edge {
+  stroke-dasharray: 1; stroke-dashoffset: 1;
+  animation: lgmDraw 640ms var(--ease) forwards;
+}
+.lgm-dot { opacity: 0; animation: lgmDot 380ms var(--ease) forwards; }
+.lgm-edge  { animation-delay: 360ms; }
+.lgm-inner { animation-delay: 640ms; }
+.lgm-frame { animation-delay: 900ms; }
+@keyframes lgmDraw { to { stroke-dashoffset: 0; } }
+@keyframes lgmDot  { from { opacity: 0; transform: scale(0); } to { opacity: 1; transform: scale(1); } }
+
+/* 消失點深度:內框與紅點隨滑鼠反向微移(真透視感) */
+.lgm-depth { transform: translate(calc(var(--mx, 0) * 7px), calc(var(--my, 0) * 5px)); }
+.hb2-bar { grid-column: 1 / -1; }            /* 狀態列橫跨整行,樣式沿用 A 版 .hero__bar */
+
+/* ── 左:沿用 A 版的字 ── */
+.hb2-title {
+  font-family: var(--sans);
+  font-stretch: 125%;
+  font-variation-settings: "wdth" 125, "wght" 500;
+  font-weight: 500;
+  font-size: clamp(3rem, min(8vw, 15vh), 9rem);   /* 還原:大字當主角 */
+  line-height: 0.98;
+  letter-spacing: -0.03em;
+  color: var(--ink-dsp);
+}
+.hb2-lede {
+  margin-top: var(--s4);
+  max-width: 32ch;
+  color: var(--slate);
+  font-size: clamp(15px, 1.15vw, 17px);
+  line-height: 1.55;
+}
+
+/* ── 右:直式人像 + glitch ──
+   同一張圖疊三層:底層暖調單色,再疊「紅」「青」兩張各推 3px,
+   用 mix-blend screen 在暖黑底上加出色差邊 = 克制的 glitch。 */
+/* 身分關鍵字:安靜的等寬小字,呼應原「身分牆」概念但不喧嘩 */
+.hb2-tags {
+  margin-top: var(--s4);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+
+.hb2-fig { justify-self: end; margin: 0; }
+
+/* 照片圖說:攝影集式落款 */
+.hb2-cap {
+  margin-top: var(--s2);
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--stone);
+}
+
+.hb2-portrait {
+  position: relative;
+  width: clamp(180px, 16vw, 210px);           /* 直式框(2 號標準置中,定案) */
+  height: min(48vh, 350px);
+  overflow: hidden;
+  background: #100c0a;                        /* 暖黑底,供色差圖層混色 */
+}
+.hb2-base,
+.hb2-chroma {
+  position: absolute;
+  inset: 0;
+  width: 100%;
+  height: 100%;
+}
+.hb2-base {
+  object-fit: cover;
+  object-position: 50% 42%;
+  /* 暗調、暖色、顆粒、暗角都已在 Python 端烤進圖檔,這裡不再疊濾鏡 */
+}
+.hb2-chroma {
+  background-image: url("../assets/about/hero-portrait.webp");
+  background-size: cover;
+  background-position: 50% 42%;
+  mix-blend-mode: screen;
+  opacity: 0.4;                              /* 收克制一點 */
+  pointer-events: none;
+}
+.hb2-chroma { transition: opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease); }
+.hb2-chroma--r { filter: grayscale(1) sepia(1) saturate(6) hue-rotate(-38deg) brightness(1.15); transform: translateX(-2px); }
+.hb2-chroma--c { filter: grayscale(1) sepia(1) saturate(6) hue-rotate(150deg) brightness(1.15); transform: translateX(2px); }
+/* hover 照片:色差 glitch 加強一下(克制範圍內) */
+.hb2-fig:hover .hb2-chroma { opacity: 0.62; }
+.hb2-fig:hover .hb2-chroma--r { transform: translateX(-5px); }
+.hb2-fig:hover .hb2-chroma--c { transform: translateX(5px); }
+
+@media (max-width: 720px) {
+  .hero-b {
+    grid-template-columns: 1fr;
+    align-content: center;
+    gap: var(--s5);
+    padding-top: var(--s5);
+  }
+  .hb2-portrait { justify-self: center; max-width: 300px; height: 44vh; }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   03 ABOUT — 冷調人像(左) + 文字流(右)
+   文案定稿見 DECISIONS.md §三;版面語氣照 DESIGN.md:安靜的編輯極簡。
+   ═══════════════════════════════════════════════════════ */
+
+.about {
+  display: grid;
+  grid-template-columns: minmax(220px, 300px) 1fr;
+  gap: var(--s6);
+  align-items: start;
+  margin-top: var(--s5);
+}
+
+.about__portrait img {
+  width: 100%;
+  height: auto;                /* 維持原比例,不硬裁 */
+}
+
+/* 名字:About 的大字(標準寬度,不用 Expanded — 拉寬會顯得扁) */
+.about__name {
+  font-stretch: normal;
+  font-variation-settings: "wdth" 100, "wght" 540;
+  font-weight: 540;
+  font-size: clamp(26px, 3vw, 42px);
+  line-height: 1.15;
+  letter-spacing: -0.01em;
+  color: var(--ink-dsp);
+}
+/* 中文名副標 */
+.about__name-zh {
+  display: block;
+  margin-top: var(--s1);
+  font-family: var(--han);
+  font-stretch: normal;
+  font-variation-settings: normal;
+  font-weight: 400;
+  font-size: clamp(14px, 1.1vw, 17px);
+  letter-spacing: 0.18em;      /* 中文名拉點字距,有落款感 */
+  color: var(--stone);
+}
+
+/* 開場句:改小,退居名字之下 */
+.about__opening {
+  margin-top: var(--s3);
+  font-size: clamp(17px, 1.4vw, 21px);
+  font-weight: 500;
+  color: var(--ink);
+}
+.about__opening-zh {
+  display: block;
+  margin-top: var(--s2);
+  font-family: var(--han);
+  font-stretch: normal;
+  font-variation-settings: normal;
+  font-weight: 400;
+  font-size: clamp(15px, 1.2vw, 18px);
+  letter-spacing: 0.04em;
+  color: var(--slate);
+}
+
+.about__intro { margin-top: var(--s3); max-width: 58ch; }   /* 一幀要塞得下:40 → 16 */
+.about__intro p + p { margin-top: var(--s3); }
+.about__intro-zh {
+  font-family: var(--han);
+  font-size: 15px;
+  color: var(--stone);
+}
+
+/* 小節標籤:沿用全站等寬小標的語氣 */
+.about__label {
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+
+.about__block { margin-top: var(--s4); }   /* 一幀要塞得下:64 → 24 */
+
+/* 經歷列:hairline 分隔,年份靠右(同 Works 的閱讀節奏) */
+.xp { margin-top: var(--s3); }
+.xp__row {
+  display: flex;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding: 10px 0;              /* 經歷列自動展開後要塞進一幀:16 → 10 */
+  border-top: 1px solid var(--hair);
+}
+.xp__org { display: block; font-weight: 500; color: var(--ink); }
+.xp__role {
+  display: block;
+  margin-top: var(--s1);
+  max-width: 52ch;
+  font-size: 15px;
+  color: var(--stone);
+}
+.xp__time {
+  flex: none;
+  font-family: var(--mono);
+  font-size: 12px;
+  letter-spacing: 0.08em;
+  color: var(--stone);
+}
+
+.about__list { margin-top: var(--s2); max-width: 58ch; }
+
+/* 結尾:open to work + 下載 CV */
+.about__cta {
+  margin-top: var(--s6);
+  padding-top: var(--s4);
+  border-top: 1px solid var(--hair);
+  color: var(--ink);
+}
+.about__cv {
+  margin-left: var(--s3);
+  color: var(--slate);
+  font-weight: 500;
+  transition: color var(--t-quick) var(--ease);
+}
+.about__cv:hover { color: var(--ink-dsp); text-decoration: underline; }
+
+@media (max-width: 720px) {
+  .about { grid-template-columns: 1fr; gap: var(--s5); }
+  .about__portrait { max-width: 320px; }
+  .xp__row { flex-direction: column; gap: var(--s1); }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   02 PHOTOS — 12 張景觀照,整站的色彩來源
+   版面節奏:全幅 → 並排 → 直橫混排。介面保持安靜,照片自己講話。
+   ═══════════════════════════════════════════════════════ */
+
+.photos {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  column-gap: var(--s4);
+  row-gap: var(--s6);
+  margin-top: var(--s5);
+}
+
+.ph { margin: 0; }
+.ph img { width: 100%; height: auto; }
+
+.ph--full { grid-column: 1 / -1; }
+.ph--half { grid-column: span 6; }
+.ph--tall { grid-column: span 5; }
+.ph--wide { grid-column: span 7; align-self: center; }  /* 直橫並排時,橫幅垂直置中 */
+
+@media (max-width: 720px) {
+  .photos { row-gap: var(--s5); }
+  .ph--full, .ph--half, .ph--tall, .ph--wide { grid-column: 1 / -1; }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   載入動畫(preloader)
+   建築比例尺被「描」出來,尾端橘線是筆的位置。放左下角(圖紙上它的位置)。
+   進度綁真實載入,邏輯在 main.js。
+   ═══════════════════════════════════════════════════════ */
+
+html.is-loading, html.is-loading body { overflow: hidden; }
+
+/* 只是數字與線的浮層 —— 背景透明,讓首屏那張 canvas 直接把碎片組成主頁畫面。
+   結束時淡出,不做簾幕過場。 */
+.preloader {
+  position: fixed;
+  inset: 0;
+  z-index: 100;
+  background: transparent;
+  pointer-events: none;
+  display: grid;
+  place-items: center;
+  transition: opacity var(--t-slow) var(--ease);
+}
+.preloader.is-done { opacity: 0; }
+
+/* 載入時先藏住首屏文字,組合完成再浮現 —— 過程只看得到碎片成形 */
+.hb2-head, .hb2-meta, .hb2-status, .topbar {
+  transition: opacity var(--t-slow) var(--ease);
+}
+html.is-loading .hb2-head,
+html.is-loading .hb2-meta,
+html.is-loading .hb2-status,
+html.is-loading .topbar { opacity: 0; }
+
+/* 比例尺放左下角 —— 圖紙上它本來待的位置。畫面中間讓給頭骨碎片。 */
+.pl__inner {
+  position: absolute;
+  left: var(--gutter);
+  bottom: var(--s6);
+  width: min(52vw, 400px);
+}
+
+.pl__scale {
+  display: block;
+  width: 100%;
+  height: 13px;
+  overflow: visible;          /* 筆的線超出上下緣一點 */
+}
+
+/* 空的尺:只有線。vector-effect 讓線在非等比縮放下仍是 1px,不會被拉粗 */
+.pl__scale-out {
+  fill: none;
+  stroke: var(--ink-dsp);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* 被描出來的段 */
+.pl__scale-ink { fill: var(--ink-dsp); }
+
+/* 筆:全站唯一的暖色留給「正在發生的那一點」 */
+.pl__pen {
+  stroke: var(--ember);
+  stroke-width: 1;
+  vector-effect: non-scaling-stroke;
+}
+
+/* 刻度數字要對齊各自的刻度位置,所以是絕對定位 ——
+   0 / 50 / 125 / 250 / 500 / 1000 的間隔本來就不平均,不能用 space-between */
+.pl__ticks {
+  position: relative;
+  height: 1.2em;
+  margin-top: var(--s2);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.06em;
+  color: var(--stone);
+}
+.pl__ticks span {
+  position: absolute;
+  left: var(--x);
+  transform: translateX(-50%);
+}
+.pl__ticks span:first-child { transform: none; }
+.pl__ticks span:last-child  { transform: translateX(-100%); }
+
+
+/* ═══════════ 全站環繞粒子 ═══════════ */
+
+.ambient {
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  width: 100%;
+  height: 100%;
+  pointer-events: none;
+}
+/* 內容全部墊在粒子層上面 */
+.topbar { z-index: 6; }
+.hero-b, #main, .footer { position: relative; z-index: 1; }
+
+
+/* ═══════════ 頂部捲動進度線 ═══════════ */
+
+.scroll-progress {
+  position: fixed;
+  top: 0; left: 0; right: 0;
+  height: 2px;
+  z-index: 7;
+  pointer-events: none;
+}
+.scroll-progress i {
+  display: block;
+  height: 100%;
+  width: 0%;
+  background: linear-gradient(90deg, var(--ember), #d8814e);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   捲動動態
+   ・區塊標題:遮罩上掀 + 編號橘色
+   ・圖片:進場放大收斂 + 捲動視差(JS 寫 --py)
+   ═══════════════════════════════════════════════════════ */
+
+/* 章節編號給一點溫度(原本全站太冷) */
+.section__num { color: var(--ember); }
+
+/* 標題遮罩上掀 */
+.section__title {
+  display: inline-block;
+  clip-path: inset(0 0 110% 0);
+  transform: translateY(0.18em);
+  transition: clip-path var(--t-slow) var(--ease), transform var(--t-slow) var(--ease);
+}
+.section__head.is-visible .section__title {
+  clip-path: inset(0 0 -20% 0);
+  transform: none;
+}
+
+/* 圖片進場:從略微放大收斂回原尺寸(有「落定」感) */
+.ph, .works__thumb, .about__portrait { --py: 0px; }
+.ph img {
+  transform: translateY(var(--py)) scale(1.06);
+  opacity: 0;
+  transition: transform var(--t-draw) var(--ease), opacity var(--t-slow) var(--ease);
+  will-change: transform;
+}
+.ph.is-visible img { transform: translateY(var(--py)) scale(1); opacity: 1; }
+
+/* hover:輕微放大 + 提亮(照片區不再靜止) */
+.ph { overflow: hidden; }
+.ph img { transition-property: transform, opacity, filter; }
+.ph:hover img { filter: saturate(1.08) contrast(1.03); }
+
+
+/* ═══════════════════════════════════════════════════════
+   Photos 錯位排版(不制式)
+   交錯上下位移 + 寬度不一 + 編號(CSS counter,純裝飾)
+   ═══════════════════════════════════════════════════════ */
+
+.photos { counter-reset: ph; row-gap: var(--s6); }
+
+.ph { position: relative; counter-increment: ph; }
+.ph::after {
+  content: counter(ph, decimal-leading-zero);
+  position: absolute;
+  top: calc(var(--s3) * -1);
+  left: 0;
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.12em;
+  color: var(--stone);
+}
+
+/* 交錯位移:偶數往下沉 → 打破整齊的橫列(幅度克制,不要留下空洞) */
+.ph:nth-child(even) { margin-top: var(--s5); }
+.ph:nth-child(3n) { margin-top: var(--s3); }
+
+/* 寬度變化:讓節奏不規則。
+   注意順序 —— HTML 裡每組半寬的「第一張」是偶數,要讓它起在左邊(col 1),
+   第二張才落在同一列的右邊(col 8);寫反會被擠到下一列,中間留下空洞。 */
+.ph--half:nth-of-type(even) { grid-column: 1 / span 5; }
+.ph--half:nth-of-type(odd) { grid-column: 8 / span 5; }
+.ph--tall { grid-column: 2 / span 4; }
+.ph--wide { grid-column: span 6; align-self: end; }
+.ph--full { grid-column: 2 / -2; }
+
+@media (max-width: 720px) {
+  .photos { row-gap: var(--s6); }
+  .ph--full, .ph--half, .ph--tall, .ph--wide,
+  .ph--half:nth-of-type(odd), .ph--half:nth-of-type(even) { grid-column: 1 / -1; }
+  .ph:nth-child(even), .ph:nth-child(3n) { margin-top: 0; }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   首屏改版:碎片頭骨當主角
+   ・整片背景就是懸浮碎片,**墊在文字後面**(z-index 0)
+   ・「Portfolio」中小尺寸,放在原本大標的位置(左、垂直置中)
+   ・所有說明文字縮到最小,收在左下角
+   ═══════════════════════════════════════════════════════ */
+
+.hero-b {
+  display: block;                 /* 改用絕對定位排,不再用 grid 分欄 */
+  position: relative;
+  /* 一區 = 一幀,首屏也要剛好一個視窗高。
+     topbar 是 sticky 疊在內容上的,不該從高度裡扣掉 —— 扣了就少 52px,
+     吸附落點會跟其他區塊對不齊。 */
+  min-height: 100svh;
+  padding: 0 var(--gutter);
+  /* ⚠️ 不能有 overflow —— 祖先只要設了 overflow,子層的 position: sticky 就完全失效。
+     首屏的 pin 因此沒有黏住,點 Intro 過去大字會跑到畫面外。
+     裁切交給 .frame__pin 自己做。 */
+}
+.hero-b::before { display: none; }        /* 拿掉上面那條橫線 */
+
+/* ── 左上:小標籤 + 宣言 ── */
+.hb2-head {
+  position: absolute;
+  left: var(--gutter);
+  /* 放左上:左欄變成「上有宣言、下有說明」的上下框,中間整片讓給頭骨。
+     原本垂直置中會跟碎片擠在同一條水平線上,兩個都吃虧。 */
+  top: var(--s6);
+  z-index: 1;
+  max-width: min(46vw, 640px);
+}
+
+.hb2-eyebrow {
+  font-family: var(--mono);
+  font-size: 10.5px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--stone);
+  margin: 0 0 var(--s4);
+}
+
+.hb2-word {
+  margin: 0;
+  font-family: var(--sans);
+  font-stretch: 112.5%;
+  font-variation-settings: "wdth" 112, "wght" 500;
+  font-weight: 500;
+  /* 首屏最大的字,必須大過下面 Works 清單的作品名(44px),
+     不然開場的份量會輸給內容列表 */
+  font-size: clamp(2.1rem, 5.0vw, 4.2rem);
+  letter-spacing: -0.03em;
+  line-height: 1.02;
+  color: var(--ink-dsp);
+}
+
+/* 第二行退成石灰 —— 一句話裡有主有次,眼睛才有落點。
+   全部同一個濃度會變成一塊字牆。 */
+.hb2-word__dim { color: var(--stone); }
+
+/* 狀態列:頁面中下 */
+.hb2-status {
+  position: absolute;
+  left: 50%;
+  bottom: var(--s5);
+  transform: translateX(-50%);
+  z-index: 1;
+  margin: 0;
+  white-space: nowrap;
+  color: var(--ink);
+}
+
+.hb2-meta {
+  position: absolute;
+  left: var(--gutter);
+  bottom: var(--s5);
+  z-index: 1;
+  display: grid;
+  gap: var(--s2);
+  max-width: 40ch;
+  font-family: var(--mono);
+  font-size: 10.5px;
+  line-height: 1.7;
+  letter-spacing: 0.06em;
+  color: var(--stone);
+}
+.hb2-meta__lead { color: var(--ink); }      /* 跟 OPEN TO WORK 同色 */
+
+
+/* ═══════════ 導覽列 ═══════════ */
+
+/* 導覽列融進背景:沒有底線、沒有色塊邊界。
+   用「上實下透明」的漸層 —— 沒有硬邊,不會有分界感,但字仍讀得到、
+   內容捲上來也不會直接撞在一起。 */
+.topbar {
+  border-bottom: 0;
+  background: linear-gradient(180deg,
+              var(--paper) 0%, rgba(244, 246, 247, 0.92) 55%, rgba(244, 246, 247, 0) 100%);
+  padding-bottom: var(--s3);
+}
+
+/* 左上 ZAKK 大一點 */
+.wordmark { font-size: 15px; letter-spacing: 0.16em; }
+
+/* 導覽項的線:平常就在(字跟背景融合時仍看得出可以按),滑過才轉紅。
+   線只在字下方、不連到隔壁,所以不會變成一條橫帶。 */
+.nav a { position: relative; padding-bottom: 5px; }
+.nav a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 0; bottom: 0;
+  height: 1px;
+  background: var(--hair);
+  transition: background var(--t-quick) var(--ease);
+}
+.nav a:hover::after,
+.nav a.is-active::after { background: var(--ember); }
+
+
+/* ═══════════ 右側中間:全部區塊的線條列(參考 jcedrik) ═══════════
+   一區一條短線,滑過會伸長並顯示名稱;目前所在的那條是橘的。 */
+
+.side-nav {
+  position: fixed;
+  right: var(--gutter);
+  top: 50%;
+  transform: translateY(-50%);
+  z-index: 5;
+  display: grid;
+  gap: var(--s3);
+  justify-items: end;
+}
+.side-nav a {
+  display: flex;
+  align-items: center;
+  justify-content: flex-end;
+  gap: var(--s2);
+  padding: 3px 0;
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.2em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.side-nav span {          /* 名稱:平常收起來 */
+  opacity: 0;
+  transform: translateX(6px);
+  transition: opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease);
+}
+.side-nav i {             /* 線 */
+  display: block;
+  width: 24px;
+  height: 1px;
+  background: var(--hair);
+  transition: width var(--t-base) var(--ease), background var(--t-quick) var(--ease);
+}
+.side-nav a:hover span { opacity: 1; transform: none; }
+.side-nav a:hover i { width: 56px; background: var(--ink-dsp); }
+.side-nav a.is-here i { width: 46px; background: var(--ember); }
+
+@media (max-width: 720px) { .side-nav { display: none; } }
+
+
+/* ═══════════ Photos 橫幅無限滾動 ═══════════ */
+
+.marquee {
+  margin-top: var(--s5);
+  /* 滿版出血:用 JS 量到的 --vw(不含捲軸),100vw 會多算捲軸而產生橫向捲動 */
+  width: var(--vw, 100vw);
+  margin-inline: calc(50% - var(--vw, 100vw) / 2);
+  overflow: hidden;
+}
+.marquee__track {
+  display: flex;
+  gap: var(--s4);
+  width: max-content;
+  /* --mq-x:滑鼠滾輪的手動位移(JS 寫入),疊在自動捲動之上 */
+  translate: var(--mq-x, 0px) 0;
+  animation: mqScroll 72s linear infinite;
+}
+.marquee:hover .marquee__track { animation-play-state: paused; }  /* 滑上去停住細看 */
+/* ⚠️ 循環距離不能用 -50%。
+   軌道用 flex gap,複製一份之後總寬 = 兩份內容 + (2n−1) 個 gap,
+   而一個完整循環是「一份內容 + 一個 gap」—— 兩者不相等,
+   所以捲到最後一張會看到接不上的空隙(Zakk 回報的瑕疵)。
+   改用 JS 實測「第一張到複製後第一張」的距離,寫進 --mq-shift。 */
+@keyframes mqScroll { to { transform: translateX(calc(var(--mq-shift, -50%) * -1)); } }
+
+.mq { flex: none; margin: 0; }
+.mq img {
+  display: block;
+  height: clamp(200px, 34vh, 380px);
+  width: auto;
+  transition: filter var(--t-base) var(--ease);
+}
+.mq--tall img { height: clamp(240px, 40vh, 450px); }
+.mq:hover img { filter: saturate(1.1) contrast(1.03); }
+
+
+/* 描線動畫:區塊進入視野才畫(class 由 JS 加) */
+.section.is-in /* 椎體:跟著淡入 */
+.section.is-in /* 骨架是絕對定位 —— 沒有這行的話會跑去對齊 #main,整個位置跑掉 */
+#contact { position: relative; }
+
+/* 內容要在骨架上面 */
+@media (max-width: 900px) { }
+@media (prefers-reduced-motion: reduce) {
+  }
+
+
+/* ═══════════════════════════════════════════════════════
+   互動溫度(解「整體太冷淡」)
+   都只用 transform / color,不動 layout。
+   ═══════════════════════════════════════════════════════ */
+
+/* Works:滑過的那列微微右移,編號轉暖橘 → 有「被指到」的實感。
+   ⚠️ 只給 a.works__line —— 九件作品裡只有幾件有頁面可以進去,
+   沒連結的那幾行如果也會位移、編號也轉橘,等於在說謊:
+   看起來能點,點下去卻沒反應。 */
+.works__line { transition: color var(--t-quick) var(--ease), transform var(--t-base) var(--ease); }
+.works__row:hover a.works__line { transform: translateX(var(--s2)); }
+.works__row:hover a.works__line .works__num { color: var(--ember); }
+
+/* 有連結的那幾行,名字後面帶一個小箭頭 —— 這是資訊不是裝飾:
+   →  進到站內的作品頁    ↗  另開分頁到外部網站
+   沒有箭頭就是還沒有頁面。使用者掃一眼就知道哪幾行點得進去。 */
+a.works__line .works__name::after {
+  content: "→";
+  display: inline-block;
+  margin-left: 0.35em;
+  font-size: 0.4em;
+  vertical-align: middle;
+  color: var(--ember);
+  opacity: 0.5;
+  transition: opacity var(--t-quick) var(--ease), transform var(--t-base) var(--ease);
+}
+a.works__line[target="_blank"] .works__name::after { content: "↗"; }
+.works__row:hover a.works__line .works__name::after {
+  opacity: 1;
+  transform: translateX(4px);
+}
+
+/* Contact:hover 時橘線由左往右展開 */
+.contact-list a { position: relative; }
+.contact-list a::after {
+  content: "";
+  position: absolute;
+  left: 0; right: 100%; bottom: -3px;
+  height: 1px;
+  background: var(--ember);
+  transition: right var(--t-base) var(--ease);
+}
+.contact-list a:hover::after { right: 0; }
+
+/* 首屏向下箭頭:輕輕呼吸,提示可以往下捲 */
+@keyframes cueBob { 0%, 100% { transform: translateY(0); } 50% { transform: translateY(5px); } }
+.scroll-cue { animation: cueBob 2.4s ease-in-out infinite; }
+
+/* About 人像:吃捲動視差(JS 寫 --py)。
+   ⚠️ 這裡原本有 filter: brightness(1.75) —— 是為**上一張偏暗的照片**寫的。
+   換成山頂那張之後它把照片硬提亮 75%,整片洗白。
+   Zakk 連續三次說「照片還是一樣阿,超亮」,我卻一直在重做圖檔 ——
+   問題從頭到尾在 CSS。**回報「改了沒用」時,先確認是不是有別的東西蓋在上面。** */
+.about__portrait img {
+  transform: translateY(var(--py, 0px));
+  will-change: transform;
+}
+
+/* About 小節標題:改 ember 橘 + 加一小段橫線,才不會被內文吃掉 */
+.about__label {
+  display: flex;
+  align-items: center;
+  gap: var(--s2);
+  color: var(--ember);
+}
+.about__label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--hair);
+}
+.xp__org { color: var(--ink-dsp); }
+
+/* Photos:自動滾慢一點(原本太快) */
+.marquee__track { animation-duration: 150s; }
+
+/* Photos 的說明 */
+.photos__note {
+  margin-top: var(--s4);
+  max-width: 62ch;
+  color: var(--stone);
+  font-size: clamp(14px, 1.05vw, 16px);
+  line-height: 1.65;
+}
+.photos__note span[lang] {
+  display: block;
+  margin-top: var(--s2);
+  font-family: var(--han);
+  font-size: 14px;
+}
+.photos__hint {
+  display: block;
+  margin-top: var(--s3);
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+
+
+/* 關閉動畫時:全部靜止顯示 */
+@media (prefers-reduced-motion: reduce) {
+  .preloader { display: none; }
+  html.is-loading, html.is-loading body { overflow: auto; }
+  .section__title { clip-path: none; transform: none; }
+  .ph img { opacity: 1; transform: none; }
+  .scroll-cue { animation: none; }
+  .about__portrait img { transform: none; }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   觸控裝置:把太小的目標補到 44×44
+
+   實測手機版導覽每一項只有 16×23px —— 四個指頭按不準的小點。
+   標準是 44×44(WCAG 2.5.5 / Apple / Google 都是這個數字)。
+
+   做法是疊一層看不見的擴張塊(::before),**不動視覺盒子**。
+   直接加 padding 會把導覽底線推離文字(底線是 bottom: 0 定位的)。
+
+   用 pointer: coarse 而不是螢幕寬度 —— 這件事取決於「用手指還是滑鼠」,
+   不是螢幕多大。平板也吃得到。
+   ═══════════════════════════════════════════════════════ */
+
+@media (pointer: coarse) {
+  /* 擴張後目標之間仍要留 8px 才不會誤觸(中心距要 >= 44 + 8 = 52px)。
+     「01」實際只有 15.6px 寬,不是 16 —— 用 36px 間距量出來是 51.6,差一點點。
+     38px 才穩:15.6 + 38 = 53.6 ✓ */
+  .nav { gap: 38px; }
+
+  .wordmark,
+  .scroll-cue { position: relative; }
+
+  .nav a::before,
+  .wordmark::before,
+  .contact-list a::before,
+  .scroll-cue::before {
+    content: "";
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    width: 100%;
+    height: 100%;
+    min-width: 44px;
+    min-height: 44px;
+    transform: translate(-50%, -50%);
+    /* 純粹是手指的接觸區,看不見也不影響排版 */
+  }
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   換頁轉場(View Transitions)
+
+   主頁與作品內頁是不同的 HTML 檔,所以用瀏覽器原生的跨文件轉場。
+   兩邊的 CSS 都要有這條,轉場才會啟動 —— 它寫在 style.css,兩邊都載得到。
+
+   不支援的瀏覽器(目前 Firefox / Safari 部分版本)就是**直接換頁**,
+   不會壞掉、也不會卡住,所以不需要另外寫備案。
+
+   主角那一下:**你點的那行字,飛過去變成內頁的大標**。
+   你點的東西就是你到的地方,不是憑空的裝飾動畫。
+   ═══════════════════════════════════════════════════════ */
+
+@view-transition { navigation: auto; }
+
+/* 換頁不是交叉淡入淡出(那是罐頭)——
+   新頁像圖紙一樣**由左往右被描出來**,蓋在舊頁上面。
+   跟內頁圖面的進場是同一個動作:這個站上的東西都是「畫出來的」。
+
+   舊頁不動,就留在原地被蓋掉 —— 兩邊同時淡會糊成一團,
+   而且「被覆蓋」本來就比「一起消失」更像換一張圖紙。 */
+::view-transition-old(root) {
+  animation: vtHold var(--t-slow) linear both;
+}
+::view-transition-new(root) {
+  animation: vtPlot var(--t-slow) var(--ease) both;
+}
+@keyframes vtHold { from, to { opacity: 1; } }
+@keyframes vtPlot {
+  from { clip-path: inset(0 100% 0 0); }
+  to   { clip-path: inset(0 0 0 0); }
+}
+
+/* 被點的那一行:JS 在點擊當下才掛上這個 class。
+   為什麼不寫死在 CSS —— 同一頁不能有兩個一樣的 view-transition-name,
+   Works 有九行,全部寫死會互相衝突;而且只有被點的那一行需要飛。 */
+.vt-title { view-transition-name: work-title; }
+
+/* 字要飛得比整頁淡入久一點,眼睛才跟得上它去哪裡 */
+::view-transition-group(work-title) { animation-duration: var(--t-slow); }
+::view-transition-old(work-title),
+::view-transition-new(work-title) {
+  animation-duration: var(--t-slow);
+  /* 兩段文字長度不同,用高度自適應才不會被壓扁 */
+  height: 100%;
+  object-fit: contain;
+}
+
+/* 掃描進來的那一幀:首屏內容直接是成形的,不要再演一次進場。
+   關掉過渡,才不會看到它們「跳」一下(邏輯在 main.js 的 pagereveal)。 */
+html.vt-arrive .reveal,
+html.vt-arrive .reveal * { transition: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  ::view-transition-group(*),
+  ::view-transition-old(*),
+  ::view-transition-new(*) { animation: none !important; }
+}
+
+
+/* ═══════════ About:收合的細節區塊 ═══════════
+   一幀只放入口,點開才看細節。用原生 <details>,不寫 JS。 */
+
+.about__more { }
+.about__more > summary {
+  cursor: pointer;
+  list-style: none;
+  display: flex;
+  align-items: baseline;
+  gap: var(--s3);
+  transition: color var(--t-quick) var(--ease);
+}
+.about__more > summary::-webkit-details-marker { display: none; }
+.about__more > summary:hover { color: var(--ember); }
+
+/* 自己畫展開箭頭 —— 瀏覽器預設的三角形跟這個站的語彙不合 */
+.about__more > summary::after {
+  content: "+";
+  font-family: var(--mono);
+  font-size: 13px;
+  color: var(--ember);
+  transition: transform var(--t-base) var(--ease);
+}
+.about__more[open] > summary::after { content: "2"; }   /* 減號 */
+
+.about__more-hint {
+  font-family: var(--mono);
+  font-size: 10px;
+  letter-spacing: 0.12em;
+  color: var(--stone);
+  text-transform: uppercase;
+}
+
+
+/* 藏捲軸(WebKit / Blink) */
+html::-webkit-scrollbar,
+body::-webkit-scrollbar { width: 0; height: 0; display: none; }
+
+
+/* ═══════════ sticky 修正 ═══════════
+   ⚠️ 祖先只要設了 overflow(任何方向),子層的 position: sticky 就完全失效。
+   .hero-b 有兩處被設成 overflow: hidden,結果首屏的 pin 沒有黏住 ——
+   點 Intro 過去時大字會跟著捲出畫面(實測 top = -426)。
+   裁切交給 .frame__pin 自己做,外殼一律 visible。 */
+.hero-b { overflow: visible; }
+
+
+/* ═══════════ About 塞進一幀 ═══════════
+   ⚠️ 內容 947px、幀高只有 900px,最後一列會被切掉。
+   不動字級(可讀性優先),只收間距:區塊上緣 40→24、段落 24→16、經歷列 10→7。
+   合計省下約 50px。 */
+#about .about        { margin-top: 12px; }
+/* 名字略縮:旁邊的內文已經收緊,大字維持 42px 會顯得比例不對 */
+#about .about__name  { font-size: clamp(24px, 2.6vw, 36px); }
+#about .about__block { margin-top: 12px; }
+#about .about__intro { margin-top: 8px; }
+#about .xp__row      { padding: 5px 0; }
+
+
+/* ═══════════ 過場改成「粒子分層浮現」 ═══════════
+   Zakk:「過場我想把影印的感覺拿掉,用粒子去做,不喜歡過場留白,太空了」
+
+   舊做法:clip-path 由下往上掃 + 一條 ember 橫線跟著跑。
+   那個動作就是繪圖機/影印機在描,整塊內容同時被同一條線切開,
+   所以看起來機械、而且線走過的地方在那之前是全白的 —— 就是他說的「空」。
+
+   新做法:不裁切。每個直接子元素依 --d(排第幾個)錯開自己的進場,
+   從模糊+下方浮上來對焦。文字在「聚焦」,背景的碎片同時在聚攏,
+   兩邊是同一件事的兩個尺度,所以過場中間不會有空白畫面。 */
+.frame__sheet {
+  clip-path: none;          /* ⚠️ 一定要蓋掉,舊規則還在上面 */
+  opacity: 1;
+  /* --lock 由 JS 算,把內容釘回畫面中央(見 main.js 的說明) */
+  transform: translateY(var(--lock, 0px));
+}
+
+/* ⚠️ 選擇器一定要有兩個類別。單寫 .frame__sheet > * 的權重是 (0,1,0),
+   會輸給 .reveal.is-in { opacity: 1 }(0,2,0)——
+   實際踩過:--in 明明是 0,子元素的 opacity 還是 1,五幀全部同時顯示。 */
+.frame__pin .frame__sheet > * {
+  /* --in 進場、--out 退場都掛在 .frame__pin 上,靠繼承傳下來。
+     每個元素慢 0.09,展開時間 0.64 —— 排到第 4 個還來得及在 --in 到 1 前完成。 */
+  --vin: clamp(0, calc((var(--in, 1) - var(--d, 0) * 0.09) / 0.64), 1);
+  opacity: calc(var(--vin) * (1 - var(--out, 0)));
+  transform: translateY(calc((1 - var(--vin)) * 30px - var(--out, 0) * 46px));
+  /* ⚠️ 這裡本來有 filter: blur() 做「對焦感」,但它每一偵都要對整頁文字重算高斯模糊,
+     是換頁卡頓的主因。opacity 和 transform 可以完全交給 GPU 合成,blur 不行。
+     質感差一點,但順暢比較重要 —— 而且真正的「對焦感」現在由碎片在做。 */
+}
+
+/* 繪圖機那條橫線,拿掉 */
+.frame__pen { display: none !important; }
+
+@media (prefers-reduced-motion: reduce) {
+  .frame__pin .frame__sheet > * { transform: none; }
+}
+
+
+/* ═══════════ 開場:字母對焦 ═══════════
+   Zakk:「開場動畫不要用比例尺」。
+   比例尺是圖紙的語彙,但它會「自己畫出來」—— 又是繪圖機那一套,
+   跟剛從過場拿掉的「影印感」是同一個問題。
+   改成跟頁面過場一致:模糊 → 對焦,字母依序到位。 */
+.pl__mark {
+  display: flex;
+  gap: 0.14em;
+  font-size: clamp(38px, 7vw, 86px);
+  font-variation-settings: "wdth" 118, "wght" 600;
+  letter-spacing: -0.01em;
+  line-height: 1;
+  color: var(--ink-dsp);
+}
+.pl__mark span {
+  /* 每個字母慢 0.15;乘 1.5 讓最後一個字母也趕得上 k=1 */
+  --lk: clamp(0, calc(var(--k, 0) * 1.5 - var(--i) * 0.15), 1);
+  opacity: var(--lk);
+  filter: blur(calc((1 - var(--lk)) * 12px));
+  transform: translateY(calc((1 - var(--lk)) * 16px));
+}
+.pl__sub {
+  margin-top: 14px;
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stone);
+  opacity: clamp(0, calc(var(--k, 0) * 2.4 - 1.4), 1);   /* 字母到齊了副標才浮現 */
+}
+@media (prefers-reduced-motion: reduce) {
+  .pl__mark span { filter: none; transform: none; }
+}
+
+
+/* ═══════════ 作品彙整頁 ═══════════
+   首頁只放四件精選(Zakk 選 C),其餘收到這裡。
+   這一頁不是「幀」,就是一張可以正常往下捲的清單 —— 目的是快速掃過全部。 */
+.archive { padding: var(--s7) 0 var(--s6); }
+.archive__note {
+  margin: var(--s3) 0 var(--s5);
+  max-width: 46ch;
+  color: var(--stone);
+}
+.archive__note-zh { display: block; margin-top: 6px; font-size: 0.92em; }
+.archive__back { margin-top: var(--s5); }
+.archive__back a { color: var(--stone); }
+.archive__back a:hover { color: var(--ink-dsp); }
+
+/* (首頁的「All works」入口已移除:八件全放得下,彙整頁多餘) */
+
+
+/* ═══════════ 真正的「播影片」:內容不進捲動流 ═══════════
+   Zakk 第五次回報:「還是看得出上下滑」。
+
+   前幾版的做法是「用位移抵銷位移」—— pin 跟著捲動走,我再用 transform 推回去。
+   只要抵銷差一點點就看得出來,而且放開鎖的那一段一定會有加速感。
+   **只要內容還在捲動流裡,就一定滑得出來。**
+
+   改成:每一幀的內容直接 fixed 在視窗上,完全不隨捲動移動。
+   .frame 仍然是 200svh —— 它現在純粹是「這一幀要播多長」的捲動長度,
+   捲動只做一件事:決定哪一幀現在是亮的。這才是真的一格一格換。 */
+.frame__sheet {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  margin: 0 auto;
+  max-width: var(--maxw);
+  padding: 0 var(--gutter);
+  height: 100svh;
+  transform: none;          /* ⚠️ 蓋掉 --lock,那套抵銷法已經作廢 */
+  /* ⚠️ 一定要關掉 will-change(上面舊的 .frame__sheet 規則有寫)——
+     will-change(和 transform / filter 一樣)會讓這個元素變成
+     子層 position: fixed 的定位基準。Works 的游標預覽圖是 fixed 的,
+     JS 給的是視窗座標,基準一換座標就全錯,預覽圖直接消失。
+     (Zakk:「預覽的圖片也不見了」) */
+  will-change: auto;
+}
+
+/* 看不見的幀不能吃到點擊 —— 它們全部疊在同一個位置上 */
+.frame__sheet[data-live="0"] { pointer-events: none; }
+
+
+/* 經歷:英文大標後面接中文(Zakk 指定,只有大標要,職務描述維持英文) */
+.xp__org-zh {
+  display: block;
+  margin-top: 2px;
+  font-size: 0.88em;
+  color: var(--stone);
+  letter-spacing: 0.02em;
+}
+
+
+/* ═══════════ 右側頁籤不要跟內容的線打架 ═══════════
+   Zakk:「about experience 的線會撞到右中選頁面的線,看起來不好看」。
+   .side-nav 是 fixed 在視窗右緣的,內容的分隔線一路拉到版面右邊就會疊在一起。
+   把內容往內收 76px,兩者之間留出一條乾淨的空白帶。 */
+@media (min-width: 721px) {
+  #about .about,
+  #works .works,
+  #contact .contact { padding-right: 76px; }
+}
+
+
+
+}
+
+
+/* ═══════════ Contact 併進 Photos ═══════════
+   Photos 只有一條照片帶,下面是空的;Contact 只有三個連結,撐不起一整幀。
+   兩個湊在一起剛好是一幀:上面是看的,下面是找人的。 */
+.contact-inline {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(24px, 4vw, 56px);
+  /* 跟照片帶拉開,不然直幅的照片會壓到(Zakk:「跟照片有點撞到」) */
+  margin-top: clamp(48px, 7vh, 96px);
+  padding-top: var(--s5);
+  border-top: 1px solid rgba(100, 110, 117, 0.16);
+}
+.contact-inline__title {
+  font-size: clamp(1.25rem, 2vw, 1.75rem);
+  font-variation-settings: "wdth" 110, "wght" 500;
+  color: var(--ink-dsp);
+  letter-spacing: -0.01em;
+  flex: none;
+}
+.contact-inline .contact-list { margin: 0; }
+
+@media (max-width: 640px) {
+  .contact-inline { flex-direction: column; gap: var(--s3); }
+}

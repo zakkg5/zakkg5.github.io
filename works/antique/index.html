@@ -1,0 +1,193 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Wooden Stool — Zakk</title>
+  <meta name="description" content="A stacked timber stool, and the library reading room built around it. Product and spatial design.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
+  <link rel="stylesheet" href="../../css/style.css?v=83">
+  <link rel="stylesheet" href="../../css/work.css?v=44">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- 全站氛圍色與碎片:跟主頁同一套,換頁不會覺得到了別的網站 -->
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <!-- 碎片:跟主頁同一套引擎、同一顆頭骨(assets/3d/dragon.webp),
+       換頁不會覺得到了別的網站。
+       ⚠️ 這裡原本有 data-src / data-flat 指向 bones/spine.svg ——
+       那是 §47 把多骨頭系統拆掉之前的東西,main.js 早就不讀了,
+       檔案也從來沒被載入過(network log 確認),已移除。 -->
+  <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <!-- 內頁沒有 preloader:使用者是從主頁點進來的,已經等過一次了 -->
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════ -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">Product &middot; Spatial</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">Wooden Stool
+        <span class="work-title-zh" lang="zh-Hant">古董 antique</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        The theme is <i>antique</i>. The letter <b>a</b> in a classical Gothic face
+        becomes the profile of each leg, stacked one behind the next to make the
+        structure; along the back the boards rise and fall so the silhouette reads
+        as a curve.
+        <span class="work-lede-zh" lang="zh-Hant">運用 antique(古董的)為主題,以古典的哥德字體 a 為主要設計,
+          並層層相疊為主結構,背面以高與低的方式呈現出曲線的感覺。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Type</dt>
+          <dd class="facts__v">Product design &middot; Spatial design</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Setting</dt>
+          <dd class="facts__v">Library reading room &mdash;
+            <span class="zh" lang="zh-Hant">圖書館閱讀空間</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Drawings</dt>
+          <dd class="facts__v">Floor plan, ceiling &amp; lighting plan, interior and exterior elevations</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- 這一件的主角是椅凳,所以開場用實物照而不是平面圖(VEGIC 那頁是空間案,開場才用圖面)。
+         白底在轉檔時就挖掉了,椅子直接躺在紙色上。 -->
+    <figure class="plate plate--render plate--cutout plate--opening reveal">
+      <img src="../../assets/works/antique/antique-01.webp"
+           alt="深色木椅凳,長型坐板橫跨在一片片哥德字體 a 造型的木腳上方"
+           width="1461" height="1411">
+    </figure>
+
+
+    <!-- ══════════ 01 椅凳 ══════════ -->
+    <section class="ch" id="stool">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Stool <span class="zh" lang="zh-Hant">椅凳</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        A stool moves easily. The long seat lets children sit and read side by side,
+        and the height is right for standing on to reach books off the top of a
+        shelf &mdash; which is why it was designed into a library.
+        <span class="zh" lang="zh-Hant">因為是椅凳,搬動十分方便,加上長型的坐板可供小朋友坐在一起看書,
+          且椅凳的高度適合站上去取櫃子高處的書,所以將其設計在圖書館,供人坐著閱讀。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--cutout plate--half reveal">
+          <img src="../../assets/works/antique/antique-02.webp" loading="lazy"
+               alt="椅凳背面視角,五片木板層層相疊,上緣高低錯開連成一條曲線"
+               width="1188" height="1129">
+          <figcaption class="plate__cap" lang="zh-Hant">背面:高低相疊,連成曲線</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/antique/antique-12.webp" loading="lazy"
+               alt="圖書館室內渲染,椅凳放在圓形地毯上,右側是整面木質書牆"
+               width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">放在圖書館裡的樣子</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 02 圖書館 ══════════ -->
+    <section class="ch" id="library">
+      <div class="ch__head reveal">
+        <span class="ch__num">02</span>
+        <h2 class="ch__title">Library <span class="zh" lang="zh-Hant">圖書館</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        A quiet room to read in. Timber louvres run across the walls and ceiling with
+        light strips tucked between them; a full-height window supplies the daylight.
+        The furniture is mostly wood, and the stool stands on a rug. Planters and
+        bamboo sit outside.
+        <span class="zh" lang="zh-Hant">打造一個可以安靜閱讀的空間,透過木格柵為主要裝飾並加上燈條增加照明,
+          一旁的落地窗提供自然光線來源,室內有木頭為主的家具,以及置於舒適的地毯上方的椅子,
+          室外則種些盆栽、竹子點綴。</span>
+      </p>
+
+      <div class="plates">
+        <!-- 圖面不加圖說 —— 圖裡本來就印著自己的名字(「平面配置圖」) -->
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/antique/antique-04.webp" loading="lazy"
+               alt="一樓平面配置圖,標有落地窗、書桌上方櫃、書櫃與盆栽的圖例"
+               width="1600" height="920">
+        </figure>
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/antique/antique-03.webp" loading="lazy"
+               alt="天花板及燈具配置圖,吊燈 1 盞、吸頂燈 10 盞、燈條 14 條"
+               width="1600" height="1132">
+        </figure>
+
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/antique/antique-05.webp" loading="lazy"
+               alt="室外正立面圖與室外右側立面圖,外牆是密排的木格柵"
+               width="1600" height="722">
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/antique/antique-11.webp" loading="lazy"
+               alt="室內走道渲染,盡頭是落地窗與戶外草地" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">室內走道</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/antique/antique-13.webp" loading="lazy"
+               alt="建築外觀渲染,木格柵包覆的量體與白色混凝土牆" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">建築外觀</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 下一件 ══════════ -->
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=114"></script>
+</body>
+</html>

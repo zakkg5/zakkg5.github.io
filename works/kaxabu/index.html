@@ -1,0 +1,203 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Kaxabu — Zakk</title>
+  <meta name="description" content="Identity and print for the Kaxabu people of Niumian, built on the tribe&#39;s red-and-black weaving and the legend of the Fanpo ghost. 2023.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
+  <link rel="stylesheet" href="../../css/style.css?v=83">
+  <link rel="stylesheet" href="../../css/work.css?v=44">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <!-- 碎片:跟主頁同一套引擎、同一顆頭骨(assets/3d/dragon.webp),
+       換頁不會覺得到了別的網站。
+       ⚠️ 這裡原本有 data-src / data-flat 指向 bones/spine.svg ——
+       那是 §47 把多骨頭系統拆掉之前的東西,main.js 早就不讀了,
+       檔案也從來沒被載入過(network log 確認),已移除。 -->
+  <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════ -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">2023 &middot; Visual &middot; Brand</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">Kaxabu
+        <span class="work-title-zh" lang="zh-Hant">噶哈巫 —— 牛眠部落識別</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        The Kaxabu are one of Taiwan&rsquo;s plains indigenous peoples. This identity
+        exists to get their culture seen &mdash; by the public and by the government
+        &mdash; before it thins out and disappears.
+        <span class="work-lede-zh" lang="zh-Hant">利用這些設計去宣傳噶哈巫文化對台灣的重要性,
+          讓政府與人們看見他們的文化並推廣出去,避免沒落的風險。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Type</dt>
+          <dd class="facts__v">Visual design &middot; Identity</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Year</dt>
+          <dd class="facts__v">2023</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Team</dt>
+          <dd class="facts__v">Student project &mdash;
+            <span class="zh" lang="zh-Hant">黃柏瑋</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Advisor</dt>
+          <dd class="facts__v"><span class="zh" lang="zh-Hant">彭立勳</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Deliverables</dt>
+          <dd class="facts__v">Wordmark, illustrated tribe map, poster, invitation, postcard &amp; DM</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- 平面案的母語是標準字,不是平面圖 —— 所以開場放它。
+         LOGO 與標準字是向量,由 _dev/extract_vector_art.py 從原檔裁下來、去背。 -->
+    <figure class="plate plate--render plate--cutout plate--opening reveal">
+      <img src="../../assets/works/kaxabu/kaxabu-wordmark.webp"
+           alt="噶哈巫標準字,三個字有尖角收筆,巫字右側是一片深紅色的芭蕉葉,下方是 KAXABU 牛眠部落"
+           width="1200" height="752">
+    </figure>
+
+
+    <!-- ══════════ 01 標準字 ══════════ -->
+    <section class="ch" id="wordmark">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Wordmark <span class="zh" lang="zh-Hant">標準字</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        Red and black come from the tribe&rsquo;s weaving. The letterforms take their
+        spikes from the Fanpo ghost of Kaxabu legend &mdash; banana leaves, cat eyes
+        &mdash; so the type carries the shaman&rsquo;s side of the story.
+        <span class="zh" lang="zh-Hant">搭配圖騰紅黑的特色與部落傳說中蕃婆鬼的特徵,例如芭蕉葉、貓眼等特色,
+          再配上有尖角的字型襯托出巫師的神秘與邪惡氛圍。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/kaxabu/kaxabu-wordmark-dark.webp" loading="lazy"
+               alt="標準字反白版:深色底板上的白色字與深紅色芭蕉葉" width="1160" height="752">
+          <figcaption class="plate__cap" lang="zh-Hant">反白版</figcaption>
+        </figure>
+
+        <figure class="plate plate--half reveal">
+          <ul class="swatches" lang="zh-Hant" aria-label="色彩計畫">
+            <li><i style="background:#872f36" aria-hidden="true"></i>
+              <span>#872F36</span></li>
+            <li><i style="background:#231815" aria-hidden="true"></i>
+              <span>#231815</span></li>
+          </ul>
+          <figcaption class="plate__cap" lang="zh-Hant">色彩計畫</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 02 部落地圖 ══════════ -->
+    <section class="ch" id="map">
+      <div class="ch__head reveal">
+        <span class="ch__num">02</span>
+        <h2 class="ch__title">Map <span class="zh" lang="zh-Hant">部落電繪地圖</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/kaxabu/kaxabu-01.webp" loading="lazy"
+               alt="牛眠部落電繪地圖,以紅褐色地塊畫出聚落、教會、活動中心、溪流與橋,沿路標著地名"
+               width="1600" height="1200">
+          <figcaption class="plate__cap" lang="zh-Hant">牛眠部落電繪地圖</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 03 平面應用 ══════════ -->
+    <section class="ch" id="print">
+      <div class="ch__head reveal">
+        <span class="ch__num">03</span>
+        <h2 class="ch__title">Print <span class="zh" lang="zh-Hant">平面應用</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/kaxabu/kaxabu-02.webp" loading="lazy"
+               alt="Azem 祭祖晚會海報,主視覺是部落電繪地圖,上方是噶哈巫標準字"
+               width="1372" height="1600">
+          <figcaption class="plate__cap" lang="zh-Hant">Azem 祭祖晚會海報</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/kaxabu/kaxabu-03.webp" loading="lazy"
+               alt="邀請卡正反面,黑底搭配紅褐色山形剪影"
+               width="1200" height="1600">
+          <figcaption class="plate__cap" lang="zh-Hant">邀請卡</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/kaxabu/kaxabu-04.webp" loading="lazy"
+               alt="明信片正反面,黑底與紅褐色山形" width="1600" height="915">
+          <figcaption class="plate__cap" lang="zh-Hant">明信片</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/kaxabu/kaxabu-05.webp" loading="lazy"
+               alt="摺頁 DM,封面直排「牛眠部落」,兩側是紅黑圖騰織帶" width="1600" height="1242">
+          <figcaption class="plate__cap" lang="zh-Hant">摺頁 DM</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 下一件 ══════════ -->
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=114"></script>
+</body>
+</html>

@@ -1,0 +1,472 @@
+/* ═══════════════════════════════════════════════════════
+   作品內頁 /works/<slug>/
+   接在 style.css 後面載入,只加內頁要用的東西,不覆蓋主頁。
+
+   核心想法 ——「圖面直接印在紙上」
+   Zakk 是空間設計背景,他的母語是圖面(平面圖、立面圖、三視圖)。
+   所以內頁不用一張漂亮渲染當開場,用**平面配置圖**當開場。
+
+   兩種圖,兩種處理(由 build_work_images.py 自動分類):
+     圖面 drawing → mix-blend-mode: multiply,白底消失只剩線條,像印在紙上;
+                    進場是「由左往右描出來」,像繪圖機在畫。**不加圖說**,
+                    因為圖面裡本來就印著自己的名字(「東向立面圖 S 1/100」)。
+     渲染 render  → 一般照片處理,有外框感、有圖說,用全站的 blur→對焦進場。
+   ═══════════════════════════════════════════════════════ */
+
+
+/* ═══════════ 版面容器 ═══════════ */
+
+.work {
+  max-width: var(--maxw);
+  margin: 0 auto;
+  padding: 0 var(--gutter);
+}
+
+
+/* ═══════════ 返回 ═══════════ */
+
+.work-back {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--s2);
+  margin-top: var(--s5);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+  transition: color var(--t-quick) var(--ease);
+}
+.work-back i {
+  font-style: normal;
+  transition: transform var(--t-quick) var(--ease);
+}
+.work-back:hover { color: var(--ember); }
+.work-back:hover i { transform: translateX(-4px); }
+
+
+/* ═══════════ 開場 ═══════════ */
+
+.work-hero { padding: var(--s6) 0 var(--s7); }
+
+.work-eyebrow {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+  margin-bottom: var(--s4);
+}
+
+/* 全頁最大的字。用 Archivo 最寬檔位 wdth 125 —— 跟主頁大標同一個聲音 */
+.work-title {
+  font-size: clamp(2.75rem, 8.5vw, 6rem);
+  color: var(--ink-dsp);
+  font-weight: 500;
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125, 'wght' 500;
+  letter-spacing: -0.035em;
+  line-height: 0.95;
+}
+
+/* 換頁轉場的另一端:主頁 Works 那行字飛過來,落在這裡。
+   內頁只有一個大標,所以可以直接寫死(主頁那邊有九行,要靠 JS 指定)。 */
+.work-title { view-transition-name: work-title; }
+
+.work-title-zh {
+  display: block;
+  margin-top: var(--s3);
+  font-family: var(--han);
+  font-size: clamp(1rem, 2.2vw, 1.25rem);
+  font-weight: 400;
+  letter-spacing: 0.06em;
+  color: var(--stone);
+}
+
+.work-lede {
+  max-width: 48ch;
+  margin-top: var(--s5);
+  font-size: clamp(1.05rem, 1.6vw, 1.3rem);
+  line-height: 1.5;
+  color: var(--ink);
+}
+.work-lede-zh {
+  display: block;
+  margin-top: var(--s3);
+  font-family: var(--han);
+  font-size: 0.94rem;
+  line-height: 1.85;
+  color: var(--stone);
+}
+
+
+/* ═══════════ 事實列(年份 / 類型 / 團隊) ═══════════
+   用細線分隔的兩欄,不畫外框 —— 外框會變成一個「盒子」,
+   跟全站「沒有硬邊」的原則打架。 */
+
+.facts {
+  /* dl 與 dd 都有瀏覽器預設 margin(dd 還有 40px 左縮排),不清掉數值會對不齊 */
+  margin: var(--s6) 0 0;
+  border-top: 1px solid var(--hair);
+}
+.facts dt,
+.facts dd { margin: 0; }
+.facts__row {
+  display: grid;
+  grid-template-columns: 8.5rem minmax(0, 1fr);
+  gap: var(--s4);
+  padding: var(--s3) 0;
+  border-bottom: 1px solid var(--hair);
+}
+.facts__k {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+}
+.facts__v { font-size: 0.95rem; }
+.facts__v .zh { font-family: var(--han); }
+
+
+/* ═══════════ 章節 ═══════════ */
+
+.ch { padding-top: var(--s8); }
+
+.ch__head {
+  display: flex;
+  align-items: baseline;
+  gap: clamp(16px, 2.5vw, 32px);
+  margin-bottom: var(--s6);
+}
+.ch__num {
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--ember);
+}
+.ch__title {
+  font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+  color: var(--ink-dsp);
+  font-weight: 500;
+  font-stretch: 112.5%;
+  font-variation-settings: 'wdth' 112, 'wght' 500;
+  letter-spacing: -0.01em;
+  line-height: 1.1;
+  white-space: nowrap;
+}
+.ch__title .zh {
+  font-family: var(--han);
+  font-size: 0.62em;
+  font-weight: 400;
+  color: var(--stone);
+  margin-left: var(--s3);
+  letter-spacing: 0.08em;
+}
+/* 標題後面拖一條細線到底 —— About 的小標已經在用這個語彙 */
+.ch__rule {
+  flex: 1;
+  height: 1px;
+  background: var(--hair);
+  transform: translateY(-0.35em);
+}
+
+.ch__note {
+  max-width: 46ch;
+  margin-bottom: var(--s6);
+  color: var(--stone);
+  font-size: 0.95rem;
+}
+.ch__note .zh {
+  display: block;
+  margin-top: var(--s2);
+  font-family: var(--han);
+  line-height: 1.85;
+}
+
+
+/* ═══════════ 圖版網格 ═══════════ */
+
+.plates {
+  display: grid;
+  grid-template-columns: repeat(12, 1fr);
+  gap: var(--s6) var(--s4);
+}
+.plate { grid-column: span 12; margin: 0; }
+.plate--half  { grid-column: span 6; }
+.plate--third { grid-column: span 4; }
+/* 內縮一欄:讓連續的滿版圖之間有呼吸,不是每張都頂到邊 */
+.plate--inset { grid-column: 2 / span 10; }
+
+.plate img { width: 100%; }
+
+/* 開場那張平面圖不在網格裡,自己佔滿內容寬 */
+.plate--opening { margin-top: var(--s6); }
+
+
+/* ── 產品小圖 ──
+   筆、水晶球這種「單一物件」佔滿一格會變成海報,跟旁邊的空間圖搶戲。
+   限高、靠左放小,下面那條細線就變成它站著的檯面。 */
+.plate--object img {
+  width: auto;
+  max-width: 100%;
+  max-height: 260px;
+}
+
+
+/* ── 圖面:印在紙上 ──
+   白底已經在轉檔時就去掉了(build_work_images.py 的 inkify),
+   圖檔本身只有墨線,所以沒有邊界、直接躺在紙色上,背景的碎片也透得過來。
+   不用 CSS 的 mix-blend-mode —— #main 有 z-index 會擋掉混色。 */
+
+/* ── 圖面底下墊一層紙 ──
+   Zakk:「不要讓碎片擋到圖」。圖面是去背的線稿,只有墨線是不透明的,
+   所以背景碎片會從線與線之間直接透上來,跟細線混成一片,圖就讀不出來了
+   (渲染圖沒這個問題,它本來就是不透明的照片)。
+
+   墊的是**紙色本身**,所以看不出多了一層,只是碎片被擋在後面。
+
+   ⚠️ 邊緣一定要散開。硬邊的方塊會把 .page-atmos 那層很淡的漸層
+   (alpha 只有 0.045–0.085)切出一條看得見的界線 ——
+   所以用 blur 讓它自然收掉,而且不做滿(0.93)。 */
+.plate--drawing {
+  position: relative;
+  isolation: isolate;   /* 把 z-index: -1 關在這個 figure 裡,不會掉到 #main 後面 */
+}
+.plate--drawing::before {
+  content: "";
+  position: absolute;
+  inset: -3%;
+  z-index: -1;
+  background: var(--paper);
+  opacity: 0.93;
+  filter: blur(22px);
+  pointer-events: none;
+}
+
+/* 進場:由左往右描出來(像繪圖機在畫)。
+   蓋掉 .reveal 的位移與模糊 —— 線稿模糊會糊成一團,那不是「對焦」是「壞掉」。
+
+   ⚠️ 踩過的坑:clip-path 千萬不能下在被觀察的元素上。
+   裁到 100% 時元素的可見面積是 0,IntersectionObserver 判定「沒看到」,
+   永遠不會加上 is-visible —— 圖就永遠不出現,自己把自己鎖死。
+   所以觀察的是外層 figure(沒被裁),裁切只作用在裡面的 img。 */
+.plate--drawing.reveal {
+  opacity: 1;
+  transform: none;
+  filter: none;
+}
+.plate--drawing.reveal img {
+  clip-path: inset(0 100% 0 0);
+  transition: clip-path var(--t-draw) var(--ease);
+  transition-delay: var(--delay, 0ms);
+}
+.plate--drawing.reveal.is-visible img {
+  clip-path: inset(0 0 0 0);
+}
+
+/* ── 渲染圖:照片處理 ──
+   淡淡的底,圖沒載入時不會是一塊空白。 */
+.plate--render img {
+  background: var(--mist);
+}
+
+/* ── 去背的實物照 ──
+   白底在轉檔時就挖成透明了(build_work_images.py 的 knockout),
+   所以**不能**再墊 --mist 的底 —— 那會變成一塊有顏色的方塊,白底就白挖了。
+   它是照片不是線稿,所以進場仍走 .reveal 的 blur→對焦,不走繪圖機掃描。 */
+.plate--cutout img { background: none; }
+
+/* 開場放實物(而不是圖面)時:限高、置中。
+   實物照佔滿內容寬(1178px)會變成一張海報,這裡要的是「一件東西放在紙上」。
+
+   ⚠️ 上限用 px 不用 vh:vh 會讓同一頁在高螢幕上大一大截
+   (實測 64vh 在 720 高的視窗是 461px、在 1306 高的視窗是 836px)。
+   一件實物該有多大跟視窗多高無關。 */
+.plate--opening.plate--cutout img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 620px;
+}
+
+/* 去背的東西置中放在一大片紙上會「飄」—— 沒有著力點。
+   底下這條貫穿版面的細線就是它站著的檯面(跟 .plate--object 同一招)。 */
+.plate--opening.plate--cutout {
+  border-bottom: 1px solid var(--hair);
+  padding-bottom: var(--s3);
+}
+
+/* 圖版網格裡的去背實物照:同理限高,靠左站在自己那一欄裡。 */
+.plates .plate--cutout img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 440px;
+}
+
+.plate__cap {
+  margin-top: var(--s3);
+  padding-top: var(--s2);
+  border-top: 1px solid var(--hair);
+  font-family: var(--han);
+  font-size: 12.5px;
+  letter-spacing: 0.05em;
+  color: var(--stone);
+}
+
+
+/* ═══════════ 平面圖的房間對照表 ═══════════
+   圖上的編號在螢幕尺寸下小到看不清,對照表才是讓平面圖讀得懂的東西。
+   數字用等寬字 —— 跟 Works 清單、章節編號同一套。 */
+
+.legend {
+  margin: var(--s4) 0 0;
+  padding: var(--s3) 0 0;
+  border-top: 1px solid var(--hair);
+  list-style: none;
+  display: grid;
+  grid-template-columns: repeat(auto-fit, minmax(150px, 1fr));
+  gap: var(--s1) var(--s4);
+  /* 不限寬的話在寬螢幕會攤成一長排(實測 1398px 寬時是 7 欄),
+     每一項離很遠,讀起來不像一張對照表。 */
+  max-width: 860px;
+}
+.legend li {
+  display: flex;
+  gap: var(--s2);
+  font-family: var(--han);
+  font-size: 12.5px;
+  line-height: 1.5;
+  color: var(--slate);
+}
+.legend b {
+  flex: none;
+  min-width: 1.5em;
+  font-family: var(--mono);
+  font-weight: 500;
+  font-size: 11px;
+  color: var(--stone);
+}
+
+
+/* ═══════════ 色彩計畫 ═══════════
+   色塊是「示意」,底下那行 CMYK 才是原檔寫的值,所以數字要看得見。 */
+
+.swatches {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s4);
+  margin: 0;
+  padding: 0;
+  list-style: none;
+}
+.swatches li { margin: 0; }
+.swatches i {
+  display: block;
+  width: 104px;
+  height: 68px;
+  border: 1px solid var(--hair);
+}
+.swatches span {
+  display: block;
+  margin-top: var(--s2);
+  font-family: var(--mono);
+  font-size: 10.5px;
+  letter-spacing: 0.05em;
+  color: var(--stone);
+}
+
+
+/* ═══════════ 標語 ═══════════
+   一頁只放一句。字級比內文大,但不到標題 —— 它是被引用的話,不是章名。 */
+
+.pull {
+  margin: var(--s6) 0 0;
+  max-width: 24em;
+  font-size: clamp(1.15rem, 2.2vw, 1.6rem);
+  line-height: 1.5;
+  letter-spacing: -0.01em;
+  color: var(--ink-dsp);
+}
+.pull .zh {
+  display: block;
+  font-family: var(--han);
+  font-size: 0.82em;
+  line-height: 1.8;
+  color: var(--slate);
+  margin-bottom: var(--s3);
+}
+
+
+/* ═══════════ 下一件 ═══════════ */
+
+.work-next {
+  margin-top: var(--s8);
+  border-top: 1px solid var(--hair);
+  padding: var(--s6) 0 var(--s8);
+}
+.work-next__k {
+  display: block;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+  margin-bottom: var(--s3);
+}
+.work-next__link {
+  display: inline-flex;
+  align-items: baseline;
+  gap: var(--s4);
+  color: var(--ink-dsp);
+  transition: color var(--t-quick) var(--ease);
+}
+.work-next__name {
+  font-size: clamp(1.75rem, 4.5vw, 3rem);
+  font-weight: 500;
+  font-stretch: 112.5%;
+  font-variation-settings: 'wdth' 112, 'wght' 500;
+  letter-spacing: -0.02em;
+  line-height: 1.1;
+}
+.work-next__arrow {
+  font-style: normal;
+  color: var(--stone);
+  transition: transform var(--t-base) var(--ease), color var(--t-quick) var(--ease);
+}
+.work-next__link:hover .work-next__arrow {
+  transform: translateX(var(--s3));
+  color: var(--ember);
+}
+
+
+/* ═══════════ 手機 ═══════════ */
+
+@media (max-width: 720px) {
+  .work-hero { padding: var(--s5) 0 var(--s6); }
+  .ch { padding-top: var(--s7); }
+
+  .plates { gap: var(--s5) var(--s3); }
+  .plate--half,
+  .plate--third,
+  .plate--inset { grid-column: span 12; }
+
+  .facts__row {
+    grid-template-columns: 1fr;
+    gap: var(--s1);
+  }
+}
+
+
+/* ═══════════ 關掉動畫時 ═══════════ */
+
+@media (prefers-reduced-motion: reduce) {
+  .plate--drawing.reveal img { clip-path: none; }
+}

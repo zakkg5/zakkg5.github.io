@@ -1,0 +1,10 @@
+# 原始大檔:AI/PSD/相機原檔,幾百 MB,不進版控也不上線
+_source/
+
+# 工具腳本:只在本機用,線上不需要
+_dev/
+
+# 系統雜檔
+Thumbs.db
+.DS_Store
+*.log

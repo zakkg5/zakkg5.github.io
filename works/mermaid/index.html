@@ -1,0 +1,123 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>The Little Mermaid — Zakk</title>
+  <meta name="description" content="A paper lamp of laser-cut shells and bubbles, built on the mermaid&#39;s ending: she dissolves into foam.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
+  <link rel="stylesheet" href="../../css/style.css?v=83">
+  <link rel="stylesheet" href="../../css/work.css?v=44">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <!-- 碎片:跟主頁同一套引擎、同一顆頭骨(assets/3d/dragon.webp),
+       換頁不會覺得到了別的網站。
+       ⚠️ 這裡原本有 data-src / data-flat 指向 bones/spine.svg ——
+       那是 §47 把多骨頭系統拆掉之前的東西,main.js 早就不讀了,
+       檔案也從來沒被載入過(network log 確認),已移除。 -->
+  <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════ -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">Lighting</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">The Little Mermaid
+        <span class="work-title-zh" lang="zh-Hant">小美人魚紙燈</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        Shells ring a sphere, with bubbles rising through it. The shapes are laser-cut
+        from board and assembled around a bulb.
+        <span class="work-lede-zh" lang="zh-Hant">主題風格採用童話故事的小美人魚,風格元素使用貝殼環繞
+          加上水中氣泡去設計,製作則用紙板雷切出設計的形狀,放入燈泡後,拼出紙燈的形狀。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Type</dt>
+          <dd class="facts__v">Lighting design</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Material</dt>
+          <dd class="facts__v">Laser-cut board &mdash;
+            <span class="zh" lang="zh-Hant">紙板雷切</span></dd>
+        </div>
+      </dl>
+    </section>
+
+    <figure class="plate plate--render plate--cutout plate--opening reveal">
+      <img src="../../assets/works/mermaid/mermaid-01.webp"
+           alt="小美人魚紙燈本體,一圈扇形貝殼包住球形燈罩,中間有大小不一的圓孔"
+           width="1414" height="1414">
+    </figure>
+
+
+    <!-- ══════════ 01 為什麼是泡泡 ══════════ -->
+    <section class="ch" id="idea">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Bubbles <span class="zh" lang="zh-Hant">泡泡</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        The bubbles are not decoration. They run small to large across the shade,
+        because that is how the story ends &mdash; the mermaid turns to foam.
+        <span class="zh" lang="zh-Hant">運用美人魚身上的同類包圍著球的外型,並利用小到大的泡泡
+          來詮釋結局美人魚化為泡沫的悲劇結尾。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/mermaid/mermaid-02.webp" loading="lazy"
+               alt="產品海報:點亮的紙燈懸在深色背景前,下方是兩張標了尺寸的三視圖"
+               width="904" height="1276">
+          <figcaption class="plate__cap" lang="zh-Hant">產品海報</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 下一件 ══════════ -->
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=114"></script>
+</body>
+</html>

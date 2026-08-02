@@ -1,0 +1,310 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>CATCHU — Zakk</title>
+  <meta name="description" content="A cat-themed café inside a cat museum. Brand identity and spatial design.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
+  <link rel="stylesheet" href="../../css/style.css?v=83">
+  <link rel="stylesheet" href="../../css/work.css?v=44">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- 全站氛圍色與碎片:跟主頁同一套,換頁不會覺得到了別的網站 -->
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <!-- 碎片:跟主頁同一套引擎、同一顆頭骨(assets/3d/dragon.webp),
+       換頁不會覺得到了別的網站。
+       ⚠️ 這裡原本有 data-src / data-flat 指向 bones/spine.svg ——
+       那是 §47 把多骨頭系統拆掉之前的東西,main.js 早就不讀了,
+       檔案也從來沒被載入過(network log 確認),已移除。 -->
+  <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <!-- 內頁沒有 preloader:使用者是從主頁點進來的,已經等過一次了 -->
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════ -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">Brand &middot; Spatial</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">CATCHU
+        <span class="work-title-zh" lang="zh-Hant">喵一眼 —— 貓咪博物館裡的咖啡廳</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        A cat-themed café inside a cat museum, for people who came to see the museum
+        and people who came for the cats. A corridor runs through it showing how cats
+        live and how we live &mdash; the café is where the two rest in the same room.
+        <span class="work-lede-zh" lang="zh-Hant">貓咪博物館中的貓咪主題品牌咖啡廳,給喜愛毛小孩及來參觀博物館的人參觀,
+          透過通道來展示人與貓的生活型態差異,並結合咖啡廳創造人貓的休憩空間。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Type</dt>
+          <dd class="facts__v">Brand design &middot; Spatial design</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Team</dt>
+          <dd class="facts__v">Student project &mdash;
+            <span class="zh" lang="zh-Hant">賴亭諭、黃建銘</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Advisors</dt>
+          <dd class="facts__v"><span class="zh" lang="zh-Hant">謝修璟、謝子良</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Drawings</dt>
+          <dd class="facts__v">1F, 2F and rooftop plans, four elevations, two sections</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- 開場圖用一樓平面配置圖 —— 空間案的母語是圖面,跟 VEGIC 同一個主張。 -->
+    <figure class="plate plate--drawing plate--opening reveal">
+      <img src="../../assets/works/catchu/catchu-01.webp"
+           alt="喵一眼咖啡一樓平面配置圖,長條形基地,左端是戶外遊樂區,右端是樓梯"
+           width="1600" height="1132">
+    </figure>
+
+    <!-- 圖上的編號在螢幕上小到看不清,對照表才讓平面圖讀得懂 -->
+    <ol class="legend reveal" lang="zh-Hant" aria-label="一樓平面編號對照">
+      <li><b>1</b>入口處</li>
+      <li><b>2</b>點餐區</li>
+      <li><b>3</b>貓咪旅館與遊樂區</li>
+      <li><b>4</b>男女洗手間</li>
+      <li><b>5</b>長椅沙發區</li>
+      <li><b>6</b>圓桌區</li>
+      <li><b>7</b>戶外遊樂區</li>
+      <li><b>8</b>表演區</li>
+      <li><b>9</b>裝飾座位區</li>
+      <li><b>10</b>U 形樓梯</li>
+    </ol>
+
+
+    <!-- ══════════ 01 品牌 ══════════ -->
+    <section class="ch" id="brand">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Brand <span class="zh" lang="zh-Hant">品牌</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        The Chinese name is bent out of the sound of <i>museum</i> &mdash;
+        <span lang="zh-Hant">喵一眼</span>, a glance with a meow in it. The English,
+        CATCHU, is meant to catch your eye. The mark is a cat sitting in a coffee cup,
+        head over the rim.
+        <span class="zh" lang="zh-Hant">運用博物館的諧音 MUSEUM 發想出與貓咪連結的喵一眼咖啡,
+          英文 CATCHU 則想用設計抓住客人眼睛。LOGO 的部分則用貓咪泡在咖啡杯探頭搭配標準字顏色設計,
+          給人討喜、可愛的感覺。</span>
+      </p>
+
+      <div class="plates">
+        <!-- LOGO 是向量圖形,抽圖工具抓不到(它只抓點陣圖)——
+             由 _dev/extract_vector_art.py 從原檔裁下來、去背。 -->
+        <figure class="plate plate--render plate--cutout plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-logo.webp" loading="lazy"
+               alt="CATCHU 標準組合:一隻粉紅色的貓坐在咖啡杯裡探出頭,杯身寫著 CAT CHU COFFEE,下方是中文標準字「喵一眼咖啡」"
+               width="808" height="960">
+          <figcaption class="plate__cap" lang="zh-Hant">標準組合</figcaption>
+        </figure>
+
+        <figure class="plate plate--half reveal">
+          <ul class="swatches" lang="zh-Hant" aria-label="色彩計畫">
+            <li><i style="background:#D38991" aria-hidden="true"></i>
+              <span>C 18 M 55 Y 30 K 0</span></li>
+            <li><i style="background:#FDF9E8" aria-hidden="true"></i>
+              <span>C 1 M 2 Y 12 K 0</span></li>
+            <li><i style="background:#3F3B3A" aria-hidden="true"></i>
+              <span>C 0 M 0 Y 0 K 90</span></li>
+          </ul>
+          <figcaption class="plate__cap" lang="zh-Hant">色彩計畫</figcaption>
+        </figure>
+      </div>
+
+      <p class="pull reveal">
+        <span class="zh" lang="zh-Hant">期許踏入咖啡廳的每一位客人,
+          在繁忙的步調中也能喵一眼生活中周遭的事物,得到身心靈上的療癒。</span>
+        catch your eyes.
+      </p>
+    </section>
+
+
+    <!-- ══════════ 02 場域 ══════════ -->
+    <section class="ch" id="space">
+      <div class="ch__head reveal">
+        <span class="ch__num">02</span>
+        <h2 class="ch__title">Space <span class="zh" lang="zh-Hant">場域</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        A long, narrow site on three levels. Order at the counter, walk the corridor
+        past the cat hotel, sit at the round tables or out on the terrace; the roof is
+        laid with grass.
+        <span class="zh" lang="zh-Hant">基地是長條形、共三層。從入口點餐開始,穿過貓咪旅館與遊樂區,
+          可以坐在圓桌區或戶外;頂樓鋪的是草皮座位區。</span>
+      </p>
+
+      <div class="plates">
+        <!-- 圖面不加圖說 —— 圖裡本來就印著自己的名字(「二樓平面配置圖」) -->
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/catchu/catchu-02.webp" loading="lazy"
+               alt="二樓平面配置圖,長桌區、貓咪介紹牆與樓中樓用餐區" width="1600" height="1132">
+        </figure>
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/catchu/catchu-03.webp" loading="lazy"
+               alt="頂樓平面配置圖,大面積草皮座位區" width="1600" height="1131">
+        </figure>
+      </div>
+
+      <ol class="legend reveal" lang="zh-Hant" aria-label="二樓與頂樓平面編號對照">
+        <li><b>1</b>商品區</li>
+        <li><b>2</b>長桌區</li>
+        <li><b>3</b>貓咪介紹牆</li>
+        <li><b>4</b>食品製作區</li>
+        <li><b>5</b>樓中樓用餐區</li>
+        <li><b>6</b>戶外用餐區</li>
+        <li><b>7</b>出口區</li>
+        <li><b>8</b>草皮座位區</li>
+      </ol>
+
+      <div class="plates">
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/catchu/catchu-04.webp" loading="lazy"
+               alt="北立面外觀立面圖,兩層樓連續開窗,屋頂有露臺欄杆" width="1600" height="1132">
+        </figure>
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/catchu/catchu-08.webp" loading="lazy"
+               alt="南立面外觀圖,中段是木格柵入口,右側是拱窗" width="1600" height="1131">
+        </figure>
+
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-05.webp" loading="lazy"
+               alt="東立面外觀圖,外掛的戶外樓梯" width="1600" height="1132">
+        </figure>
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-06.webp" loading="lazy"
+               alt="西立面外觀圖,頂樓露臺的遮陽傘與欄杆" width="1600" height="1132">
+        </figure>
+
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/catchu/catchu-09.webp" loading="lazy"
+               alt="剖面立面圖 1,可以看到一樓連續拱圈與二樓開窗" width="1600" height="1131">
+        </figure>
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/catchu/catchu-07.webp" loading="lazy"
+               alt="剖面立面圖 2,可以看到樓中樓用餐區與後場" width="1600" height="1132">
+        </figure>
+      </div>
+
+      <div class="plates">
+        <!-- 四向立面彩現。長向的兩張是寬扁的橫幅、窄向的兩張接近方形 ——
+             形狀差太多不能硬排成 2×2,所以長向各佔一列、窄向並排。 -->
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/catchu/catchu-10.webp" loading="lazy"
+               alt="立面彩現,粉紅色量體、木格柵入口與屋頂遮陽傘" width="733" height="196">
+          <figcaption class="plate__cap" lang="zh-Hant">立面彩現 &mdash; 入口格柵側</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/catchu/catchu-12.webp" loading="lazy"
+               alt="立面彩現,長向連續開窗的一面" width="751" height="200">
+          <figcaption class="plate__cap" lang="zh-Hant">立面彩現 &mdash; 臨路長向</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-13.webp" loading="lazy"
+               alt="立面彩現,白色戶外樓梯貼著粉紅外牆而上" width="310" height="280">
+          <figcaption class="plate__cap" lang="zh-Hant">立面彩現 &mdash; 戶外樓梯側</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-11.webp" loading="lazy"
+               alt="立面彩現,窄向立面與頂樓露臺" width="321" height="290">
+          <figcaption class="plate__cap" lang="zh-Hant">立面彩現 &mdash; 露臺側</figcaption>
+        </figure>
+      </div>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-14.webp" loading="lazy"
+               alt="建築外觀渲染,弧形粉紅牆面掛著 LOGO 招牌,旁邊是木格柵入口" width="800" height="450">
+          <figcaption class="plate__cap" lang="zh-Hant">入口與招牌</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-15.webp" loading="lazy"
+               alt="建築外觀渲染,拱窗立面與通往頂樓的戶外樓梯" width="800" height="450">
+          <figcaption class="plate__cap" lang="zh-Hant">戶外樓梯</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-18.webp" loading="lazy"
+               alt="入口櫃檯區渲染,牆上是 LOGO,木格柵包覆的點餐檯與拱窗" width="800" height="450">
+          <figcaption class="plate__cap" lang="zh-Hant">1F 入口處與點餐區</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-19.webp" loading="lazy"
+               alt="貓咪旅館與遊樂區渲染,白色弧形矮牆隔出貓的空間,後方是貓籠與貓跳台" width="800" height="450">
+          <figcaption class="plate__cap" lang="zh-Hant">1F 貓咪旅館與遊樂區</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-17.webp" loading="lazy"
+               alt="戶外圓桌區渲染,黑色圓桌與弧形矮牆長椅" width="800" height="450">
+          <figcaption class="plate__cap" lang="zh-Hant">1F 圓桌區</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/catchu/catchu-16.webp" loading="lazy"
+               alt="戶外用餐區渲染,黑色吊燈、白色方桌與木格柵植栽槽" width="800" height="450">
+          <figcaption class="plate__cap" lang="zh-Hant">2F 戶外用餐區</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/catchu/catchu-20.webp" loading="lazy"
+               alt="頂樓草皮座位區渲染,鋪滿草皮的屋頂上擺著紅色遮陽傘與座位" width="800" height="450">
+          <figcaption class="plate__cap" lang="zh-Hant">頂樓草皮座位區</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 下一件 ══════════ -->
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=114"></script>
+</body>
+</html>

@@ -1,0 +1,250 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>VEGIC — Zakk</title>
+  <meta name="description" content="A factory that takes in near-expiry produce. Brand, product and spatial design, 2024.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
+  <link rel="stylesheet" href="../../css/style.css?v=83">
+  <link rel="stylesheet" href="../../css/work.css?v=44">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- 全站氛圍色與碎片:跟主頁同一套,換頁不會覺得到了別的網站 -->
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <!-- 碎片:跟主頁同一套引擎、同一顆頭骨(assets/3d/dragon.webp),
+       換頁不會覺得到了別的網站。
+       ⚠️ 這裡原本有 data-src / data-flat 指向 bones/spine.svg ——
+       那是 §47 把多骨頭系統拆掉之前的東西,main.js 早就不讀了,
+       檔案也從來沒被載入過(network log 確認),已移除。 -->
+  <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <!-- 內頁沒有 preloader:使用者是從主頁點進來的,已經等過一次了 -->
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════ -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">2024 &middot; Brand &middot; Product &middot; Spatial</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">VEGIC
+        <span class="work-title-zh" lang="zh-Hant">魔蔬 —— 即期蔬果的魔法工廠</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        Supermarkets throw produce out the day it stops looking perfect.
+        VEGIC is a factory that takes it in: pigment is pressed from the vegetables,
+        children paint with it, and what they paint gets baked and eaten.
+        <span class="work-lede-zh" lang="zh-Hant">超市把賣相不好的蔬果丟掉。VEGIC 是一間把它們收下來的工廠 ——
+          從蔬果提煉出色素,調成麵糊給小朋友畫畫,烤出來就能吃掉。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Year</dt>
+          <dd class="facts__v">2024</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Scope</dt>
+          <dd class="facts__v">Brand identity &middot; Product design &middot; Spatial design</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Team</dt>
+          <dd class="facts__v">Four-person student project &mdash;
+            <span class="zh" lang="zh-Hant">賴亭諭、黃建銘、黃采妍</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Advisors</dt>
+          <dd class="facts__v"><span class="zh" lang="zh-Hant">朱谷熹、謝子良</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Drawings</dt>
+          <dd class="facts__v">1F &amp; 2F plans, three elevations &mdash; S 1:100</dd>
+        </div>
+      </dl>
+    </section>
+
+    <!-- 開場圖用「一樓平面配置圖」,不用漂亮渲染 ——
+         Zakk 是空間設計背景,圖面才是他的母語,這是整頁的主張。 -->
+    <figure class="plate plate--drawing plate--opening reveal">
+      <img src="../../assets/works/vegic/vegic-05.webp"
+           alt="VEGIC 魔法工廠一樓平面配置圖,比例尺 1:100,標有入口、回收站、餐食區與遊樂園"
+           width="1600" height="1152">
+    </figure>
+
+
+    <!-- ══════════ 01 場域 ══════════ -->
+    <section class="ch" id="space">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Space <span class="zh" lang="zh-Hant">場域</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        Two floors. You come in past the drop-off point for near-expiry produce,
+        walk through pigment extraction and the exhibition wall, and end up at the
+        bake-your-own-drawing workshop and the playground.
+        <span class="zh" lang="zh-Hant">一樓從入口的即期蔬果回收站開始,穿過色素提煉與展覽互動區,
+          走到烤畫 DIY 區和 VEGIC PARK;二樓是親子畫室與空中滑梯。</span>
+      </p>
+
+      <div class="plates">
+        <!-- 圖面不加圖說 —— 圖裡本來就印著自己的名字(「二樓平面配置圖 S 1/100」) -->
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/vegic/vegic-06.webp"
+               alt="二樓平面配置圖,親子畫室與空中滑梯" width="1600" height="1299">
+        </figure>
+
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/vegic/vegic-07.webp"
+               alt="北向立面圖,比例尺 1:100" width="1600" height="944">
+        </figure>
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/vegic/vegic-08.webp"
+               alt="南向立面圖,比例尺 1:100" width="1600" height="845">
+        </figure>
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/vegic/vegic-09.webp"
+               alt="東向立面圖,可以看到停車場、遊具與騎樓" width="1600" height="1058">
+        </figure>
+
+        <!-- 渲染圖:有圖說,用全站的 blur→對焦進場 -->
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-12.webp" loading="lazy"
+               alt="一樓展覽互動區室內渲染,藍黃配色與螺旋滑梯" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">1F 展覽互動區</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-14.webp" loading="lazy"
+               alt="展覽互動區中央的色素提煉裝置" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">1F 展覽互動區 &mdash; 色素提煉裝置</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-13.webp" loading="lazy"
+               alt="即期蔬果回收站,木箱裡放著蔬果" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">1F 即期蔬果回收站</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-11.webp" loading="lazy"
+               alt="一樓餐食區,木質桌椅與樓梯" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">1F 餐食區</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-10.webp" loading="lazy"
+               alt="餐食區廚房,烤箱與備餐檯" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">1F 餐食區廚房</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-15.webp" loading="lazy"
+               alt="黃色 VEGIC 主牆與樓梯" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">1F 商品區</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-17.webp" loading="lazy"
+               alt="二樓活動區,黃藍配色與木質長桌" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">2F 親子畫室</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-19.webp" loading="lazy"
+               alt="親子畫室內部,有人在畫架前作畫" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">2F 親子畫室</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-16.webp" loading="lazy"
+               alt="戶外 VEGIC PARK 遊樂場,溜滑梯與城堡造型" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">戶外 DIY 空間 &amp; VEGIC PARK</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/vegic/vegic-18.webp" loading="lazy"
+               alt="建築外觀,深藍量體與大面開窗" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">建築外觀</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 02 產品 ══════════ -->
+    <section class="ch" id="product">
+      <div class="ch__head reveal">
+        <span class="ch__num">02</span>
+        <h2 class="ch__title">Product <span class="zh" lang="zh-Hant">產品</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        A pen shaped like a wand. Press the crystal ball on top to draw batter up
+        into the barrel, screw the cap on, and start drawing.
+        <span class="zh" lang="zh-Hant">魔蔬筆:筆身結合法杖造型與水晶球。按壓上方水晶球把麵糊吸進筆內,
+          轉上筆蓋就能開始畫。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/vegic/vegic-04.webp" loading="lazy"
+               alt="魔蔬筆三視圖,標有尺寸" width="1600" height="1121">
+        </figure>
+
+        <figure class="plate plate--render plate--third plate--object reveal">
+          <img src="../../assets/works/vegic/vegic-01.webp" loading="lazy"
+               alt="魔蔬筆頂端的水晶球,內含彩色小球" width="1536" height="1152">
+          <figcaption class="plate__cap" lang="zh-Hant">水晶球:內含繽紛色彩球</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--third plate--object reveal">
+          <img src="../../assets/works/vegic/vegic-02.webp" loading="lazy"
+               alt="魔蔬筆外觀" width="223" height="662">
+          <figcaption class="plate__cap" lang="zh-Hant">筆身</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--third plate--object reveal">
+          <img src="../../assets/works/vegic/vegic-03.webp" loading="lazy"
+               alt="魔蔬筆使用步驟圖解" width="202" height="610">
+          <figcaption class="plate__cap" lang="zh-Hant">使用步驟</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 下一件 ══════════ -->
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=114"></script>
+</body>
+</html>

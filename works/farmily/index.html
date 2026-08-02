@@ -1,0 +1,198 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Let&#39;s Have Farm! — Zakk</title>
+  <meta name="description" content="A service system against dementia: a shared basket you hang on a community wall so food gets passed on instead of thrown out.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
+  <link rel="stylesheet" href="../../css/style.css?v=83">
+  <link rel="stylesheet" href="../../css/work.css?v=44">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <!-- 碎片:跟主頁同一套引擎、同一顆頭骨(assets/3d/dragon.webp),
+       換頁不會覺得到了別的網站。
+       ⚠️ 這裡原本有 data-src / data-flat 指向 bones/spine.svg ——
+       那是 §47 把多骨頭系統拆掉之前的東西,main.js 早就不讀了,
+       檔案也從來沒被載入過(network log 確認),已移除。 -->
+  <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════ -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">Service &middot; Product</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">Let&rsquo;s Have Farm!
+        <span class="work-title-zh" lang="zh-Hant">植樂 Farmily</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        The way into this was dementia: going a long time without thinking things
+        through makes it more likely. So the service is built around social contact
+        and doing things by hand &mdash; keep people thinking, and the odds improve.
+        <span class="work-lede-zh" lang="zh-Hant">從失智症切入,了解到長期未思考將易導致症狀的發生,
+          因此我們將重心放在互動社交與動手實作的部分,希望使用者透過服務可以達到深入思考的效果,
+          降低失智症發生的機率。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Type</dt>
+          <dd class="facts__v">Service system design &middot; Product design</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Goal</dt>
+          <dd class="facts__v"><span class="zh" lang="zh-Hant">減緩失智機率,提供長者活動機會,增加交友互動</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Team</dt>
+          <dd class="facts__v">Student project &mdash;
+            <span class="zh" lang="zh-Hant">張喬筑、李淯錡、賴亭諭、郭俞均</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Advisors</dt>
+          <dd class="facts__v"><span class="zh" lang="zh-Hant">鄭月秀、林聞賢</span></dd>
+        </div>
+      </dl>
+    </section>
+
+    <figure class="plate plate--render plate--cutout plate--opening reveal">
+      <img src="../../assets/works/farmily/farmily-logo.webp"
+           alt="植樂 Farmily 標準組合,中文標準字的筆畫裡長出綠色的芽,英文 Farmily 的 r 也是一株芽"
+           width="668" height="960">
+    </figure>
+
+
+    <!-- ══════════ 01 品牌 ══════════ -->
+    <section class="ch" id="brand">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Brand <span class="zh" lang="zh-Hant">品牌</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--cutout plate--half reveal">
+          <img src="../../assets/works/farmily/farmily-wordmark.webp" loading="lazy"
+               alt="植樂標準字設計,畫在方格參考線上,部分筆畫換成綠色的嫩芽"
+               width="928" height="760">
+          <figcaption class="plate__cap" lang="zh-Hant">標準字設計</figcaption>
+        </figure>
+
+        <figure class="plate plate--half reveal">
+          <ul class="swatches" lang="zh-Hant" aria-label="標準色">
+            <li><i style="background:#0c793b" aria-hidden="true"></i>
+              <span>#0C793B</span></li>
+            <li><i style="background:#f6d75c" aria-hidden="true"></i>
+              <span>#F6D75C</span></li>
+            <li><i style="background:#E0E0E0" aria-hidden="true"></i>
+              <span>#E0E0E0</span></li>
+          </ul>
+          <figcaption class="plate__cap" lang="zh-Hant">標準色</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 02 享食籃 ══════════ -->
+    <section class="ch" id="freshare">
+      <div class="ch__head reveal">
+        <span class="ch__num">02</span>
+        <h2 class="ch__title">Freshare <span class="zh" lang="zh-Hant">享食籃</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        Buy too much and it goes off with nobody to share it with; eat the same few
+        vegetables and the nutrition narrows. So: put what you cannot finish in the
+        basket, hang it on the community wall, and scan the QR code to see what is in
+        anyone else&rsquo;s &mdash; take something, leave a message.
+        <span class="zh" lang="zh-Hant">買過多或即期的蔬菜常因無人分食,被動的浪費掉了,且攝取的蔬菜營養單一、少變化。
+          使用者可以放置即期或吃不完的食物並掛在社區牆上,藉由掃描 QR CODE 查看籃子的狀況,
+          也可以從社區牆提取別人籃子內的食材並留言。</span>
+      </p>
+
+      <div class="plates">
+        <!-- 圖面不加圖說 —— 圖裡本來就印著尺寸 -->
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/farmily/farmily-01.webp" loading="lazy"
+               alt="享食籃爆炸圖線稿,板材一片片拆開,上方是粗繩提把" width="1024" height="768">
+        </figure>
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/farmily/farmily-06.webp" loading="lazy"
+               alt="三視圖,標示寬 280、高 200、深 250 公釐" width="1024" height="768">
+        </figure>
+
+        <figure class="plate plate--render plate--cutout plate--half reveal">
+          <img src="../../assets/works/farmily/farmily-02.webp" loading="lazy"
+               alt="享食籃的 3D 爆炸圖,木板、側板與繩提把分開排列" width="551" height="569">
+          <figcaption class="plate__cap" lang="zh-Hant">構件</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/farmily/farmily-05.webp" loading="lazy"
+               alt="組好的木製享食籃,屋形側板與粗繩提把,側面有一塊金屬牌" width="972" height="762">
+          <figcaption class="plate__cap" lang="zh-Hant">木頭板材 &middot; 粗繩提把</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/farmily/farmily-03.webp" loading="lazy"
+               alt="籃身上的 QR Code 金屬牌特寫,鎖在木板上" width="1024" height="768">
+          <figcaption class="plate__cap" lang="zh-Hant">掃 QR Code 看籃子的狀況</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/farmily/farmily-07.webp" loading="lazy"
+               alt="白色與黃色兩種配色的享食籃並排" width="959" height="558">
+          <figcaption class="plate__cap" lang="zh-Hant">標準色配色</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/farmily/farmily-04.webp" loading="lazy"
+               alt="情境模擬圖:好幾個享食籃掛在社區的木牆上,籃子裡放著蔬果" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">情境模擬 &mdash; 掛在社區牆上</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 下一件 ══════════ -->
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=114"></script>
+</body>
+</html>

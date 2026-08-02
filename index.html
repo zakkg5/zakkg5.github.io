@@ -1,0 +1,390 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Zakk — From space to screen.</title>
+  <meta name="description" content="Product & spatial designer. Now delivering digital work with AI tools. Based in Taiwan.">
+
+  <!-- 字型放在自己專案裡,不靠外部伺服器。Hero 大標的字先載,避免開場閃字 -->
+  <!-- 網址 = GitHub Pages 的使用者站台(Zakk 2026-08-03 確認帳號是 zakkg5)。
+       ⚠️ 要換網域的話有**四個檔**要一起改,漏一個就會有頁面指到舊網域:
+       這裡的 canonical / og:url / og:image、sitemap.xml(8 筆)、robots.txt。
+       (About 區的 instagram.com/zakktseng 是 IG 帳號,跟網域無關,不要一起換。) -->
+  <link rel="canonical" href="https://zakkg5.github.io/">
+  <meta property="og:type" content="website">
+  <meta property="og:title" content="Zakk Tseng — From space to screen">
+  <meta property="og:description" content="Product and spatial designer. Works across space, product, brand and screen.">
+  <meta property="og:url" content="https://zakkg5.github.io/">
+  <!-- 分享預覽圖要 1.91:1,直幅照片會被裁爛。這張由 _dev/build_og.py 產生,
+       用的是網站自己的字型與那顆頭骨。用 PNG 不用 WebP —— og:image 的 WebP
+       支援度到現在還是不齊(LinkedIn、部分 Slack 用戶端不顯示)。 -->
+  <meta property="og:image" content="https://zakkg5.github.io/assets/og/og-cover.png">
+  <meta property="og:image:width" content="1200">
+  <meta property="og:image:height" content="630">
+  <meta property="og:image:alt" content="Zakk Tseng — From space to screen.">
+  <meta name="twitter:card" content="summary_large_image">
+
+  <link rel="preload" href="assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1,瀏覽器才會抓新的 -->
+  <link rel="stylesheet" href="css/style.css?v=83">
+</head>
+
+<body>
+  <!-- 鍵盤使用者按 Tab 的第一站:直接跳過導覽列 -->
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <!-- ══════════ 載入指示:建築比例尺 ══════════
+       不用「大數字倒數 + Loading」—— 那是每個作品集模板都有的罐頭開場。
+
+       這條黑白相間的比例尺,是真的印在 Zakk 每一張平面圖與立面圖上的東西
+       (刻度就是圖上那組 0 / 50 / 125 / 250 / 500 / 1000)。
+       載入進度 = 它被「描」出來的程度,尾端那條橘線是筆目前的位置。
+
+       位置放左下角,也就是它在圖紙上本來待的地方 —— 畫面中間讓給頭骨碎片。
+       進度綁真實載入(字型 + 圖片 + load),不做假進度。 -->
+  <div class="preloader" id="preloader"
+       role="progressbar" aria-label="Loading" aria-valuemin="0" aria-valuemax="100" aria-valuenow="0">
+    <div class="pl__inner">
+      <!-- 字母一個一個從模糊裡對焦出來,跟頁面過場是同一套語彙。
+           進度綁真實載入,--k 由 JS 寫入;沒有進度條、沒有百分比。 -->
+      <div class="pl__mark" aria-hidden="true"><span style="--i:0">Z</span><span style="--i:1">A</span><span style="--i:2">K</span><span style="--i:3">K</span></div>
+      <p class="pl__sub" aria-hidden="true">From space to screen</p>
+    </div>
+  </div>
+
+  <!-- 全站氛圍色:固定鋪滿視窗、整頁連續。
+       漸層只做在首屏的話,首屏結束處會跟下面的白底出現一條接縫。 -->
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <!-- ══════════ 碎片走廊 ══════════
+       整站只有這一批碎片,固定鋪滿視窗、墊在所有內容後面。
+
+       它有兩種隊形,由捲動位置決定,中間是連續插值的:
+         捲動 0    → 聚成龍頭骨(載入動畫把它組起來的那一團)
+         往下捲    → 頭骨散開成一條走廊,**捲動 = 鏡頭往前推**
+                     近的大而實、掠過畫面邊緣;遠的小而淡、慢慢逼近
+
+       所以區塊跟區塊之間鏡頭不會停,「接到下一頁」是連續的,
+       而不是各自淡入淡出。引擎在 main.js。 -->
+  <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <!-- 各區塊自己的碎片雲(另一支引擎) -->
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+
+  <!-- ══════════ 導覽列(捲動時固定在最上面) ══════════ -->
+  <header class="topbar">
+    <a class="wordmark" href="#hero">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <!-- aria-label:文字等一下會被 JS 拆成一個字母一個 span 做捲動效果,
+           先給讀螢幕軟體一個乾淨的名字,才不會被逐字母念出來 -->
+      <a href="#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <!-- ══════════ HERO ══════════ -->
+  <section class="hero" id="hero">
+
+    <!-- 內容錨定在下方,空白全部集中到上方 -->
+    <div class="hero__center">
+      <h1 class="hero__title reveal">
+        <span class="line"><span class="line__inner">From space</span></span>
+        <span class="line"><span class="line__inner">to screen.</span></span>
+      </h1>
+
+      <p class="hero__lede reveal" style="--delay: 240ms">
+        Product &amp; spatial designer.<br>
+        Now delivering digital work with AI tools.
+      </p>
+    </div>
+
+    <div class="hero__bar">
+      <p class="status"><span class="status__dot" aria-hidden="true"></span>Open to work</p>
+      <p class="hero__place">Based in Taiwan</p>
+      <a class="scroll-cue" href="#works" aria-label="Scroll to Works">&darr;</a>
+    </div>
+
+  </section>
+
+  <!-- ══════════ HERO B(實驗版,網址加 ?hero=b 才顯示) ══════════
+       原版文字(左) + 直式氛圍人像(右),參考 kalinsky.design。
+       人像:暗調側臉 + 輕微 RGB 色差 glitch(三張同圖疊出來)。 -->
+  <section class="hero-b" id="hero-b" aria-label="Intro">
+
+    <!-- 碎片畫布已搬到 body 層(.fragments)—— 它要能飛過整頁,
+         留在 hero 裡的話捲走就沒了 -->
+
+    <!-- ══════════ 左上:小標籤 + 宣言 ══════════
+         2026-07-29 改。原本是一個中小尺寸的「Portfolio」浮在左邊垂直中央 ——
+         那個詞沒有資訊量,而且 34px 比下面 Works 清單的 44px 還小,
+         所以開場沒有主張,個性全靠粒子撐。
+
+         真正的宣言是 DESIGN.md 裡的定位句「From space to screen.」,
+         它原本被埋在左下角 10.5px,主次是反的。
+
+         標籤用等寬(跟左下角同一套),宣言用 Archivo ——
+         這不是「兩套字打架」,是分工:等寬管標籤,Archivo 只給這一句。 -->
+    <div class="hb2-head">
+      <p class="hb2-eyebrow">Product &middot; Spatial &middot; UX / UI &middot; Creative</p>
+      <h1 class="hb2-word">From space<br><span class="hb2-word__dim">to screen.</span></h1>
+    </div>
+
+    <!-- 左下角:身分說明,維持 HUD 小字 -->
+    <div class="hb2-meta">
+      <p class="hb2-meta__lead">Zakk Tseng <span lang="zh-Hant">曾莛翔</span></p>
+      <p>Product and spatial designer. Now delivering digital work with AI tools.</p>
+    </div>
+
+    <!-- 狀態:放頁面中下 -->
+    <p class="status hb2-status"><span class="status__dot" aria-hidden="true"></span>Open to work &mdash; Based in Taiwan</p>
+  </section>
+
+
+  <main id="main">
+
+    <!-- ══════════ 01 WORKS ══════════ -->
+    <section class="section" id="works">
+      <div class="section__head reveal">
+        <span class="section__num">01</span>
+        <h2 class="section__title">Works</h2>
+      </div>
+      <!-- P05:純文字清單是排版主角,滑過某列時預覽圖跟著游標浮現 -->
+      <ul class="works reveal" style="--delay: 100ms">
+
+        <li class="works__row">
+          <a class="works__line" href="https://cyd2025.framer.website" target="_blank" rel="noopener">
+            <span class="works__num">01</span>
+            <span class="works__name">New Era Traffic System</span>
+            <span class="works__type">Selected Works</span>
+            <span class="works__year">2025</span>
+          </a>
+
+          <figure class="works__thumb"><img src="assets/projects/works/cyd2025-cover.webp" alt="新型態交通號誌系統封面" loading="lazy" width="1200" height="675"></figure>
+        </li>
+
+        <li class="works__row">
+          <a class="works__line" href="works/kaxabu/">
+            <span class="works__num">02</span>
+            <span class="works__name">Kaxabu Tribe Identity</span>
+            <span class="works__type">Visual &middot; Brand</span>
+            <span class="works__year">2023</span>
+          </a>
+
+          <figure class="works__thumb"><img src="assets/projects/works/kaxabu-poster.webp" alt="Kaxabu 族群識別海報" loading="lazy" width="1029" height="1200"></figure>
+        </li>
+
+        <li class="works__row">
+          <a class="works__line" href="works/vegic/">
+            <span class="works__num">03</span>
+            <span class="works__name">VEGIC &mdash; Near-expiry Produce</span>
+            <span class="works__type">Brand &middot; Product &middot; Spatial</span>
+            <span class="works__year">2024</span>
+          </a>
+
+          <figure class="works__thumb"><img src="assets/projects/works/vegic-store.webp" alt="VEGIC 門市空間" loading="lazy" width="1200" height="675"></figure>
+        </li>
+
+        <li class="works__row">
+          <a class="works__line" href="works/catchu/">
+            <span class="works__num">04</span>
+            <span class="works__name">CATCHU &mdash; Cat Museum Caf&eacute;</span>
+            <span class="works__type">Brand &middot; Spatial</span>
+            <span class="works__year"></span>
+          </a>
+
+          <figure class="works__thumb"><img src="assets/projects/works/catchu-cafe.webp" alt="喵一眼咖啡入口與招牌" loading="lazy" width="900" height="600"></figure>
+        </li>
+
+        <li class="works__row">
+          <a class="works__line" href="works/mermaid/">
+            <span class="works__num">05</span>
+            <span class="works__name">The Little Mermaid</span>
+            <span class="works__type">Lighting</span>
+            <span class="works__year"></span>
+          </a>
+
+          <figure class="works__thumb"><img src="assets/projects/works/lamp.webp" alt="小美人魚燈具" loading="lazy" width="900" height="1200"></figure>
+        </li>
+
+        <li class="works__row">
+          <a class="works__line" href="works/antique/">
+            <span class="works__num">06</span>
+            <span class="works__name">Wooden Stool</span>
+            <span class="works__type">Furniture &middot; Spatial</span>
+            <span class="works__year"></span>
+          </a>
+
+          <figure class="works__thumb"><img src="assets/projects/works/stool.webp" alt="木凳" loading="lazy" width="1199" height="1200"></figure>
+        </li>
+
+        <li class="works__row">
+          <a class="works__line" href="works/dragon/">
+            <span class="works__num">07</span>
+            <span class="works__name">Dragon Skull</span>
+            <span class="works__type">Art</span>
+            <span class="works__year"></span>
+          </a>
+
+          <figure class="works__thumb"><img src="assets/projects/works/dragon-skull.webp" alt="上色完成的龍頭骨" loading="lazy" width="900" height="600"></figure>
+        </li>
+
+        <li class="works__row">
+          <a class="works__line" href="works/sketches/">
+            <span class="works__num">08</span>
+            <span class="works__name">Sketches &amp; Forms</span>
+            <span class="works__type">Drawing</span>
+            <span class="works__year"></span>
+          </a>
+
+          <figure class="works__thumb"><img src="assets/projects/works/sketches-pencil.webp" alt="鉛筆建築透視稿" loading="lazy" width="900" height="600"></figure>
+        </li>
+      </ul>
+    </section>
+
+    <!-- ══════════ 02 ABOUT(移到第二區:先認識人,再看照片) ══════════ -->
+    <section class="section" id="about">
+      <div class="section__head reveal">
+        <span class="section__num">02</span>
+        <h2 class="section__title">About</h2>
+      </div>
+
+      <div class="about">
+
+        <!-- 左:冷調人像(桌機貼著文字排,手機移到開場句下方) -->
+        <figure class="about__portrait reveal">
+          <img src="assets/about/about-summit.webp" alt="Zakk 站在紐西蘭山頂的岩石上,遠方是山脈與平原" loading="lazy" width="1050" height="1400">
+        </figure>
+
+        <!-- 右:文字流 -->
+        <div class="about__body">
+
+          <p class="about__name reveal">Zakk Tseng
+            <span class="about__name-zh" lang="zh-Hant">曾莛翔</span>
+          </p>
+
+          <p class="about__opening reveal" style="--delay: 40ms">
+            I make complicated things clear.
+            <span class="about__opening-zh" lang="zh-Hant">把複雜的事,變清楚。</span>
+          </p>
+
+          <div class="about__intro reveal" style="--delay: 80ms">
+            <p>A designer who works across space, product, and screen,
+               and has worked through the messy part between: understanding people,
+               untangling problems, and turning them into something that works.</p>
+            <p lang="zh-Hant" class="about__intro-zh">空間、產品、數位都做過,也處理過中間最麻煩的部分:理解需求、拆解問題,把它變成真正能用的東西。</p>
+          </div>
+
+          <!-- Experience 收進 <details>:一幀只放入口,細節點開再看。
+               用原生元件不寫 JS —— 鍵盤、讀螢幕軟體、沒有 JS 的環境都能展開。 -->
+          <!-- 自動展開,不用點(Zakk:「不要讓人點了才看到」)。
+               為了塞進一幀,職務描述各縮到一行。 -->
+          <div class="about__block reveal" style="--delay: 120ms">
+            <h3 class="about__label">Experience</h3>
+            <ul class="xp">
+              <li class="xp__row">
+                <div class="xp__main">
+                  <span class="xp__org">National Yunlin University of Science and Technology<span class="xp__org-zh">國立雲林科技大學</span></span>
+                  <span class="xp__role">Creative Design</span>
+                </div>
+                <span class="xp__time">2021–2024</span>
+              </li>
+              <li class="xp__row">
+                <div class="xp__main">
+                  <span class="xp__org">endesign<span class="xp__org-zh">一森室內設計</span></span>
+                  <span class="xp__role">Design Assistant — CAD, 3D modeling, on-site measurement</span>
+                </div>
+                <span class="xp__time">2025</span>
+              </li>
+              <li class="xp__row">
+                <div class="xp__main">
+                  <span class="xp__org">Sasaki Ken Interior Design</span>
+                  <span class="xp__role">Design Intern — material reference system, CAD, client decks</span>
+                </div>
+                <span class="xp__time">2023</span>
+              </li>
+            </ul>
+          </div>
+
+          <!-- 兩塊合成一塊:一幀裡不需要兩個小標題各佔一行 -->
+          <div class="about__block reveal" style="--delay: 160ms">
+            <h3 class="about__label">Tools &amp; strengths</h3>
+            <p class="about__list">AutoCAD &middot; SketchUp &middot; Rhino &middot; KeyShot &middot; Illustrator</p>
+            <p class="about__list">English (TOEIC 720) &middot; New Zealand &middot; Cross-role communication</p>
+          </div>
+
+          <p class="about__cta reveal" style="--delay: 240ms">
+            Currently open to work — in design, and beyond.
+            <a class="about__cv" href="assets/cv/zakk-tseng-cv.pdf" download>Download CV &darr;</a>
+          </p>
+
+        </div>
+      </div>
+    </section>
+
+    <!-- ══════════ 03 PHOTOS ══════════
+         12 張景觀照,整站的色彩來源。版面節奏:全幅 → 並排 → 直橫混排,循環。
+         圖說(地點)等 Zakk 提供後補在 <figcaption>。 -->
+    <section class="section section--last" id="photos">
+      <div class="section__head reveal">
+        <span class="section__num">03</span>
+        <h2 class="section__title">Photos</h2>
+      </div>
+
+      <p class="photos__note reveal" style="--delay: 60ms">
+        Photography is how I keep looking. I carry a camera to record ordinary days &mdash;
+        light, terrain, weather, the way a place feels before it becomes a project.
+        <span lang="zh-Hant">拍照是我保持觀察的方式,用相機記錄生活。</span>
+        <span class="photos__hint">Hover to pause &middot; scroll to move</span>
+      </p>
+
+      <!-- 橫幅無限滾動:一條連續帶,滑鼠移上去會放慢。
+           軌道由 JS 複製一份接在後面,才能無縫循環。 -->
+      <div class="marquee reveal" style="--delay: 100ms">
+        <div class="marquee__track">
+          <figure class="mq"><img src="assets/photos/sdim2377.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+          <figure class="mq"><img src="assets/photos/sdim2324.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+          <figure class="mq mq--tall"><img src="assets/photos/img_3245.webp" alt="景觀攝影,直幅" loading="lazy" width="1500" height="2000"></figure>
+          <figure class="mq"><img src="assets/photos/sdim2361.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+          <figure class="mq"><img src="assets/photos/sdim2364.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+          <figure class="mq"><img src="assets/photos/sdim2383.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+          <figure class="mq mq--tall"><img src="assets/photos/sdim2437.webp" alt="景觀攝影,直幅" loading="lazy" width="1125" height="2000"></figure>
+          <figure class="mq"><img src="assets/photos/sdim2406.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+          <figure class="mq"><img src="assets/photos/sdim2457.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+          <figure class="mq"><img src="assets/photos/sdim2505.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+          <figure class="mq"><img src="assets/photos/sdim2587.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+          <figure class="mq"><img src="assets/photos/img_4865.webp" alt="景觀攝影" loading="lazy" width="2000" height="1125"></figure>
+        </div>
+      </div>
+    
+      <!-- Contact 併進 Photos(Zakk:「photo 也沒有很滿,合併就好」)。
+           內容回到最初的簡版:一句話 + 三個連結。
+           兩欄版把整幀撐滿了,但那是為了填空而長出來的內容,不是真的需要。 -->
+      <div class="contact-inline reveal" style="--delay: 140ms">
+        <h2 class="contact-inline__title">Contact</h2>
+        <ul class="contact-list">
+          <li><a href="mailto:zakk0000g5@gmail.com">Email</a></li>
+          <li><a href="https://instagram.com/zakktseng" target="_blank" rel="noopener">Instagram</a></li>
+          <li><a href="https://github.com/zakkg5" target="_blank" rel="noopener">GitHub</a></li>
+        </ul>
+      </div>
+    </section>
+
+    <!-- ══════════ 04 CONTACT ══════════ -->
+    
+
+  </main>
+
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="js/main.js?v=114"></script>
+</body>
+</html>

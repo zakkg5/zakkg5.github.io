@@ -1,0 +1,182 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Elderly Residence — Zakk</title>
+  <meta name="description" content="A two-storey house planned around a wheelchair user downstairs and a live-in carer upstairs.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
+  <link rel="stylesheet" href="../../css/style.css?v=83">
+  <link rel="stylesheet" href="../../css/work.css?v=44">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <!-- 碎片:跟主頁同一套引擎、同一顆頭骨(assets/3d/dragon.webp),
+       換頁不會覺得到了別的網站。
+       ⚠️ 這裡原本有 data-src / data-flat 指向 bones/spine.svg ——
+       那是 §47 把多骨頭系統拆掉之前的東西,main.js 早就不讀了,
+       檔案也從來沒被載入過(network log 確認),已移除。 -->
+  <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════ -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">Spatial</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">Elderly Residence
+        <span class="work-title-zh" lang="zh-Hant">長者住宅</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        A Tuscan-looking house with a double-height living room under a big pendant,
+        and a garage that connects straight through to the living room and kitchen.
+        The ground floor bedroom and bathroom are for a wheelchair user; upstairs
+        belongs to the carer, with an office and a balcony for drying laundry.
+        <span class="work-lede-zh" lang="zh-Hant">參考托斯卡尼法透天的外觀,相似豪宅的風格搭配二樓大片窗設計,
+          客廳採用簍空,天花板裝設大吊燈照明,一樓車庫連通客廳及廚房,使空間流通順暢,
+          而一樓的臥室及浴室供身障者使用,樓梯採大角造型,二樓則為照顧者設計,
+          有辦公室供照顧者工作,以及陽台晾衣服。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Type</dt>
+          <dd class="facts__v">Spatial design &mdash; residential</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Drawings</dt>
+          <dd class="facts__v">1F &amp; 2F plans, ceiling &amp; lighting plans, two interior sections</dd>
+        </div>
+      </dl>
+    </section>
+
+    <figure class="plate plate--drawing plate--opening reveal">
+      <img src="../../assets/works/elderly/elderly-01.webp"
+           alt="一樓平面配置圖,標有玄關、車庫、客廳、廚房、浴室與臥室,右下角是比例尺與北方箭頭"
+           width="1600" height="1132">
+    </figure>
+
+
+    <!-- ══════════ 01 圖面 ══════════ -->
+    <section class="ch" id="drawings">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Drawings <span class="zh" lang="zh-Hant">圖面</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="plates">
+        <!-- 圖面不加圖說 —— 圖裡本來就印著自己的名字 -->
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/elderly/elderly-02.webp" loading="lazy"
+               alt="一樓天花板及燈具配置圖" width="1600" height="1132">
+        </figure>
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/elderly/elderly-03.webp" loading="lazy"
+               alt="二樓平面配置圖" width="1600" height="1115">
+        </figure>
+
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/elderly/elderly-04.webp" loading="lazy"
+               alt="室內剖立面圖,可以看到挑空的客廳與樓梯" width="1600" height="1132">
+        </figure>
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/elderly/elderly-05.webp" loading="lazy"
+               alt="室內剖立面圖,切過臥室與浴室" width="1600" height="1132">
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 02 空間 ══════════ -->
+    <section class="ch" id="rooms">
+      <div class="ch__head reveal">
+        <span class="ch__num">02</span>
+        <h2 class="ch__title">Rooms <span class="zh" lang="zh-Hant">空間</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/elderly/elderly-06.webp" loading="lazy"
+               alt="玄關區渲染,石材牆面與挑高天井,旁邊是白色鏤空造型立燈" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">玄關區</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/elderly/elderly-07.webp" loading="lazy"
+               alt="客廳渲染,深色沙發面對壁掛電視,上方是長條天窗" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">客廳</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/elderly/elderly-08.webp" loading="lazy"
+               alt="從樓梯望向餐廚區,深色階梯與圓形吊燈下的餐桌" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">樓梯與餐廚區</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/elderly/elderly-09.webp" loading="lazy"
+               alt="二樓走道渲染,黑色鐵件欄杆沿著挑空邊緣" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">二樓走道</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/elderly/elderly-10.webp" loading="lazy"
+               alt="臥室渲染,床鋪靠窗,天花板是黑色枝狀吊燈" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">身障者房間</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/elderly/elderly-11.webp" loading="lazy"
+               alt="無障礙浴室俯視渲染,淋浴區與浴缸並排,牆面是深色石材" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">身障者設計廁所</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/elderly/elderly-12.webp" loading="lazy"
+               alt="書房渲染,整面書牆、書桌與單椅,窗外有綠意" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">照顧者書房</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 下一件 ══════════ -->
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=114"></script>
+</body>
+</html>

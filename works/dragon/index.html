@@ -1,0 +1,156 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Dragon Skull — Zakk</title>
+  <meta name="description" content="A dragon skull built from wire and clay — the first three-dimensional piece I made for myself. It is also the object this whole site is made of.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
+  <link rel="stylesheet" href="../../css/style.css?v=83">
+  <link rel="stylesheet" href="../../css/work.css?v=44">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <!-- 碎片:跟主頁同一套引擎、同一顆頭骨(assets/3d/dragon.webp),
+       換頁不會覺得到了別的網站。
+       ⚠️ 這裡原本有 data-src / data-flat 指向 bones/spine.svg ——
+       那是 §47 把多骨頭系統拆掉之前的東西,main.js 早就不讀了,
+       檔案也從來沒被載入過(network log 確認),已移除。 -->
+  <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════ -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">Art</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">Dragon Skull
+        <span class="work-title-zh" lang="zh-Hant">龍頭骨</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        My first three-dimensional piece, made in a studio because I like dragons.
+        The armature is bent from wire, wrapped in clay and painted &mdash; and the
+        first time I set myself a challenge in three dimensions.
+        <span class="work-lede-zh" lang="zh-Hant">這是我第一個在畫室製作的 3D 作品,因為對龍有很大的興趣,
+          其骨架是用鐵絲去拉,再包住黏土上色,也是第一次給自己做立體作品的挑戰。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Type</dt>
+          <dd class="facts__v">Art &mdash; three-dimensional</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Material</dt>
+          <dd class="facts__v">Wire armature, clay, paint &mdash;
+            <span class="zh" lang="zh-Hant">鐵絲、黏土、上色</span></dd>
+        </div>
+      </dl>
+    </section>
+
+    <figure class="plate plate--render plate--opening reveal">
+      <img src="../../assets/works/dragon/dragon-02.webp"
+           alt="上色完成的龍頭骨,張口露出牙齒,頭頂有一對彎角,表面是灰白與藍調的斑駁質感"
+           width="1600" height="1199">
+    </figure>
+
+
+    <!-- ══════════ 01 骨架 ══════════ -->
+    <section class="ch" id="armature">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Armature <span class="zh" lang="zh-Hant">鐵絲骨架</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        It starts as wire &mdash; bent, tied, and stood up on the desk before any clay
+        goes on. Everything after this is thickness.
+        <span class="zh" lang="zh-Hant">先用鐵絲把形狀拉出來、綁好、立在桌上,黏土是之後的事。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/dragon/dragon-03.webp" loading="lazy"
+               alt="用鋁線彎折綁紮出來的頭骨骨架,放在木桌上" width="1417" height="778">
+          <figcaption class="plate__cap" lang="zh-Hant">鐵絲骨架</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 02 成品 ══════════ -->
+    <section class="ch" id="finish">
+      <div class="ch__head reveal">
+        <span class="ch__num">02</span>
+        <h2 class="ch__title">Finish <span class="zh" lang="zh-Hant">成品</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/dragon/dragon-01.webp" loading="lazy"
+               alt="龍頭骨側面,土黃色調,角向後彎" width="1600" height="1200">
+          <figcaption class="plate__cap" lang="zh-Hant">側面</figcaption>
+        </figure>
+      </div>
+
+      <!-- 這不是文案,是這個網站的事實:首屏那團碎片就是這顆頭骨的照片拆出來的
+           (assets/3d/dragon.webp 就是這一張)。所以去背的那張直接擺在句子旁邊。 -->
+      <div class="plates">
+        <figure class="plate plate--render plate--cutout plate--half reveal">
+          <img src="../../assets/works/dragon/dragon-04.webp" loading="lazy"
+               alt="去背的龍頭骨 —— 這張就是全站碎片的取樣來源" width="286" height="298">
+        </figure>
+        <div class="plate plate--half reveal">
+          <p class="pull" style="margin-top: 0">
+            <span class="zh" lang="zh-Hant">這顆頭骨也是這個網站本身 ——
+              首頁載入時聚攏成形的那幾千片碎片,取樣的就是它。</span>
+            The fragments on this site are this object.
+          </p>
+        </div>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 下一件 ══════════ -->
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=114"></script>
+</body>
+</html>
