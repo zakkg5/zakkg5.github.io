@@ -847,7 +847,11 @@
     try { data = octx.getImageData(0, 0, iw, ih).data; }
     catch (e) { return []; }
 
-    var s = Math.min(W * 1.05, 1650) / iw;
+    /* ⚠️ 這個 1650 是**頭骨在寬螢幕上長不大的原因**。
+       W*1.05 在 1571px 以上就會超過 1650 被夾住,螢幕再寬頭骨都一樣大 ——
+       實測 1920 寬時頭骨主體只有 566px(29% 螢幕寬),中間就空了。
+       放寬到 2200,1571px 以下完全不受影響(那時本來就沒被夾到)。 */
+    var s = Math.min(W * 1.05, 2200) / iw;
     var depth = iw * s * 0.16;
     // 線稿的線只有幾 px 寬,取樣要比照片密,不然整條線會被跳過
     var step = Math.max(1, Math.round(iw / (flat ? 520 : 230)));
@@ -905,7 +909,7 @@
     }
     if (!forms[0].length) return;
 
-    var gap = (Math.min(W * 1.05, 1650) / imgs[0].naturalWidth) *
+    var gap = (Math.min(W * 1.05, 2200) / imgs[0].naturalWidth) *
               Math.max(1, Math.round(imgs[0].naturalWidth / 190));
 
     var map = {};
@@ -2070,7 +2074,7 @@ window.__fragSprites = (function () {
      等 Zakk 生好骨架圖、換掉 SRC 之後再把這行拿掉。 */
   if (location.search.indexOf('dragon') === -1) return;
 
-  var SRC = 'assets/3d/dragon-full.webp';   // ← 換成骨架圖只要改這一行
+  var SRC = 'assets/3d/bones/spine.svg';   // ← 換成骨架圖只要改這一行(現在是驗證用的線稿)
   var NPTS = 4200;   // 首屏頭骨的覆蓋率是 3.9%,2200 顆只有 0.2% 太稀
   var ctx = canvas.getContext('2d', { alpha: true });
   var W = 0, H = 0, DPR = 1;

@@ -1352,7 +1352,10 @@ html.is-loading .topbar { opacity: 0; }
   font-weight: 500;
   /* 首屏最大的字,必須大過下面 Works 清單的作品名(44px),
      不然開場的份量會輸給內容列表 */
-  font-size: clamp(2.1rem, 5.0vw, 4.2rem);
+  /* ⚠️ 上限原本是 4.2rem(67.2px)—— 1344px 以上就被夾住,
+     螢幕再寬大標都一樣大,所以在 1920 上只佔螢幕寬的 20%,看起來很空。
+     放寬到 5.25rem(84px);1344px 以下完全不受影響。 */
+  font-size: clamp(2.1rem, 5.0vw, 5.25rem);
   letter-spacing: -0.03em;
   line-height: 1.02;
   color: var(--ink-dsp);
