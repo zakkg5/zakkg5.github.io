@@ -1395,15 +1395,38 @@
 
      網址加 ?fps60 可以關掉這個限制,拿來跟 ?fps 的讀數對照
      (這是給 Zakk 在自己手機上 A/B 用的,我這台驗不了他的機器)。 */
-  var HALF = SMALL && location.search.indexOf('fps60') === -1;
-  var tick = 0;
+  /* ⚠️ 一開始寫的是「手機一律 30fps 上限」—— **那是猜的,而且猜錯了。**
+     Zakk 回報改完之後手機「粒子沒有動畫」。想通了:如果他的手機本來就只跑到 30,
+     再砍一半就是 15fps —— 那不是「順」,那是「不會動」。
+     固定上限的前提是「我知道這支手機多快」,而我不知道。
+
+     改成自己量、自己決定:
+       量到平均一偵 > 22ms(低於約 45fps)才開始跳偵;
+       回到 < 15ms 就升回滿速。中間留一段不動作,避免在門檻上來回抖。
+     快的手機永遠是滿速(所以不會有「沒動畫」),
+     慢的手機才降到一半 —— 而且是它真的慢了才降。
+
+     ?fps60 強制滿速,拿來跟 ?fps 的讀數對照。 */
+  var FORCE_FULL = location.search.indexOf('fps60') !== -1;
+  var slow = false, tick = 0;
+  var accMs = 0, accN = 0, lastMs = performance.now();
 
   function frame() {
     raf = requestAnimationFrame(frame);
-    if (HALF && (++tick & 1)) return;      // 奇數偵直接跳過,不清畫布也不畫
-    t += HALF ? 0.032 : 0.016;             // ⚠️ 時間也要跟著走兩倍,不然飄動會變慢一半
+
+    var now = performance.now(), dt = now - lastMs; lastMs = now;
+    /* 分頁切回來的第一偵是好幾百 ms,不是真的掉偵 —— 不能算進平均 */
+    if (dt < 200) { accMs += dt; accN++; }
+    if (accN >= 45) {
+      var avg = accMs / accN; accMs = 0; accN = 0;
+      if (SMALL && !FORCE_FULL) slow = avg > 22 ? true : (avg < 15 ? false : slow);
+    }
+
+    if (slow && (++tick & 1)) return;      // 奇數偵直接跳過,不清畫布也不畫
+    t += slow ? 0.032 : 0.016;             // ⚠️ 時間也要跟著走兩倍,不然飄動會慢一半
     var target = (heroB && heroB.classList.contains('ghost-lit')) ? 0.2 : 1;
-    assemble += (target - assemble) * (HALF ? 0.12 : 0.06);
+    assemble += (target - assemble) * (slow ? 0.12 : 0.06);
+    window.__fragSlow = slow;              // 給 ?fps 讀數面板顯示現在是哪一檔
     render(true);
   }
 
@@ -1982,7 +2005,7 @@ window.__fragSprites = (function () {
    不如讓他自己量:網址加 ?fps 就會出現一個小讀數。
 
    怎麼用(在手機上):
-     ?fps          現在的設定(手機碎片 30fps 上限)
+     ?fps          現在的設定(碎片自己量、自己決定滿速或半速)
      ?fps&fps60    關掉上限來對照
    兩個都滑一遍首屏,看 min 差多少。
 
@@ -2001,8 +2024,6 @@ window.__fragSprites = (function () {
   document.body.appendChild(box);
 
   var last = performance.now(), n = 0, sum = 0, worst = 0, shownMin = 999;
-  var half = location.search.indexOf('fps60') === -1 &&
-             window.matchMedia('(max-width: 720px), (pointer: coarse)').matches;
 
   function loop() {
     var t = performance.now(), d = t - last; last = t;
@@ -2016,7 +2037,7 @@ window.__fragSprites = (function () {
       if (fpsMin < shownMin) shownMin = fpsMin;
       box.textContent =
         'fps ' + fpsNow + '   min ' + fpsMin + '\n' +
-        '最差 ' + shownMin + '   ' + (half ? '30fps 上限' : '無上限') + '\n' +
+        '最差 ' + shownMin + '   碎片 ' + (window.__fragSlow ? '半速' : '滿速') + '\n' +
         Math.round(window.scrollY) + 'px';
       n = 0; sum = 0; worst = 0;
     }

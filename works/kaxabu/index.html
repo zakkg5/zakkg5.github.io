@@ -8,6 +8,11 @@
   <meta name="description" content="Identity and print for the Kaxabu people of Niumian, built on the tribe&#39;s red-and-black weaving and the legend of the Fanpo ghost. 2023.">
 
   <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- 🔴 碎片引擎要等這張圖載完才開始畫 —— 沒有它就是一顆粒子都沒有。
+       它原本排在 main.js 解析完之後才開始下載,是整條載入鏈的最後面;
+       手機的行動網路每次來回 100-300ms,那段空窗看得出來(Zakk:「載入也沒有粒子了」)。
+       preload 讓它跟 CSS / 字型並行下載。 -->
+  <link rel="preload" href="../../assets/3d/dragon.webp" as="image" type="image/webp">
 
   <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
   <link rel="stylesheet" href="../../css/style.css?v=88">
@@ -198,6 +203,6 @@
     <p>&copy; 2026</p>
   </footer>
 
-  <script src="../../js/main.js?v=122"></script>
+  <script src="../../js/main.js?v=124"></script>
 </body>
 </html>
