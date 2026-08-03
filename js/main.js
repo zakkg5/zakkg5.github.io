@@ -2033,3 +2033,45 @@ window.__fragSprites = (function () {
   }
   requestAnimationFrame(loop);
 }());
+
+
+/* ═══════════════════════════════════════════════════
+   寬螢幕右側骨架(樣本)—— 網址加 ?bones 才出現
+
+   Zakk 想看實際效果再決定,所以先做成可以開關的樣本:
+   沒有 ?bones 就一行都不跑,線上訪客看不到。
+
+   用站上自己的 assets/3d/bones/*.svg,不是他傳的參考圖。
+   ═══════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  if (location.search.indexOf('bones') === -1) return;
+  if (!window.matchMedia('(min-width: 1441px)').matches) return;
+
+  var PARTS = [
+    ['works', 'spine.svg', '龍骨脊椎:脖子到後腳'],
+    ['about', 'tail.svg',  '龍骨:後腳到尾椎'],
+    ['photos', 'tail.svg', '龍骨尾端']
+  ];
+
+  PARTS.forEach(function (p) {
+    var sec = document.getElementById(p[0]);
+    if (!sec) return;
+    /* 幀系統會把內容包進 .frame__sheet —— 骨架要掛在 sheet 上,
+       掛在 section 上的話會被 .frame__pin 的 overflow: hidden 裁掉。 */
+    var host = sec.querySelector('.frame__sheet') || sec;
+    /* 包一層:外層決定視覺上的框(窄而高),裡面的 img 轉 90°。
+       直接轉 img 的話它的 layout box 不會跟著轉,right/top 會對到
+       旋轉前的框,位置永遠算不準。 */
+    var box = document.createElement('div');
+    box.className = 'bone-deco';
+    box.setAttribute('aria-hidden', 'true');
+    var im = document.createElement('img');
+    im.src = 'assets/3d/bones/' + p[1];
+    im.alt = '';
+    box.appendChild(im);
+    host.appendChild(box);
+    /* sheet 要是定位基準,骨架的 right/top 才有東西可以對 */
+    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
+  });
+}());

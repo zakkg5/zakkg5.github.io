@@ -2181,20 +2181,24 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
      .side-nav 是 fixed 在右緣、離右邊 158px —— 百分比會隨螢幕寬度跑掉:
      實測 1651px 寬時 88% = 1453px,而頁籤在 1493px,照片還是壓在上面。
      固定 px 的話,不管螢幕多寬都在頁籤之前就淡完。 */
+  /* 霧邊收窄(Zakk:「淡出的霧邊太多了,不用那麼大」)——
+     左 72 → 32px、右邊的漸層長度 110 → 52px。
+     ⚠️ **右邊「完全透明」的位置仍然固定在離右緣 170px** ——
+     那是讓開 .side-nav 用的,不能因為想收窄就往右挪。 */
   -webkit-mask-image: linear-gradient(90deg,
-      transparent 0, #000 72px,
-      #000 calc(100% - 280px), transparent calc(100% - 170px));
+      transparent 0, #000 32px,
+      #000 calc(100% - 222px), transparent calc(100% - 170px));
   mask-image: linear-gradient(90deg,
-      transparent 0, #000 72px,
-      #000 calc(100% - 280px), transparent calc(100% - 170px));
+      transparent 0, #000 32px,
+      #000 calc(100% - 222px), transparent calc(100% - 170px));
 }
 @media (max-width: 720px) {
   /* 手機沒有右側頁籤,兩端收一樣多就好 */
   .marquee {
     -webkit-mask-image: linear-gradient(90deg,
-        transparent 0, #000 6%, #000 94%, transparent 100%);
+        transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
     mask-image: linear-gradient(90deg,
-        transparent 0, #000 6%, #000 94%, transparent 100%);
+        transparent 0, #000 20px, #000 calc(100% - 20px), transparent 100%);
   }
 }
 
@@ -2206,5 +2210,86 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .about__label {
   font-size: 13px;
   letter-spacing: 0.18em;
-  color: var(--slate);
+  /* ⚠️ 上一版把這裡改成 --slate,等於**把 About 唯一的顏色拿掉了** ——
+     Zakk 隨即回報「about 那邊顏色有點單調」。是我造成的。
+     ember 是全站唯一的暖色,About 整區就靠這兩個標籤和 Download CV 撐色彩。
+     放大字級是對的,但不該順手改顏色(又一次「一次改兩件事」)。 */
+  color: var(--ember);
+}
+
+
+/* ── 區塊大標拿掉編號(2026-08-04,Zakk:「跟列子裡面的數字撞到了」)──
+   `01 Works` 的 01 和清單裡每一列的 01–08 是兩套編號,擠在同一個畫面上
+   會讓人以為是同一組。而且區塊的序號在導覽列(01/02/03)已經有了,
+   這裡是重複資訊。
+
+   改成一小段 ember 短線 —— 標記還在(大標不會變成孤零零一個詞),
+   但不再是「數字」,就不會跟清單打架。 */
+.section__num { display: none; }
+
+.section__head::before {
+  content: "";
+  flex: none;
+  width: 28px;
+  height: 2px;
+  background: var(--ember);
+  /* 跟大標的基線對齊,而不是跟整個 flex 置中 —— 置中會浮在半空 */
+  align-self: baseline;
+  transform: translateY(-0.42em);
+}
+
+
+/* ═══════════════════════════════════════════════════════
+   寬螢幕右側骨架(樣本,網址加 ?bones 才出現)
+
+   Zakk:「電腦這樣右邊也太空了,如果空的地方跟首頁一樣放身體到尾巴的部分呢
+   —— works 就放脖子到後腳,about 就放後腳到尾椎,最後 photo 右上就露一點尾巴。」
+
+   用的是站上自己的 SVG(assets/3d/bones/),不是他傳的參考圖 ——
+   首頁是那顆頭骨的**照片**,右邊接下去是同一具骨架的**圖面**,
+   剛好接上「這裡的東西都是畫出來的」那句話。
+
+   ⚠️ 只在 >1441px 出現。1440 以下右邊沒有空位,硬放會壓到內容。
+   ⚠️ 手機完全不放(沒空間,而且會再吃效能)。
+   ═══════════════════════════════════════════════════════ */
+@media (min-width: 1441px) {
+  /* ⚠️ 骨頭改成**直式由上到下**(Zakk 指定)。
+     頁面是往下捲的,骨架順著捲動方向走才讀得出「同一具身體一直延續下去」;
+     橫躺的話每一區都是各自獨立的一段。
+
+     做法:外層 div 決定「視覺上的框」(窄而高),裡面的 img 旋轉 90°。
+     直接對 img 下 rotate 也可以,但**它的 layout box 不會跟著轉** ——
+     right/top 會對到旋轉前的框,位置永遠算不準。包一層最好推理。 */
+  .bone-deco {
+    position: absolute;
+    right: 3%;
+    width: 300px;                    /* 視覺寬度 = 骨頭的粗細方向 */
+    overflow: hidden;
+    pointer-events: none;
+    z-index: -1;                     /* 壓在內容後面,永遠不會擋到字 */
+    opacity: 0.17;                   /* 墨線印在紙上,不是貼一張圖 */
+  }
+  .bone-deco img {
+    position: absolute;
+    top: 50%;
+    left: 50%;
+    /* ⚠️ 一定要解掉 max-width。全站有 `img { max-width: 100% }`,
+       這裡的容器只有 300px 寬,骨頭會被壓成 300px 再旋轉 ——
+       實測旋轉後只有 155x300,而不是預期的 506x980。 */
+    max-width: none;
+    transform: translate(-50%, -50%) rotate(90deg);
+  }
+
+  /* Works:脖子到後腳。脊椎最長,給它整段高度 */
+  #works .bone-deco { top: 4%; height: 88%; }
+  #works .bone-deco img { width: min(80vh, 980px); }
+
+  /* About:後腳到尾椎,接著往下走 */
+  #about .bone-deco { top: 12%; height: 82%; }
+  #about .bone-deco img { width: min(72vh, 880px); }
+
+  /* Photos:右上只露一點尾尖 —— 「跑出畫面」比「完整展示」
+     更像同一具骨架還在繼續往下走 */
+  #photos .bone-deco { top: -6%; height: 46%; opacity: 0.13; }
+  #photos .bone-deco img { width: min(56vh, 640px); }
 }
