@@ -1385,12 +1385,26 @@
     ctx.globalAlpha = 1;
   }
 
+  /* ── 手機:碎片每兩偵才畫一次(30fps)──
+     Zakk 回報手機的開場會卡。我在桌機模擬 390px 一律 60fps,量不出來 ——
+     真正的成本在手機:2400 次 drawImage + 清掉 0.74 百萬像素,每一偵。
+     中階手機的 canvas 2D 大約 1000–3000 次 draw call 就到頂了。
+
+     碎片是慢慢飄的背景,30fps 看不太出來;但**忽快忽慢**很明顯 ——
+     與其在 60 和 25 之間抖,不如穩定在 30。
+
+     網址加 ?fps60 可以關掉這個限制,拿來跟 ?fps 的讀數對照
+     (這是給 Zakk 在自己手機上 A/B 用的,我這台驗不了他的機器)。 */
+  var HALF = SMALL && location.search.indexOf('fps60') === -1;
+  var tick = 0;
+
   function frame() {
-    t += 0.016;
-    var target = (heroB && heroB.classList.contains('ghost-lit')) ? 0.2 : 1;
-    assemble += (target - assemble) * 0.06;
-    render(true);
     raf = requestAnimationFrame(frame);
+    if (HALF && (++tick & 1)) return;      // 奇數偵直接跳過,不清畫布也不畫
+    t += HALF ? 0.032 : 0.016;             // ⚠️ 時間也要跟著走兩倍,不然飄動會變慢一半
+    var target = (heroB && heroB.classList.contains('ghost-lit')) ? 0.2 : 1;
+    assemble += (target - assemble) * (HALF ? 0.12 : 0.06);
+    render(true);
   }
 
   /* 五張圖全部載完才建點雲 —— 少一張就沒辦法逐點插值。
@@ -1958,3 +1972,55 @@ window.__fragSprites = (function () {
     }, true);
   }
 })();
+
+
+/* ═══════════════════════════════════════════════════
+   ?fps —— 手機用的效能讀數(2026-08-03)
+
+   為什麼需要:Zakk 回報手機卡頓,但我在桌機模擬 390px 一律量到 60fps。
+   **卡頓只存在他的機器上,我這台驗不了。** 與其一直猜著改,
+   不如讓他自己量:網址加 ?fps 就會出現一個小讀數。
+
+   怎麼用(在手機上):
+     ?fps          現在的設定(手機碎片 30fps 上限)
+     ?fps&fps60    關掉上限來對照
+   兩個都滑一遍首屏,看 min 差多少。
+
+   平常完全不存在 —— 沒有 ?fps 就直接 return,一行都不執行。
+   ═══════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  if (location.search.indexOf('fps') === -1) return;
+
+  var box = document.createElement('div');
+  box.style.cssText =
+    'position:fixed;left:8px;bottom:8px;z-index:9999;pointer-events:none;' +
+    'font:600 12px/1.45 ui-monospace,monospace;color:#16232C;' +
+    'background:rgba(244,246,247,.92);border:1px solid #C9D4DA;' +
+    'padding:6px 9px;border-radius:2px;white-space:pre';
+  document.body.appendChild(box);
+
+  var last = performance.now(), n = 0, sum = 0, worst = 0, shownMin = 999;
+  var half = location.search.indexOf('fps60') === -1 &&
+             window.matchMedia('(max-width: 720px), (pointer: coarse)').matches;
+
+  function loop() {
+    var t = performance.now(), d = t - last; last = t;
+    /* 分頁切回來的第一偵會是好幾百 ms,不是真的掉偵 —— 丟掉 */
+    if (d < 400) { sum += d; n++; if (d > worst) worst = d; }
+
+    if (n >= 30) {
+      var avg = sum / n;
+      var fpsNow = Math.round(1000 / avg);
+      var fpsMin = Math.round(1000 / worst);
+      if (fpsMin < shownMin) shownMin = fpsMin;
+      box.textContent =
+        'fps ' + fpsNow + '   min ' + fpsMin + '\n' +
+        '最差 ' + shownMin + '   ' + (half ? '30fps 上限' : '無上限') + '\n' +
+        Math.round(window.scrollY) + 'px';
+      n = 0; sum = 0; worst = 0;
+    }
+    requestAnimationFrame(loop);
+  }
+  requestAnimationFrame(loop);
+}());
