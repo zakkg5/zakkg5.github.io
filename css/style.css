@@ -1954,3 +1954,72 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 @media (max-width: 640px) {
   .contact-inline { flex-direction: column; gap: var(--s3); }
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   手機修正(2026-08-03)
+
+   幀系統在手機上已經整套關掉(見 js/main.js),頁面變回正常捲動的文件。
+   那也把三個**一直都在、只是被 overflow: hidden 藏起來**的版面問題露出來了。
+   ═══════════════════════════════════════════════════════ */
+
+/* ── ① 首屏底部兩塊文字疊在一起 ──
+   .hb2-meta(左下)與 .hb2-status(置中下)都是 position: absolute + bottom,
+   桌機夠寬所以錯得開,390px 就正面對撞。
+
+   改成正常的流排版:標題在上,meta 與狀態被 margin-top: auto 一起推到底部,
+   中間那片空白留給頭骨碎片。不用寫死的偏移量 —— meta 會依字數換行,
+   任何 magic number 都會在某個字數下失效。 */
+@media (max-width: 720px) {
+  .hero-b {
+    display: flex;
+    flex-direction: column;
+    /* ⚠️ 要扣掉 topbar。桌機的幀系統裡 topbar 是「疊」在內容上的所以不扣(§45),
+       但手機沒有幀,topbar 是 sticky **佔著流排版的位置** ——
+       不扣的話首屏會比一屏多出 52px,狀態列剛好掉到摺線下面(實測掉出 12px)。 */
+    min-height: calc(100svh - var(--topbar-h));
+    padding: var(--s6) var(--gutter) var(--s5);
+    gap: var(--s4);
+  }
+  .hb2-head,
+  .hb2-meta,
+  .hb2-status {
+    position: static;
+    inset: auto;
+    transform: none;
+    max-width: none;
+    white-space: normal;
+  }
+  .hb2-meta { margin-top: auto; }   /* 這一行就是「把下面兩塊推到底」 */
+}
+
+
+/* ── ② Works 清單:四欄格線沒有改成直向 ──
+   `3.25rem minmax(0,1fr) auto 4rem` 在 390px 下,名字被右邊的
+   類別欄擠成三四行,而且直接跟類別文字疊在一起。
+
+   改成兩列:名字自己一整行,類別與年份收到第二列。
+   用 grid-area 明確指定,不靠自動排版猜。 */
+@media (max-width: 720px) {
+  .works__line {
+    grid-template-columns: 2.25rem minmax(0, 1fr) auto;
+    column-gap: var(--s3);
+    row-gap: 4px;
+    align-items: baseline;
+  }
+  .works__num  { grid-area: 1 / 1 / 2 / 2; }
+  .works__name { grid-area: 1 / 2 / 2 / 4; }
+  .works__type { grid-area: 2 / 2 / 3 / 3; }
+  .works__year { grid-area: 2 / 3 / 3 / 4; }
+}
+
+
+/* ── ③ 照片帶的操作提示 ──
+   用 pointer 而不是寬度 —— 這件事取決於「用手指還是滑鼠」,
+   跟螢幕多寬無關(窄視窗的桌機仍然有滑鼠)。 */
+.photos__hint--coarse { display: none; }
+
+@media (pointer: coarse) {
+  .photos__hint--fine   { display: none; }
+  .photos__hint--coarse { display: inline; }
+}

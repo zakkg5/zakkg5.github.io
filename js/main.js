@@ -129,6 +129,27 @@
   'use strict';
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
+  /* 🔴 手機不建幀系統 —— 這套在小螢幕上不成立,而且是三個症狀的同一個病根:
+
+     一幀就是「一屏」,但手機的視窗只有 844px 高,而內容改成直向堆疊之後會變很高。
+     實測 390×844:Works 的內容 971px(裁掉 13%)、**About 1557px(裁掉 46%)** ——
+     超出的部分被 .frame__pin 的 overflow: hidden 直接切掉,而且**不會有捲軸**,
+     使用者根本不知道下面還有東西。
+
+     內容又是 position: fixed 釘死不動的(那正是桌機「像播影片」的來源),
+     手機一次慣性滑動輕鬆超過 1000px、一幀才 1266px ——
+     所以體感是「什麼都沒動,然後突然跳一頁」。
+
+     不建幀的路徑本來就存在(上面那行 reduced-motion 就是走這條),
+     `.section` 在沒有 .frame 的時候是 min-height: 0 的一般 block,
+     不會留下大洞 —— 頁面就變成正常捲動的文件,全部看得到。
+
+     ⚠️ 寬度與指標**兩個條件都要**:
+       - `pointer: coarse` 抓真的觸控裝置
+       - `max-width: 720px` 抓「視窗很窄的桌機」—— 那時 CSS 也已經改成直向堆疊,
+         內容一樣會超出一屏(720px 就是全站既有的手機斷點) */
+  if (window.matchMedia('(max-width: 720px), (pointer: coarse)').matches) return;
+
   var secs = [].slice.call(document.querySelectorAll('.hero-b, main .section'));
   if (!secs.length) return;
 
@@ -678,7 +699,16 @@
   var FORMS = [
     { src: 'assets/3d/dragon.webp', flat: false, fs: 1.00, wob: 1.85, am: 1.45 }   /* wob 1.00 -> 1.85:Zakk 說「有點靜止」 */
   ];
-  var NPTS = 3600;             // 首屏頭骨要更清楚 → 點數再提高
+  /* 手機把負擔砍下來(Zakk 回報「有點卡頓」)。
+     碎片這張畫布是全站最貴的東西:每一偵 clearRect 整張 + 幾千次 drawImage。
+     實測 390×844 的手機:DPR 2 時畫布是 780×1688 = 1.32 MP,
+     降到 1.5 之後 585×1266 = 0.74 MP —— **填色量少 44%**,
+     而 1.5 倍在手機的高密度螢幕上肉眼看不出差別(環繞粒子那支引擎本來就用 1.5)。
+     ⚠️ **點數不要跟著砍太兇。** 先試 1600,頭骨立刻變得稀稀落落 ——
+     Zakk 在 §60 已經連續兩次嫌粒子太少了,省效能不能拿這個換。
+     DPR 那 44% 是**看不出來**的省,優先用它;點數只收三分之一。 */
+  var SMALL = window.matchMedia('(max-width: 720px), (pointer: coarse)').matches;
+  var NPTS = SMALL ? 2400 : 3600;   // 首屏頭骨要更清楚 → 桌機點數再提高
   var TRANS_MS = 900;          // 換區塊時過場動畫的固定時長
   var curSeg = 0, wantSeg = 0, fromSeg = 0, segT = 1;
                                // 每段都取樣成同樣點數 —— 數量一樣才能逐點插值
@@ -705,7 +735,7 @@
   var EMBER = '180,85,42';
 
   function layout() {
-    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    DPR = Math.min(window.devicePixelRatio || 1, SMALL ? 1.5 : 2);
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = Math.round(W * DPR);
     canvas.height = Math.round(H * DPR);
