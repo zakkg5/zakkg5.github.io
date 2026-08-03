@@ -2100,3 +2100,54 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 @media (max-width: 720px), (pointer: coarse) {
   .marquee__track { animation: none; }
 }
+
+
+/* ═══════════════════════════════════════════════════════
+   寬螢幕:全部靠左對齊同一條線(2026-08-04)
+
+   Zakk:「字都太中間,圖都跑到邊邊,有點不好看。」他是對的 ——
+   實測 2560px 寬,同一個畫面上有**三個不同的左邊界**:
+
+     ZAKK / 首屏大標    56px   (滿版 + gutter)
+     Works / About 標題 664px  (置中的 1440 欄)
+     照片帶              0px   (滿版出血)
+
+   §72 我只把首屏拉到 56,內容區沒跟上,反而讓落差更明顯。
+
+   正解是編輯設計的標準做法:**結構貼邊、文字限寬**。
+   所有東西共用同一條左線(56px),但每一塊各自有合理的寬度上限 ——
+   不能整塊放到 2560px,那樣作品清單會被拉成一條又一條的長線、
+   段落一行會長到讀不下去。
+
+   ⚠️ 只在 >1440px 生效。1440 以下本來就沒有多餘空間,維持原樣。
+   ═══════════════════════════════════════════════════════ */
+@media (min-width: 1441px) {
+
+  /* 內容不再置中,改成貼左 + gutter,跟 topbar / 首屏同一條線 */
+  .frame__sheet {
+    max-width: none;
+    padding: 0 var(--gutter);
+  }
+  .section {
+    max-width: none;
+    margin: 0;
+    /* ⚠️ 左右內距要歸零。sheet 已經給了 gutter,.section 自己還有一層
+       `padding: var(--s6) var(--gutter)` —— 兩層疊起來標題就跑到 104px,
+       跟 topbar 的 56 還是對不齊(實測 56 + 48 = 104)。 */
+    padding-inline: 0;
+  }
+
+  /* 每一塊自己限寬。這些數字是「讀起來舒服的寬度」,不是版面寬度:
+     作品清單再寬,名字與年份之間的距離就會拉到看不出是同一列。 */
+  .works { max-width: 1240px; }
+  .about { max-width: 1240px; }
+
+  /* 段落維持可讀的行長(約 70 字元) */
+  .section__lede,
+  .photos__intro,
+  #photos p { max-width: 62ch; }
+
+  /* 照片帶仍然滿版出血 —— 那是這一區的張力來源,收進來就沒力了。
+     它用 margin-inline: calc(50% - vw/2) 從容器裡「撐」出去,
+     容器換成貼左之後這個算法仍然成立(實測 0 → 2560)。 */
+}

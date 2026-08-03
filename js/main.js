@@ -748,7 +748,10 @@
      Zakk 在 §60 已經連續兩次嫌粒子太少了,省效能不能拿這個換。
      DPR 那 44% 是**看不出來**的省,優先用它;點數只收三分之一。 */
   var SMALL = window.matchMedia('(max-width: 720px), (pointer: coarse)').matches;
-  var NPTS = SMALL ? 2400 : 3600;   // 首屏頭骨要更清楚 → 桌機點數再提高
+  /* 手機:點數比桌機少很多,但每一顆**畫得比較大**(見 SIZE_K)。
+     少而大 > 多而小 —— 後者在手機上又糊又擠,而且畫的次數還比較多。 */
+  var NPTS = SMALL ? 1800 : 3600;
+  var SIZE_K = SMALL ? 2.0 : 1;     // 手機碎片放大,補回密度感,也回應「太小」
   var TRANS_MS = 900;          // 換區塊時過場動畫的固定時長
   var curSeg = 0, wantSeg = 0, fromSeg = 0, segT = 1;
                                // 每段都取樣成同樣點數 —— 數量一樣才能逐點插值
@@ -775,7 +778,10 @@
   var EMBER = '180,85,42';
 
   function layout() {
-    DPR = Math.min(window.devicePixelRatio || 1, SMALL ? 1.5 : 2);
+    /* ⚠️ 曾經在手機把上限壓到 1.5 換效能 —— **那是「糊」的元兇。**
+       手機大多是 3 倍螢幕,1.5 的畫布要被放大兩倍顯示,碎片邊緣就爛掉了
+       (Zakk:「碎片太小,很糊」)。清晰度不能拿來換,改從**點數**省。 */
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = Math.round(W * DPR);
     canvas.height = Math.round(H * DPR);
@@ -1338,7 +1344,7 @@
           px = cx + offX + x1 * scale * boneK;
           py = cy + offY + y1 * scale * boneK;
         }
-        d = p.sz * scale * 2.1 * (p.idx < 0 ? 1 : fsMix);
+        d = p.sz * scale * 2.1 * SIZE_K * (p.idx < 0 ? 1 : fsMix);
 
         // 載入中:從外圍環繞的位置插值到頭骨上
         if (K < 0.999) {
