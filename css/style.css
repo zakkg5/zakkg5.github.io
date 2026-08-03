@@ -2023,3 +2023,21 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .photos__hint--fine   { display: none; }
   .photos__hint--coarse { display: inline; }
 }
+
+
+/* ── 首屏改成滿版對齊(2026-08-03,Zakk:「字是不是太中間了」)──
+
+   .frame__sheet 是置中的 1440px 欄位,但 .topbar 是滿版的。
+   實測 2560px 寬:左上 ZAKK 在 56px、大標在 616px —— **差 560px**,
+   而且螢幕越寬差越多(1398px 以下完全看不出來,因為那時欄位還沒被 max-width 夾到,
+   我一開始就是在 1398px 量的,三者都在 56px,差點回報「沒問題」)。
+
+   首屏本來就是 HUD 語言:左上標誌、左上宣言、左下說明、下方狀態。
+   那套要貼著視窗邊才成立 —— 關在中間的欄位裡就只是一張置中海報。
+
+   ⚠️ 只放首屏。Works / About / Photos 維持 1440px:
+   那是閱讀區,2560px 全寬的話一行字會長到讀不下去。 */
+.hero-b .frame__sheet {
+  max-width: none;
+  padding: 0;
+}
