@@ -2151,3 +2151,60 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
      它用 margin-inline: calc(50% - vw/2) 從容器裡「撐」出去,
      容器換成貼左之後這個算法仍然成立(實測 0 → 2560)。 */
 }
+
+
+/* ── 手機:照片帶改成手指左右滑(2026-08-04)──
+   捲動驅動(§73)在手機上是錯的:看照片和離開區塊變成同一個動作,
+   想多看一張就會滑掉整個區塊(Zakk 實際用了才發現)。
+   改成原生的橫向捲動 —— 橫著滑看照片、直著滑換頁,瀏覽器自己分得開。 */
+@media (pointer: coarse) {
+  .marquee {
+    overflow-x: auto;
+    -webkit-overflow-scrolling: touch;
+    scrollbar-width: none;
+    /* 橫向由使用者控制,不再由 JS 寫入位移 */
+    scroll-snap-type: x proximity;
+  }
+  .marquee::-webkit-scrollbar { display: none; }
+  .marquee__track { translate: none; }
+  .mq { scroll-snap-align: center; }
+}
+
+
+/* ── 照片帶左右淡出,而且不要壓到右側頁籤(2026-08-04,Zakk 指定)──
+   「照片不要到底,讓他左右都有個淡出空間,不要碰到右中的線。」
+   用遮罩讓兩端自然收掉,而不是把整條變窄 —— 滿版的張力留著,
+   但邊緣不再是硬切,也不會跟固定在右緣的 .side-nav 撞在一起。
+   右邊收得比左邊多,因為右邊才有那排頁籤。 */
+.marquee {
+  /* ⚠️ 用「離邊緣的固定距離」不要用百分比。
+     .side-nav 是 fixed 在右緣、離右邊 158px —— 百分比會隨螢幕寬度跑掉:
+     實測 1651px 寬時 88% = 1453px,而頁籤在 1493px,照片還是壓在上面。
+     固定 px 的話,不管螢幕多寬都在頁籤之前就淡完。 */
+  -webkit-mask-image: linear-gradient(90deg,
+      transparent 0, #000 72px,
+      #000 calc(100% - 280px), transparent calc(100% - 170px));
+  mask-image: linear-gradient(90deg,
+      transparent 0, #000 72px,
+      #000 calc(100% - 280px), transparent calc(100% - 170px));
+}
+@media (max-width: 720px) {
+  /* 手機沒有右側頁籤,兩端收一樣多就好 */
+  .marquee {
+    -webkit-mask-image: linear-gradient(90deg,
+        transparent 0, #000 6%, #000 94%, transparent 100%);
+    mask-image: linear-gradient(90deg,
+        transparent 0, #000 6%, #000 94%, transparent 100%);
+  }
+}
+
+
+/* ── About 的區塊標籤放大(2026-08-04,Zakk:「Experience 比雲科那些字還小,有點奇怪」)──
+   他是對的:EXPERIENCE 是**一整組經歷的標題**,卻比它底下的機構名還小,
+   主次是反的。全站的 11px 等寬標籤是給「標記」用的(作品類型、區塊編號),
+   這裡是標題,要有標題的份量 —— 但仍留在同一套語彙裡(等寬、大寫、寬字距)。 */
+.about__label {
+  font-size: 13px;
+  letter-spacing: 0.18em;
+  color: var(--slate);
+}
