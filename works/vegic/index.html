@@ -15,7 +15,7 @@
   <link rel="preload" href="../../assets/3d/dragon.webp" as="image" type="image/webp">
 
   <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
-  <link rel="stylesheet" href="../../css/style.css?v=95">
+  <link rel="stylesheet" href="../../css/style.css?v=96">
   <link rel="stylesheet" href="../../css/work.css?v=44">
 </head>
 
@@ -31,6 +31,10 @@
        那是 §47 把多骨頭系統拆掉之前的東西,main.js 早就不讀了,
        檔案也從來沒被載入過(network log 確認),已移除。 -->
   <canvas class="fragments" aria-hidden="true"></canvas>
+
+  <!-- 右側的龍身:跟首屏同一套粒子(引擎在 main.js 最後一段)。
+       只在 >1441px 出現,手機完全不畫。 -->
+  <canvas class="dragon-side" aria-hidden="true"></canvas>
 
   <canvas class="ambient" aria-hidden="true"></canvas>
 
@@ -250,6 +254,6 @@
     <p>&copy; 2026</p>
   </footer>
 
-  <script src="../../js/main.js?v=130"></script>
+  <script src="../../js/main.js?v=134"></script>
 </body>
 </html>

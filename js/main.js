@@ -2035,43 +2035,163 @@ window.__fragSprites = (function () {
 }());
 
 
-/* ═══════════════════════════════════════════════════
-   寬螢幕右側骨架(樣本)—— 網址加 ?bones 才出現
 
-   Zakk 想看實際效果再決定,所以先做成可以開關的樣本:
-   沒有 ?bones 就一行都不跑,線上訪客看不到。
 
-   用站上自己的 assets/3d/bones/*.svg,不是他傳的參考圖。
-   ═══════════════════════════════════════════════════ */
+/* ═══════════════════════════════════════════════════════
+   右側的龍身 —— 跟首屏同一套粒子(2026-08-04)
+
+   Zakk:「你覺得首頁的龍的精細度跟好看程度跟這根骨頭能比嗎?
+          他甚至超級深色也不是 3d 粒子。」
+   前一版在右邊貼扁平線稿 SVG,放在粒子雲旁邊只會拉低整體 —— 已整段拆除。
+
+   這裡改成同一種畫法:取樣一張去背的圖 → 變成碎片 → 用共用的 sprite 畫出來,
+   所以左右是同一種材質、同一種顆粒感。
+
+   🔴 **素材要的是「骨架」不是「有肉的龍」** —— 首屏是頭骨,
+   接下去當然要接骨頭(Zakk 指出的)。現在暫時用 dragon-full.webp 當替身,
+   Zakk 生好骨架圖之後只要換 SRC 這一行。
+
+   ⚠️ 自己一支引擎、自己一張 canvas,**不動首屏那支** ——
+   那支的主迴圈已經壞過太多次(§43 炸成 76MB、§52 位置失準、§75 固定上限)。
+   ═══════════════════════════════════════════════════════ */
 (function () {
   'use strict';
-  if (location.search.indexOf('bones') === -1) return;
+
+  var canvas = document.querySelector('canvas.dragon-side');
+  if (!canvas) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+  /* 只在夠寬的桌機畫。手機沒有空位,而且再多一張 canvas 會吃掉剛修好的效能 */
   if (!window.matchMedia('(min-width: 1441px)').matches) return;
+  /* 🔴 素材還沒到位,先鎖在 ?dragon 後面,不要推給訪客看。
+     用 dragon-full.webp(實心肉身)取樣出來是一片雜訊 ——
+     4200 顆點散在整條身體上,每個地方都有點,反而讀不出形狀。
+     首屏的頭骨讀得出來是因為它**緊湊而且高對比**。
+     骨架也會:稀疏的點沿著脊椎排列仍然是脊椎,肉身不行。
+     等 Zakk 生好骨架圖、換掉 SRC 之後再把這行拿掉。 */
+  if (location.search.indexOf('dragon') === -1) return;
 
-  var PARTS = [
-    ['works', 'spine.svg', '龍骨脊椎:脖子到後腳'],
-    ['about', 'tail.svg',  '龍骨:後腳到尾椎'],
-    ['photos', 'tail.svg', '龍骨尾端']
-  ];
+  var SRC = 'assets/3d/dragon-full.webp';   // ← 換成骨架圖只要改這一行
+  var NPTS = 4200;   // 首屏頭骨的覆蓋率是 3.9%,2200 顆只有 0.2% 太稀
+  var ctx = canvas.getContext('2d', { alpha: true });
+  var W = 0, H = 0, DPR = 1;
+  var pts = [], raf = null, t = 0;
 
-  PARTS.forEach(function (p) {
-    var sec = document.getElementById(p[0]);
-    if (!sec) return;
-    /* 幀系統會把內容包進 .frame__sheet —— 骨架要掛在 sheet 上,
-       掛在 section 上的話會被 .frame__pin 的 overflow: hidden 裁掉。 */
-    var host = sec.querySelector('.frame__sheet') || sec;
-    /* 包一層:外層決定視覺上的框(窄而高),裡面的 img 轉 90°。
-       直接轉 img 的話它的 layout box 不會跟著轉,right/top 會對到
-       旋轉前的框,位置永遠算不準。 */
-    var box = document.createElement('div');
-    box.className = 'bone-deco';
-    box.setAttribute('aria-hidden', 'true');
-    var im = document.createElement('img');
-    im.src = 'assets/3d/bones/' + p[1];
-    im.alt = '';
-    box.appendChild(im);
-    host.appendChild(box);
-    /* sheet 要是定位基準,骨架的 right/top 才有東西可以對 */
-    if (getComputedStyle(host).position === 'static') host.style.position = 'relative';
-  });
+  /* 顏色跟首屏同一組(ink → 湖藍灰 → 石灰 + 一點 ember) */
+  var COLS = ['22,35,44', '48,70,86', '96,110,120'];
+  var EMBER = '180,85,42';
+  var sprites = {};
+
+  function layout() {
+    DPR = Math.min(window.devicePixelRatio || 1, 2);
+    W = canvas.clientWidth; H = canvas.clientHeight;
+    canvas.width = Math.round(W * DPR);
+    canvas.height = Math.round(H * DPR);
+    ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+  }
+
+  /* 取樣:把圖畫進離屏 canvas,挑出不透明的像素當碎片 */
+  function build(img) {
+    var iw = 340, ih = Math.round(iw * img.height / img.width);
+    var oc = document.createElement('canvas');
+    oc.width = iw; oc.height = ih;
+    var og = oc.getContext('2d');
+    og.drawImage(img, 0, 0, iw, ih);
+    var d = og.getImageData(0, 0, iw, ih).data;
+
+    var hits = [];
+    for (var y = 0; y < ih; y++) {
+      for (var x = 0; x < iw; x++) {
+        var i = (y * iw + x) * 4;
+        /* 去背圖看 alpha;白底圖看亮度 —— 兩種來源都吃得下,
+           換成骨架圖時不用改這裡 */
+        var a = d[i + 3];
+        var lum = (d[i] + d[i + 1] + d[i + 2]) / 3;
+        if (a > 60 && lum < 232) hits.push([x / iw, y / ih, lum]);
+      }
+    }
+    if (!hits.length) return;
+
+    pts = [];
+    var step = hits.length / NPTS;
+    for (var k = 0; k < NPTS; k++) {
+      var h = hits[(k * step) | 0];
+      if (!h) continue;
+      /* 越暗的像素給越深的顏色,亮的給石灰 —— 圖本身的明暗就變成層次 */
+      var band = h[2] < 110 ? 0 : (h[2] < 175 ? 1 : 2);
+      var rgb = (Math.random() < 0.035) ? EMBER : COLS[band];
+      if (!sprites[rgb]) sprites[rgb] = window.__fragSprites(rgb);
+      pts.push({
+        u: h[0], v: h[1],
+        sp: sprites[rgb],
+        si: (Math.random() * 7) | 0,
+        sz: 2.4 + Math.random() * 4.0,
+        ph: Math.random() * 6.28,
+        amp: 1.2 + Math.random() * 2.8,
+        a: 0.38 + Math.random() * 0.50
+      });
+    }
+  }
+
+  /* 捲動 → 龍身往上走(視差),同時決定它在哪一段可見。
+     首屏完全不畫,Works 開始淡入,過了 Photos 再淡出。 */
+  function scrollState() {
+    var works = document.getElementById('works');
+    var photos = document.getElementById('photos');
+    if (!works || !photos) return { vis: 0, p: 0 };
+    var vh = window.innerHeight;
+    var a = works.getBoundingClientRect().top - vh * 0.7;   // 開始
+    var b = photos.getBoundingClientRect().bottom;          // 結束
+    var span = (b - a) || 1;
+    var p = -a / span;
+    p = p < 0 ? 0 : (p > 1 ? 1 : p);
+    /* 兩端淡出,中段全亮 */
+    var vis = p < 0.10 ? p / 0.10 : (p > 0.88 ? (1 - p) / 0.12 : 1);
+    vis = vis < 0 ? 0 : (vis > 1 ? 1 : vis);
+    return { vis: vis, p: p };
+  }
+
+  function render() {
+    ctx.clearRect(0, 0, W, H);
+    var st = scrollState();
+    if (st.vis <= 0.01 || !pts.length) return;
+
+    /* 龍身比畫面高:p 決定現在看到的是哪一段(上半身 → 尾巴)。
+       這就是 Zakk 要的「works 脖子到後腳、about 到尾椎、photo 露尾尖」。 */
+    /* ⚠️ 2.1 倍太高:任何時刻只看到一小片,形狀完全讀不出來,變成一片雜訊。
+       1.45 倍才看得出是一條身體,同時仍有足夠的行程可以「一段一段顯露」。 */
+    var bodyH = H * 1.45;
+    var topY = -(bodyH - H) * st.p;
+    var bodyW = bodyH * 0.62;
+    var leftX = W - bodyW * 0.92;
+
+    for (var i = 0; i < pts.length; i++) {
+      var p = pts[i];
+      var wob = Math.sin(t * 0.55 + p.ph) * p.amp;
+      var x = leftX + p.u * bodyW + wob;
+      var y = topY + p.v * bodyH + Math.cos(t * 0.4 + p.ph) * p.amp * 0.6;
+      if (y < -20 || y > H + 20) continue;
+      var d = p.sz;
+      ctx.globalAlpha = p.a * st.vis;
+      ctx.drawImage(p.sp[p.si], x - d / 2, y - d / 2, d, d);
+    }
+    ctx.globalAlpha = 1;
+  }
+
+  function frame() {
+    t += 0.016;
+    render();
+    raf = requestAnimationFrame(frame);
+  }
+
+  var img = new Image();
+  img.onload = function () {
+    layout();
+    build(img);
+    if (!raf) frame();
+  };
+  /* 路徑從 main.js 自己的位置推算(主頁 js/main.js,內頁 ../../js/main.js) */
+  var self = (document.currentScript && document.currentScript.src) || '';
+  img.src = (self ? self.replace(/js\/main\.js.*$/, '') : '') + SRC;
+
+  window.addEventListener('resize', function () { layout(); });
 }());

@@ -2239,57 +2239,33 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 }
 
 
+
+
 /* ═══════════════════════════════════════════════════════
-   寬螢幕右側骨架(樣本,網址加 ?bones 才出現)
+   右側的龍身:跟首屏同一套粒子(2026-08-04)
 
-   Zakk:「電腦這樣右邊也太空了,如果空的地方跟首頁一樣放身體到尾巴的部分呢
-   —— works 就放脖子到後腳,about 就放後腳到尾椎,最後 photo 右上就露一點尾巴。」
+   Zakk:「你覺得首頁的龍的精細度跟好看程度跟這根骨頭能比嗎?
+   他甚至超級深色也不是 3d 粒子。」—— 他是對的。
 
-   用的是站上自己的 SVG(assets/3d/bones/),不是他傳的參考圖 ——
-   首頁是那顆頭骨的**照片**,右邊接下去是同一具骨架的**圖面**,
-   剛好接上「這裡的東西都是畫出來的」那句話。
+   前一版在右邊貼了一張扁平的線稿 SVG,放在粒子雲旁邊只會拉低整體。
+   已整段拆除。現在改成**同一套粒子**去畫 assets/3d/dragon-full.webp
+   (整條龍、直式、去背),所以左右兩邊是同一種材質、同一種顆粒感,
+   而不是兩種東西擺在一起。
 
-   ⚠️ 只在 >1441px 出現。1440 以下右邊沒有空位,硬放會壓到內容。
-   ⚠️ 手機完全不放(沒空間,而且會再吃效能)。
+   ⚠️ 用自己的 canvas,不動首屏那支引擎 —— 那支的主迴圈已經壞過太多次。
+   ⚠️ 只在 >1441px 出現(1440 以下右邊沒有空位);手機完全不畫。
    ═══════════════════════════════════════════════════════ */
+.dragon-side {
+  position: fixed;
+  top: 0;
+  right: 0;
+  width: 46vw;
+  height: 100svh;
+  z-index: 0;              /* 跟 .fragments 同層,墊在 #main(z-index 1)後面 */
+  pointer-events: none;
+  display: none;           /* 預設不存在,由 JS 在夠寬時才打開 */
+}
+
 @media (min-width: 1441px) {
-  /* ⚠️ 骨頭改成**直式由上到下**(Zakk 指定)。
-     頁面是往下捲的,骨架順著捲動方向走才讀得出「同一具身體一直延續下去」;
-     橫躺的話每一區都是各自獨立的一段。
-
-     做法:外層 div 決定「視覺上的框」(窄而高),裡面的 img 旋轉 90°。
-     直接對 img 下 rotate 也可以,但**它的 layout box 不會跟著轉** ——
-     right/top 會對到旋轉前的框,位置永遠算不準。包一層最好推理。 */
-  .bone-deco {
-    position: absolute;
-    right: 3%;
-    width: 300px;                    /* 視覺寬度 = 骨頭的粗細方向 */
-    overflow: hidden;
-    pointer-events: none;
-    z-index: -1;                     /* 壓在內容後面,永遠不會擋到字 */
-    opacity: 0.17;                   /* 墨線印在紙上,不是貼一張圖 */
-  }
-  .bone-deco img {
-    position: absolute;
-    top: 50%;
-    left: 50%;
-    /* ⚠️ 一定要解掉 max-width。全站有 `img { max-width: 100% }`,
-       這裡的容器只有 300px 寬,骨頭會被壓成 300px 再旋轉 ——
-       實測旋轉後只有 155x300,而不是預期的 506x980。 */
-    max-width: none;
-    transform: translate(-50%, -50%) rotate(90deg);
-  }
-
-  /* Works:脖子到後腳。脊椎最長,給它整段高度 */
-  #works .bone-deco { top: 4%; height: 88%; }
-  #works .bone-deco img { width: min(80vh, 980px); }
-
-  /* About:後腳到尾椎,接著往下走 */
-  #about .bone-deco { top: 12%; height: 82%; }
-  #about .bone-deco img { width: min(72vh, 880px); }
-
-  /* Photos:右上只露一點尾尖 —— 「跑出畫面」比「完整展示」
-     更像同一具骨架還在繼續往下走 */
-  #photos .bone-deco { top: -6%; height: 46%; opacity: 0.13; }
-  #photos .bone-deco img { width: min(56vh, 640px); }
+  .dragon-side { display: block; }
 }
