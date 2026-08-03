@@ -1824,6 +1824,49 @@ window.__fragSprites = (function () {
     }, { passive: false });
   }
 
+  /* ── 手機:照片帶由捲動驅動(Zakk:「只是往下滑很無聊」)──
+
+     頁面往下捲,照片往旁邊跑 —— 捲動就是播放頭。
+     這是把桌機「內容釘住、捲動推進播放」的原理搬到手機:
+     不釘住任何東西(釘了就會裁到內容),改成讓兩個方向錯開。
+
+     ⚠️ 用「捲了幾 px」乘以固定倍率,不要用「進度 0→1」。
+     進度式的速率會被元素高度綁架:照片帶多高,照片就跑多快 ——
+     換一支螢幕速度就變了。乘倍率的話 1px 永遠換 RATE px,到哪都一樣。 */
+  if (window.matchMedia('(max-width: 720px), (pointer: coarse)').matches && mq && track) {
+    /* 頁面捲 1px,照片跑 1.8px。**這是唯一要調的數字。**
+       太小(1.0-1.2)只會像視差,感覺不出「在播」;
+       太大(3 以上)手指一撥照片就狂奔,變成雜訊。 */
+    var RATE = 1.8;
+    var raf2 = 0;
+
+    /* ⚠️ 對齊的是**整個 Photos 區**,不是照片帶本身。
+       照片帶在頁面最底部,它自己進畫面到頁尾只剩 634px 可捲 ——
+       照片只跑得完一圈的 20%,還沒看出在動就結束了。
+       改成從區塊標題進畫面就開始算,行程多了一整段標題與說明的高度。 */
+    var band = document.getElementById('photos') || mq;
+
+    var pan = function () {
+      raf2 = 0;
+      var r = band.getBoundingClientRect();
+      // 完全不在畫面附近就不要算(手機每一點效能都要省)
+      if (r.bottom < -200 || r.top > window.innerHeight + 200) return;
+
+      var sh = parseFloat(track.style.getPropertyValue('--mq-shift'))
+               || (track.scrollWidth / 2);
+      // 照片帶頂端進入畫面之後累積的位移
+      var travelled = window.innerHeight - r.top;
+      var x = -(travelled * RATE) % sh;      // 取餘數 = 無縫循環
+      track.style.setProperty('--mq-x', x + 'px');
+    };
+
+    var onScroll = function () { if (!raf2) raf2 = requestAnimationFrame(pan); };
+    window.addEventListener('scroll', onScroll, { passive: true });
+    window.addEventListener('resize', onScroll);
+    setTimeout(pan, 1900);    // 等 --mq-shift 量好(圖片載完尺寸才穩)
+    pan();
+  }
+
   /* 右側中間:所有區塊的線條列(參考 jcedrik)。
      一區一條短線,滑過伸長並顯示名稱;目前所在的那條轉橘。 */
   var items = [
