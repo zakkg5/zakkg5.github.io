@@ -501,6 +501,46 @@
   var canHover = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
   var rows = document.querySelectorAll('.works__row');
 
+  /* ── 觸控裝置:按住那一列才出現預覽圖(Zakk 指定)──
+     原本手機是八張圖全部攤開,清單本來是排版主角,結果變成圖片牆。
+     這是把桌機的 hover 預覽翻譯成觸控的說法。
+
+     ⚠️ 門檻要 300ms,不能短。一次普通的點擊大約 100–200ms ——
+     設太短的話每次點都會先展圖、還把跳頁擋掉,等於連結壞了。
+     現在:快點 = 進作品頁,按住 = 看圖(放開時不跳頁)。
+
+     ⚠️ pointercancel 一定要接 —— 手指開始滑動捲頁時瀏覽器會送這個事件,
+     不接的話一邊捲一邊會有圖莫名其妙展開。 */
+  if (!canHover && rows.length) {
+    var HOLD_MS = 300;
+
+    rows.forEach(function (row) {
+      var timer = null, held = false;
+
+      row.addEventListener('pointerdown', function () {
+        held = false;
+        clearTimeout(timer);
+        timer = setTimeout(function () {
+          held = true;
+          row.classList.add('is-press');
+        }, HOLD_MS);
+      });
+
+      var release = function () {
+        clearTimeout(timer);
+        row.classList.remove('is-press');
+      };
+      row.addEventListener('pointerup', release);
+      row.addEventListener('pointercancel', release);
+      row.addEventListener('pointerleave', release);
+
+      // 按住看完圖放開,不該順便跳頁
+      row.addEventListener('click', function (e) {
+        if (held) { e.preventDefault(); held = false; }
+      });
+    });
+  }
+
   if (canHover && rows.length) {
     var thumbs = document.querySelectorAll('.works__thumb');
 
@@ -1145,6 +1185,14 @@
     if (heroFrame) {
       var hr = heroFrame.getBoundingClientRect();
       var htot = hr.height - H;
+      /* 🔴 手機沒有幀,首屏就只有「一屏減掉導覽列」那麼高 —— 比視窗還矮,
+         htot 變成負的(實測 792 - 844 = -52),原本的 `htot > 0 ? ... : 0`
+         會讓進度永遠是 0,骨頭就凍在原地不散開(Zakk:「下滑碎片卡住了」)。
+
+         沒有幀的時候改用首屏自己的高度當播放長度:
+         -hr.top 就是「首屏頂端被捲上去多少」,除以首屏高 = 捲過首屏的比例。
+         桌機有幀時 htot > 0,走原本的算法,行為完全不變。 */
+      if (htot <= 0) htot = hr.height;
       var hp = htot > 0 ? (-hr.top) / htot : 0;
       hx = (hp - 0.55) / 0.80;                    // 首屏捲到 55% 才開始散,135% 散完
       hx = hx < 0 ? 0 : (hx > 1 ? 1 : hx);

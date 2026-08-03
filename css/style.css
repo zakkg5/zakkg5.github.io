@@ -2041,3 +2041,45 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   max-width: none;
   padding: 0;
 }
+
+
+/* ── 手機:作品預覽圖改成「按住才出現」(2026-08-03,Zakk 指定)──
+
+   原本手機是每一列下面都直接掛一張圖,八張全部攤開 ——
+   清單本來是排版主角,結果變成一長串圖片牆,而且要滑很久才看得完。
+
+   改成收起來,手指按住那一列才展開。桌機的 hover 預覽是同一個想法,
+   這只是把它翻譯成觸控的說法。
+
+   ⚠️ 用 grid-template-rows 0fr → 1fr 做收合,不是 max-height ——
+   max-height 要猜一個夠大的值,而且收合速度會因為圖片實際高度而不一致。
+   不支援 0fr 的舊瀏覽器會退化成「一直顯示」,也就是原本的行為,不會壞掉。 */
+@media (pointer: coarse) {
+  .works__thumb {
+    display: grid;
+    grid-template-rows: 0fr;
+    overflow: hidden;          /* 收合要靠這行才藏得住 */
+    margin: 0;
+    opacity: 0;
+    transition: grid-template-rows var(--t-base) var(--ease),
+                opacity var(--t-quick) var(--ease),
+                margin-bottom var(--t-base) var(--ease);
+  }
+  .works__thumb > img { min-height: 0; }   /* 0fr 要收得動,子元素不能有最小高度 */
+
+  .works__row.is-press .works__thumb {
+    grid-template-rows: 1fr;
+    opacity: 1;
+    margin-bottom: var(--s4);
+  }
+
+  /* 長按在手機上會叫出「拷貝連結 / 選取文字」的系統選單,把預覽蓋掉 */
+  .works__line {
+    -webkit-touch-callout: none;
+    -webkit-user-select: none;
+    user-select: none;
+  }
+
+  /* 按住時那一列自己也要有反應,不然不知道是「按住了」還是「當掉了」 */
+  .works__row.is-press .works__num { color: var(--ember); }
+}
