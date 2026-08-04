@@ -2041,19 +2041,24 @@ window.__fragSprites = (function () {
 
 
 
+
+
 /* ═══════════════════════════════════════════════════════
-   右邊飄的那塊骨頭(2026-08-04 重寫)
+   右邊飄的那塊骨頭(2026-08-04 第三版)
 
-   Zakk 的三個修正(前一版全部沒做到):
-     ① 「不要擋到字」          → 畫布改成只佔內容欄右邊的窄帶
-     ② 「不用每一頁都連接到,我只是要身體的一部分,不用連貫」
-                              → 每一區各自一塊,不再內插成連續的身體
-     ③ 「粒子也沒有 3d 感,更不像首頁會動…換頁一樣散開往下」
-                              → 補上 z 深度 + 繞 Y 軸自轉 + 透視,換區時往下散開
+   Zakk:「其他頁的細節可以再細一點嗎?一樣可以加跟首頁的扭曲特效還有碎片動態。
+          看起來看不出來是骨頭。」
 
-   ⚠️ 為什麼前一版沒有立體感:它只是把 2D 的 u/v 直接畫上去,
-   沒有 z、沒有旋轉、沒有透視 —— 首屏那支是先算 3D 座標再投影,
-   碎片才有近大遠小、轉動時互相穿插的厚度。這裡照同一套做。
+   🔴 「看不出是骨頭」的根源:前一版是**先取樣整張圖、再把裁切外的丟掉** ——
+   22000 顆裡每一段只用得到 15–20%(約 3500 顆),而且取樣解析度只有 320px,
+   肋骨那種細的結構整條被跳過。所以畫出來是一團點,不是骨頭。
+
+   這一版改成:**每一段各自從自己的裁切區、用高解析度取樣**,
+   每段都拿到完整的點數,細節才出得來。
+
+   同時補上首屏那兩件事:
+     ・滑鼠扭曲(碎片纏著游標繞,不是被彈開)
+     ・碎片自己的軌道飄動(閉合橢圓,繞完回原位)
    ═══════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -2064,24 +2069,30 @@ window.__fragSprites = (function () {
   if (!window.matchMedia('(min-width: 1720px)').matches) return;
 
   var SRC = 'assets/3d/dragon-bones.webp';
-  /* 每一段只用得到整張圖約 15–20% 的點,5200 顆分下去每段只剩約 900 顆,
-     畫出來只有零星幾點。總數拉高,真正每偵畫的仍然是三千多顆。 */
-  var NPTS = 22000;
-  var F = 820;                       // 透視焦距,越小越誇張
-  var ctx = canvas.getContext('2d', { alpha: true });
-  var W = 0, H = 0, DPR = 1, pts = [], raf = null, t = 0, tick = 0;
+  var PER_SEG = 4600;       // 每一段自己的點數(不再跟其他段分)
+  var SAMPLE_W = 620;       // 取樣解析度:肋骨很細,320 會整條跳過
+  var F = 820;
 
+  var ctx = canvas.getContext('2d', { alpha: true });
+  var W = 0, H = 0, DPR = 1, raf = null, t = 0, tick = 0;
   var COLS = ['22,35,44', '48,70,86', '96,110,120'];
   var EMBER = '180,85,42';
   var sprites = {};
+  var sets = {};            // id → 這一段自己的碎片陣列
 
-  /* 每一區各取骨架的一小塊 —— 只是「身體的一部分」,不求連貫。
-     u/v 是原圖 0–1 座標;範圍有把框畫回原圖確認過。 */
+  /* 每一區取骨架的一小塊 —— 只是「身體的一部分」,不求連貫。
+     cy / kh 是這一塊在畫面上的位置與大小。
+     ⚠️ photos 特別放高、放小:照片帶是滿版的,尾巴垂到中間就會壓在照片上
+     (Zakk:「photo 那邊尾巴不用到照片」)。 */
   var SEGS = {
-    works:  { u0: 0.30, u1: 0.78, v0: 0.05, v1: 0.42 },   // 脖子後方的肋骨段
-    about:  { u0: 0.10, u1: 0.55, v0: 0.55, v1: 0.90 },   // 後腳一帶
-    photos: { u0: 0.70, u1: 1.00, v0: 0.74, v1: 1.00 }    // 只有尾巴末端
+    works:  { u0: 0.30, u1: 0.78, v0: 0.05, v1: 0.42, cy: 0.46, kh: 0.56 },
+    about:  { u0: 0.10, u1: 0.55, v0: 0.55, v1: 0.90, cy: 0.50, kh: 0.56 },
+    photos: { u0: 0.70, u1: 1.00, v0: 0.74, v1: 1.00, cy: 0.20, kh: 0.34 }
   };
+
+  /* 滑鼠扭曲(數值沿用首屏那支,那組是 Zakk 調過的) */
+  var PUSH_R = 62, PUSH_F = 16, SWIRL_F = 34;
+  var pxm = -1, pym = -1, pxe = -1, pye = -1;
 
   function layout() {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -2091,57 +2102,60 @@ window.__fragSprites = (function () {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
 
-  function build(img) {
-    var iw = 320, ih = Math.round(iw * img.height / img.width);
+  /* 只把「這一段」畫進離屏 canvas 再取樣 —— 整段的點數全部落在看得到的地方 */
+  function buildSeg(img, sg) {
+    var sw = img.width * (sg.u1 - sg.u0);
+    var sh = img.height * (sg.v1 - sg.v0);
+    var ow = SAMPLE_W, oh = Math.round(ow * sh / sw);
     var oc = document.createElement('canvas');
-    oc.width = iw; oc.height = ih;
+    oc.width = ow; oc.height = oh;
     var og = oc.getContext('2d');
-    og.drawImage(img, 0, 0, iw, ih);
-    var d = og.getImageData(0, 0, iw, ih).data;
+    og.drawImage(img, img.width * sg.u0, img.height * sg.v0, sw, sh, 0, 0, ow, oh);
+    var d;
+    try { d = og.getImageData(0, 0, ow, oh).data; } catch (e) { return []; }
 
     var hits = [];
-    for (var y = 0; y < ih; y++) {
-      for (var x = 0; x < iw; x++) {
-        var i = (y * iw + x) * 4;
-        if (d[i + 3] > 60 && (d[i] + d[i + 1] + d[i + 2]) / 3 < 232) {
-          hits.push([x / iw, y / ih, (d[i] + d[i + 1] + d[i + 2]) / 3 / 255]);
+    for (var y = 0; y < oh; y++) {
+      for (var x = 0; x < ow; x++) {
+        var i = (y * ow + x) * 4;
+        if (d[i + 3] > 55) {
+          hits.push([x / ow, y / oh, (d[i] + d[i + 1] + d[i + 2]) / 765]);
         }
       }
     }
-    if (!hits.length) return;
+    if (!hits.length) return [];
 
-    pts = [];
-    var step = hits.length / NPTS;
-    for (var k = 0; k < NPTS; k++) {
+    var out = [], step = Math.max(1, hits.length / PER_SEG);
+    for (var k = 0; k < PER_SEG; k++) {
       var h = hits[(k * step) | 0];
       if (!h) continue;
       var band = h[2] < 0.30 ? 0 : (h[2] < 0.55 ? 1 : 2);
       var rgb = (Math.random() < 0.04) ? EMBER : COLS[band];
       if (!sprites[rgb]) sprites[rgb] = window.__fragSprites(rgb);
-      pts.push({
+      out.push({
         u: h[0], v: h[1],
-        /* 🔴 z 是立體感的來源:亮度當深度,再加一點亂數讓它有厚度,
-           不是一片貼紙。首屏那支也是這樣做的。 */
-        z: (h[2] - 0.5) + (Math.random() - 0.5) * 0.55,
+        z: (h[2] - 0.5) + (Math.random() - 0.5) * 0.5,
         sp: sprites[rgb],
         si: (Math.random() * 7) | 0,
-        sz: 2.0 + Math.random() * 3.2,
+        sz: 2.6 + Math.random() * 3.4,
+        /* 軌道飄動:cos/sin 同一個角度 = 閉合橢圓,繞完回原位(跟首屏同一招) */
+        sp1: 0.35 + Math.random() * 0.5,
         ph: Math.random() * 6.28,
-        amp: 1.6 + Math.random() * 3.4,
-        fall: 0.5 + Math.random() * 1.4,        // 散開時各自掉落的速度
+        amp: 0.9 + Math.random() * 2.1,
+        ecc: 0.5 + Math.random() * 0.6,
+        fall: 0.5 + Math.random() * 1.4,
         a: 0.34 + Math.random() * 0.46
       });
     }
+    return out;
   }
 
-  /* 現在在哪一區、在這一區裡走了多少 —— 決定畫哪一塊、散得多開 */
   function state() {
     var vh = window.innerHeight, best = null;
     ['works', 'about', 'photos'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
       var r = el.getBoundingClientRect();
-      /* 這一區走了幾成:頂端到視窗中線 → 0,底端到視窗中線 → 1 */
       var p = (vh * 0.5 - r.top) / Math.max(1, r.height);
       if (p >= -0.15 && p <= 1.15 && (!best || Math.abs(p - 0.5) < Math.abs(best.p - 0.5))) {
         best = { id: id, p: p < 0 ? 0 : (p > 1 ? 1 : p) };
@@ -2153,68 +2167,80 @@ window.__fragSprites = (function () {
   function render() {
     ctx.clearRect(0, 0, W, H);
     var st = state();
-    if (!st || !pts.length) return;
-    var sg = SEGS[st.id];
-    if (!sg) return;
+    if (!st) return;
+    var pts = sets[st.id], sg = SEGS[st.id];
+    if (!pts || !pts.length) return;
 
-    /* 進場淡入、出場往下散開並淡掉 —— 跟首屏換段的動作是同一件事 */
     var fadeIn = Math.min(1, st.p / 0.18);
-    /* 散開要**收在區塊交界**,不要在中途就散完留下一個切面浮在空白裡。
-       0.72 才開始、到 1.0(正好是換區)剛好散光。 */
     var burst = st.p < 0.72 ? 0 : (st.p - 0.72) / 0.28;
     var vis = fadeIn * (1 - burst);
     if (vis <= 0.01) return;
 
-    var du = sg.u1 - sg.u0, dv = sg.v1 - sg.v0;
-    /* 只佔右邊窄帶的一部分,不佔滿 —— 「一部分當設計飄在一旁」 */
-    var boxH = H * 0.56;
-    var boxW = boxH * (du / dv) * aspect;
-    if (boxW > W * 0.92) { boxW = W * 0.92; boxH = boxW / ((du / dv) * aspect); }
-    var cx = W * 0.52, cy = H * 0.46;
+    var ratio = ((sg.u1 - sg.u0) / (sg.v1 - sg.v0)) * aspect;
+    var boxH = H * sg.kh;
+    var boxW = boxH * ratio;
+    if (boxW > W * 0.92) { boxW = W * 0.92; boxH = boxW / ratio; }
+    var cx = W * 0.52, cy = H * sg.cy;
 
-    /* 🔴 立體感:繞 Y 軸慢慢自轉 + 透視投影(首屏那支的做法) */
     var ry = Math.sin(t * 0.16) * 0.55;
-    var cy2 = Math.cos(ry), sy2 = Math.sin(ry);
+    var cyr = Math.cos(ry), syr = Math.sin(ry);
     var depth = boxW * 0.42;
+
+    // 滑鼠平滑追蹤(直接用原始座標的話,游標一停碎片就瞬間彈回,很生硬)
+    if (pxm >= 0) {
+      if (pxe < 0) { pxe = pxm; pye = pym; }
+      pxe += (pxm - pxe) * 0.22;
+      pye += (pym - pye) * 0.22;
+    }
 
     for (var i = 0; i < pts.length; i++) {
       var p = pts[i];
-      if (p.u < sg.u0 || p.u > sg.u1 || p.v < sg.v0 || p.v > sg.v1) continue;
-      /* ⚠️ 裁切是一個矩形,邊界會切出一條**直的切口**,浮在空白裡很醜
-         (Zakk:「截斷面…不要斷在空白的地方很醜」)。
-         靠近邊界的碎片淡掉,讓它化開而不是被切斷。 */
-      var eu = Math.min(p.u - sg.u0, sg.u1 - p.u) / du;
-      var ev = Math.min(p.v - sg.v0, sg.v1 - p.v) / dv;
-      var edge = Math.min(1, Math.min(eu, ev) / 0.14);
-
-      var dx = ((p.u - sg.u0) / du - 0.5) * boxW;
-      var dy = ((p.v - sg.v0) / dv - 0.5) * boxH;
+      var dx = (p.u - 0.5) * boxW;
+      var dy = (p.v - 0.5) * boxH;
       var dz = p.z * depth;
 
-      // 自轉
-      var x1 = dx * cy2 - dz * sy2;
-      var z1 = dx * sy2 + dz * cy2;
-      var scale = F / (F - z1);            // 近大遠小
+      /* 軌道飄動:同一個角度餵給 cos/sin → 閉合橢圓,不會漂走 */
+      var w1 = t * p.sp1 + p.ph;
+      dx += Math.cos(w1) * p.amp;
+      dy += Math.sin(w1) * p.amp * p.ecc;
 
-      // 飄動 + 換區時往下散開
-      dy += Math.sin(t * 0.5 + p.ph) * p.amp;
       dy += burst * H * 0.85 * p.fall;
-      var px = cx + (x1 + Math.cos(t * 0.4 + p.ph) * p.amp * 0.7) * scale;
+
+      var x1 = dx * cyr - dz * syr;
+      var z1 = dx * syr + dz * cyr;
+      var scale = F / (F - z1);
+      var px = cx + x1 * scale;
       var py = cy + dy * scale;
+
+      /* 🔴 滑鼠扭曲:纏著游標繞(切線),不是被彈開(法線)——
+         首屏那支就是這樣才不像「爆炸」而像「攪動」。 */
+      if (pxe >= 0) {
+        var vx = px - pxe, vy = py - pye;
+        var dist = Math.sqrt(vx * vx + vy * vy);
+        if (dist < PUSH_R && dist > 0.01) {
+          var kk = 1 - dist / PUSH_R;
+          kk *= kk;
+          px += (vx / dist) * PUSH_F * kk + (-vy / dist) * SWIRL_F * kk;
+          py += (vy / dist) * PUSH_F * kk + (vx / dist) * SWIRL_F * kk;
+        }
+      }
+
       if (px < -40 || px > W + 40 || py < -40 || py > H + 40) continue;
 
-      var d = p.sz * scale;
+      /* 裁切邊界要化開,不要切出一條直線浮在空白裡 */
+      var edge = Math.min(1,
+        Math.min(Math.min(p.u, 1 - p.u), Math.min(p.v, 1 - p.v)) / 0.10);
+
+      var d2 = p.sz * scale;
       ctx.globalAlpha = p.a * vis * edge;
-      ctx.drawImage(p.sp[p.si], px - d / 2, py - d / 2, d, d);
+      ctx.drawImage(p.sp[p.si], px - d2 / 2, py - d2 / 2, d2, d2);
     }
     ctx.globalAlpha = 1;
   }
 
-  /* 每兩偵畫一次 —— 它是背景裝飾,30fps 看不出來,
-     但全速時會把整頁從 16.7ms 拖到 24.4ms(實測過)。 */
   function frame() {
     raf = requestAnimationFrame(frame);
-    if (++tick & 1) return;
+    if (++tick & 1) return;      // 30fps:背景裝飾,看不出來但省一半
     t += 0.032;
     render();
   }
@@ -2224,11 +2250,21 @@ window.__fragSprites = (function () {
   img.onload = function () {
     aspect = img.width / img.height;
     layout();
-    build(img);
+    Object.keys(SEGS).forEach(function (id) { sets[id] = buildSeg(img, SEGS[id]); });
     if (!raf) frame();
   };
   var self = (document.currentScript && document.currentScript.src) || '';
   img.src = (self ? self.replace(/js\/main\.js.*$/, '') : '') + SRC;
 
-  window.addEventListener('resize', function () { layout(); });
+  /* 畫布是 pointer-events: none,所以滑鼠事件掛在 window 上 */
+  window.addEventListener('mousemove', function (e) {
+    var b = canvas.getBoundingClientRect();
+    pxm = e.clientX - b.left;
+    pym = e.clientY - b.top;
+  }, { passive: true });
+
+  window.addEventListener('resize', function () {
+    layout();
+    if (img.complete) Object.keys(SEGS).forEach(function (id) { sets[id] = buildSeg(img, SEGS[id]); });
+  });
 }());
