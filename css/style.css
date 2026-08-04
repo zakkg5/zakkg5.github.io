@@ -2180,20 +2180,24 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    但邊緣不再是硬切,也不會跟固定在右緣的 .side-nav 撞在一起。
    右邊收得比左邊多,因為右邊才有那排頁籤。 */
 .marquee {
-  /* ⚠️ 用「離邊緣的固定距離」不要用百分比。
-     .side-nav 是 fixed 在右緣、離右邊 158px —— 百分比會隨螢幕寬度跑掉:
-     實測 1651px 寬時 88% = 1453px,而頁籤在 1493px,照片還是壓在上面。
-     固定 px 的話,不管螢幕多寬都在頁籤之前就淡完。 */
+  /* ⚠️ 用「離邊緣的固定距離」不要用百分比 ——
+     百分比會隨螢幕寬度跑掉(1651px 寬時 88% = 1453px,而頁籤在 1493px,壓到了)。
+
+     ⚠️ 而且要對齊的是**看得見的那條線**,不是 .side-nav 的框。
+     那個框有 102px 寬,但裡面 40px 是 hover 才出現的標籤 ——
+     平常看得見的只有 24px 的短線,左緣離右緣只有 79px。
+     照片原本 170px 就淡完,中間空了 91px(Zakk:「空格有點大」)。
+     收到 130px,空隙剩 51px,同時淡出長度 52 → 35px(漸層本身也讀起來像空的)。 */
   /* 霧邊收窄(Zakk:「淡出的霧邊太多了,不用那麼大」)——
      左 72 → 32px、右邊的漸層長度 110 → 52px。
      ⚠️ **右邊「完全透明」的位置仍然固定在離右緣 170px** ——
      那是讓開 .side-nav 用的,不能因為想收窄就往右挪。 */
   -webkit-mask-image: linear-gradient(90deg,
       transparent 0, #000 32px,
-      #000 calc(100% - 222px), transparent calc(100% - 170px));
+      #000 calc(100% - 165px), transparent calc(100% - 130px));
   mask-image: linear-gradient(90deg,
       transparent 0, #000 32px,
-      #000 calc(100% - 222px), transparent calc(100% - 170px));
+      #000 calc(100% - 165px), transparent calc(100% - 130px));
 }
 @media (max-width: 720px) {
   /* 手機沒有右側頁籤,兩端收一樣多就好 */

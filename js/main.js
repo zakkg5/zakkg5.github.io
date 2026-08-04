@@ -2066,19 +2066,18 @@ window.__fragSprites = (function () {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   /* 只在夠寬的桌機畫。手機沒有空位,而且再多一張 canvas 會吃掉剛修好的效能 */
   if (!window.matchMedia('(min-width: 1441px)').matches) return;
-  /* 🔴 素材還沒到位,先鎖在 ?dragon 後面,不要推給訪客看。
-     用 dragon-full.webp(實心肉身)取樣出來是一片雜訊 ——
-     4200 顆點散在整條身體上,每個地方都有點,反而讀不出形狀。
-     首屏的頭骨讀得出來是因為它**緊湊而且高對比**。
-     骨架也會:稀疏的點沿著脊椎排列仍然是脊椎,肉身不行。
-     等 Zakk 生好骨架圖、換掉 SRC 之後再把這行拿掉。 */
-  if (location.search.indexOf('dragon') === -1) return;
+  /* (曾經鎖在 ?dragon 後面等素材。Zakk 生好骨架圖之後解鎖 —— 
+     肉身取樣出來是雜訊,骨架才讀得出來,這點實測過:
+     dragon-full 覆蓋率 0.97% 一片雜點,骨架 2.4% 就看得出脊椎與肋骨。) */
 
-  var SRC = 'assets/3d/bones/spine.svg';   // ← 換成骨架圖只要改這一行(現在是驗證用的線稿)
-  var NPTS = 4200;   // 首屏頭骨的覆蓋率是 3.9%,2200 顆只有 0.2% 太稀
+  var SRC = 'assets/3d/dragon-bones.webp';   // Zakk 生的 3D 骨架,由 _dev/build_dragon_bones.py 去背
+  /* 改成三段裁切之後,每一段只用得到約四成的點(其餘被裁掉),
+     所以總數要照比例補回來 —— 實際每偵畫的仍然是 4000 顆上下。
+     迴圈跑 11000 次只是幾個比較,真正貴的是 drawImage。 */
+  var NPTS = 11000;
   var ctx = canvas.getContext('2d', { alpha: true });
   var W = 0, H = 0, DPR = 1;
-  var pts = [], raf = null, t = 0;
+  var pts = [], raf = null, t = 0, aspect = 0.73;   // 高:寬,build() 時用實際圖檔更新
 
   /* 顏色跟首屏同一組(ink → 湖藍灰 → 石灰 + 一點 ember) */
   var COLS = ['22,35,44', '48,70,86', '96,110,120'];
@@ -2096,6 +2095,7 @@ window.__fragSprites = (function () {
   /* 取樣:把圖畫進離屏 canvas,挑出不透明的像素當碎片 */
   function build(img) {
     var iw = 340, ih = Math.round(iw * img.height / img.width);
+    aspect = img.width / img.height;   // 用原圖比例,不要硬壓成別的形狀
     var oc = document.createElement('canvas');
     oc.width = iw; oc.height = ih;
     var og = oc.getContext('2d');
@@ -2154,26 +2154,59 @@ window.__fragSprites = (function () {
     return { vis: vis, p: p };
   }
 
+  /* 🔴 三段各自是**不同的裁切 + 放大**,不是把整條龍縮小平移
+     (Zakk:「他首頁已經有頭了,你就 work 那邊這隻龍截脖子後腳放大」)。
+
+     u/v 是原圖 0–1 的座標。骨架的排法:頭骨在左上、S 形往右下走、尾巴收在右下。
+     所以:
+       Works  取上半段(脖子 → 前肢 → 後腳),**跳過左上的頭**(首頁已經有了)
+       About  取中下段(後腳 → 尾椎)
+       Photos 只取右下的尾巴末端 */
+  var SEGS = [
+    { u0: 0.20, u1: 1.00, v0: 0.02, v1: 0.52 },   // Works:脖子 → 後腳
+    { u0: 0.05, u1: 0.95, v0: 0.46, v1: 0.92 },   // About:後腳 → 尾椎
+    { u0: 0.62, u1: 1.00, v0: 0.68, v1: 1.00 }    // Photos:只剩尾巴末端
+  ];
+
+  function lerpSeg(p) {
+    /* p 0→1 走完三段:0 = Works、0.5 = About、1 = Photos,中間連續內插,
+       所以捲動時是「鏡頭沿著身體滑過去」,不是硬切換。 */
+    var f = p * 2;
+    var i = f < 1 ? 0 : 1;
+    var k = f - i; if (k < 0) k = 0; if (k > 1) k = 1;
+    k = k * k * (3 - 2 * k);                       // smoothstep,換段不會有頓點
+    var a = SEGS[i], b = SEGS[i + 1];
+    return {
+      u0: a.u0 + (b.u0 - a.u0) * k, u1: a.u1 + (b.u1 - a.u1) * k,
+      v0: a.v0 + (b.v0 - a.v0) * k, v1: a.v1 + (b.v1 - a.v1) * k
+    };
+  }
+
   function render() {
     ctx.clearRect(0, 0, W, H);
     var st = scrollState();
     if (st.vis <= 0.01 || !pts.length) return;
 
-    /* 龍身比畫面高:p 決定現在看到的是哪一段(上半身 → 尾巴)。
-       這就是 Zakk 要的「works 脖子到後腳、about 到尾椎、photo 露尾尖」。 */
-    /* ⚠️ 2.1 倍太高:任何時刻只看到一小片,形狀完全讀不出來,變成一片雜訊。
-       1.45 倍才看得出是一條身體,同時仍有足夠的行程可以「一段一段顯露」。 */
-    var bodyH = H * 1.45;
-    var topY = -(bodyH - H) * st.p;
-    var bodyW = bodyH * 0.62;
-    var leftX = W - bodyW * 0.92;
+    var sg = lerpSeg(st.p);
+    var du = sg.u1 - sg.u0, dv = sg.v1 - sg.v0;
+
+    /* ⚠️ 要**填滿寬度**,不是填滿高度。
+       裁切窗是橫的(寬>高),依高度縮放會讓寬度爆出畫布,兩邊都被切掉 ——
+       實測 Works 那段算出 1287px 寬,而畫布只有 883,左右各丟掉一截,
+       結果看到的是身體中段,根本讀不出「脖子到後腳」。
+       依寬度縮放,整段就完整落在畫面裡,右邊只留一點出血。 */
+    var segW = W * 1.12;
+    var segH = segW / ((du / dv) * aspect);
+    var topY = (H - segH) / 2;
+    var leftX = W - segW * 0.86;
 
     for (var i = 0; i < pts.length; i++) {
       var p = pts[i];
+      if (p.u < sg.u0 || p.u > sg.u1 || p.v < sg.v0 || p.v > sg.v1) continue;
       var wob = Math.sin(t * 0.55 + p.ph) * p.amp;
-      var x = leftX + p.u * bodyW + wob;
-      var y = topY + p.v * bodyH + Math.cos(t * 0.4 + p.ph) * p.amp * 0.6;
-      if (y < -20 || y > H + 20) continue;
+      var x = leftX + ((p.u - sg.u0) / du) * segW + wob;
+      var y = topY + ((p.v - sg.v0) / dv) * segH + Math.cos(t * 0.4 + p.ph) * p.amp * 0.6;
+      if (x < -30 || x > W + 30 || y < -30 || y > H + 30) continue;
       var d = p.sz;
       ctx.globalAlpha = p.a * st.vis;
       ctx.drawImage(p.sp[p.si], x - d / 2, y - d / 2, d, d);
@@ -2181,10 +2214,12 @@ window.__fragSprites = (function () {
     ctx.globalAlpha = 1;
   }
 
+  var tick2 = 0;
   function frame() {
-    t += 0.016;
-    render();
     raf = requestAnimationFrame(frame);
+    if (++tick2 & 1) return;
+    t += 0.032;              // 跳偵之後時間要走兩倍,不然飄動速度剩一半
+    render();
   }
 
   var img = new Image();
