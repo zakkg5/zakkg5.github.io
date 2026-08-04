@@ -2042,21 +2042,18 @@ window.__fragSprites = (function () {
 
 
 /* ═══════════════════════════════════════════════════════
-   右側的龍身 —— 跟首屏同一套粒子(2026-08-04)
+   右邊飄的那塊骨頭(2026-08-04 重寫)
 
-   Zakk:「你覺得首頁的龍的精細度跟好看程度跟這根骨頭能比嗎?
-          他甚至超級深色也不是 3d 粒子。」
-   前一版在右邊貼扁平線稿 SVG,放在粒子雲旁邊只會拉低整體 —— 已整段拆除。
+   Zakk 的三個修正(前一版全部沒做到):
+     ① 「不要擋到字」          → 畫布改成只佔內容欄右邊的窄帶
+     ② 「不用每一頁都連接到,我只是要身體的一部分,不用連貫」
+                              → 每一區各自一塊,不再內插成連續的身體
+     ③ 「粒子也沒有 3d 感,更不像首頁會動…換頁一樣散開往下」
+                              → 補上 z 深度 + 繞 Y 軸自轉 + 透視,換區時往下散開
 
-   這裡改成同一種畫法:取樣一張去背的圖 → 變成碎片 → 用共用的 sprite 畫出來,
-   所以左右是同一種材質、同一種顆粒感。
-
-   🔴 **素材要的是「骨架」不是「有肉的龍」** —— 首屏是頭骨,
-   接下去當然要接骨頭(Zakk 指出的)。現在暫時用 dragon-full.webp 當替身,
-   Zakk 生好骨架圖之後只要換 SRC 這一行。
-
-   ⚠️ 自己一支引擎、自己一張 canvas,**不動首屏那支** ——
-   那支的主迴圈已經壞過太多次(§43 炸成 76MB、§52 位置失準、§75 固定上限)。
+   ⚠️ 為什麼前一版沒有立體感:它只是把 2D 的 u/v 直接畫上去,
+   沒有 z、沒有旋轉、沒有透視 —— 首屏那支是先算 3D 座標再投影,
+   碎片才有近大遠小、轉動時互相穿插的厚度。這裡照同一套做。
    ═══════════════════════════════════════════════════════ */
 (function () {
   'use strict';
@@ -2064,25 +2061,27 @@ window.__fragSprites = (function () {
   var canvas = document.querySelector('canvas.dragon-side');
   if (!canvas) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  /* 只在夠寬的桌機畫。手機沒有空位,而且再多一張 canvas 會吃掉剛修好的效能 */
-  if (!window.matchMedia('(min-width: 1441px)').matches) return;
-  /* (曾經鎖在 ?dragon 後面等素材。Zakk 生好骨架圖之後解鎖 —— 
-     肉身取樣出來是雜訊,骨架才讀得出來,這點實測過:
-     dragon-full 覆蓋率 0.97% 一片雜點,骨架 2.4% 就看得出脊椎與肋骨。) */
+  if (!window.matchMedia('(min-width: 1720px)').matches) return;
 
-  var SRC = 'assets/3d/dragon-bones.webp';   // Zakk 生的 3D 骨架,由 _dev/build_dragon_bones.py 去背
-  /* 改成三段裁切之後,每一段只用得到約四成的點(其餘被裁掉),
-     所以總數要照比例補回來 —— 實際每偵畫的仍然是 4000 顆上下。
-     迴圈跑 11000 次只是幾個比較,真正貴的是 drawImage。 */
-  var NPTS = 11000;
+  var SRC = 'assets/3d/dragon-bones.webp';
+  /* 每一段只用得到整張圖約 15–20% 的點,5200 顆分下去每段只剩約 900 顆,
+     畫出來只有零星幾點。總數拉高,真正每偵畫的仍然是三千多顆。 */
+  var NPTS = 22000;
+  var F = 820;                       // 透視焦距,越小越誇張
   var ctx = canvas.getContext('2d', { alpha: true });
-  var W = 0, H = 0, DPR = 1;
-  var pts = [], raf = null, t = 0, aspect = 0.73;   // 高:寬,build() 時用實際圖檔更新
+  var W = 0, H = 0, DPR = 1, pts = [], raf = null, t = 0, tick = 0;
 
-  /* 顏色跟首屏同一組(ink → 湖藍灰 → 石灰 + 一點 ember) */
   var COLS = ['22,35,44', '48,70,86', '96,110,120'];
   var EMBER = '180,85,42';
   var sprites = {};
+
+  /* 每一區各取骨架的一小塊 —— 只是「身體的一部分」,不求連貫。
+     u/v 是原圖 0–1 座標;範圍有把框畫回原圖確認過。 */
+  var SEGS = {
+    works:  { u0: 0.30, u1: 0.78, v0: 0.05, v1: 0.42 },   // 脖子後方的肋骨段
+    about:  { u0: 0.10, u1: 0.55, v0: 0.55, v1: 0.90 },   // 後腳一帶
+    photos: { u0: 0.70, u1: 1.00, v0: 0.74, v1: 1.00 }    // 只有尾巴末端
+  };
 
   function layout() {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -2092,10 +2091,8 @@ window.__fragSprites = (function () {
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
   }
 
-  /* 取樣:把圖畫進離屏 canvas,挑出不透明的像素當碎片 */
   function build(img) {
-    var iw = 340, ih = Math.round(iw * img.height / img.width);
-    aspect = img.width / img.height;   // 用原圖比例,不要硬壓成別的形狀
+    var iw = 320, ih = Math.round(iw * img.height / img.width);
     var oc = document.createElement('canvas');
     oc.width = iw; oc.height = ih;
     var og = oc.getContext('2d');
@@ -2106,11 +2103,9 @@ window.__fragSprites = (function () {
     for (var y = 0; y < ih; y++) {
       for (var x = 0; x < iw; x++) {
         var i = (y * iw + x) * 4;
-        /* 去背圖看 alpha;白底圖看亮度 —— 兩種來源都吃得下,
-           換成骨架圖時不用改這裡 */
-        var a = d[i + 3];
-        var lum = (d[i] + d[i + 1] + d[i + 2]) / 3;
-        if (a > 60 && lum < 232) hits.push([x / iw, y / ih, lum]);
+        if (d[i + 3] > 60 && (d[i] + d[i + 1] + d[i + 2]) / 3 < 232) {
+          hits.push([x / iw, y / ih, (d[i] + d[i + 1] + d[i + 2]) / 3 / 255]);
+        }
       }
     }
     if (!hits.length) return;
@@ -2120,115 +2115,118 @@ window.__fragSprites = (function () {
     for (var k = 0; k < NPTS; k++) {
       var h = hits[(k * step) | 0];
       if (!h) continue;
-      /* 越暗的像素給越深的顏色,亮的給石灰 —— 圖本身的明暗就變成層次 */
-      var band = h[2] < 110 ? 0 : (h[2] < 175 ? 1 : 2);
-      var rgb = (Math.random() < 0.035) ? EMBER : COLS[band];
+      var band = h[2] < 0.30 ? 0 : (h[2] < 0.55 ? 1 : 2);
+      var rgb = (Math.random() < 0.04) ? EMBER : COLS[band];
       if (!sprites[rgb]) sprites[rgb] = window.__fragSprites(rgb);
       pts.push({
         u: h[0], v: h[1],
+        /* 🔴 z 是立體感的來源:亮度當深度,再加一點亂數讓它有厚度,
+           不是一片貼紙。首屏那支也是這樣做的。 */
+        z: (h[2] - 0.5) + (Math.random() - 0.5) * 0.55,
         sp: sprites[rgb],
         si: (Math.random() * 7) | 0,
-        sz: 2.4 + Math.random() * 4.0,
+        sz: 2.0 + Math.random() * 3.2,
         ph: Math.random() * 6.28,
-        amp: 1.2 + Math.random() * 2.8,
-        a: 0.38 + Math.random() * 0.50
+        amp: 1.6 + Math.random() * 3.4,
+        fall: 0.5 + Math.random() * 1.4,        // 散開時各自掉落的速度
+        a: 0.34 + Math.random() * 0.46
       });
     }
   }
 
-  /* 捲動 → 龍身往上走(視差),同時決定它在哪一段可見。
-     首屏完全不畫,Works 開始淡入,過了 Photos 再淡出。 */
-  function scrollState() {
-    var works = document.getElementById('works');
-    var photos = document.getElementById('photos');
-    if (!works || !photos) return { vis: 0, p: 0 };
-    var vh = window.innerHeight;
-    var a = works.getBoundingClientRect().top - vh * 0.7;   // 開始
-    var b = photos.getBoundingClientRect().bottom;          // 結束
-    var span = (b - a) || 1;
-    var p = -a / span;
-    p = p < 0 ? 0 : (p > 1 ? 1 : p);
-    /* 兩端淡出,中段全亮 */
-    var vis = p < 0.10 ? p / 0.10 : (p > 0.88 ? (1 - p) / 0.12 : 1);
-    vis = vis < 0 ? 0 : (vis > 1 ? 1 : vis);
-    return { vis: vis, p: p };
-  }
-
-  /* 🔴 三段各自是**不同的裁切 + 放大**,不是把整條龍縮小平移
-     (Zakk:「他首頁已經有頭了,你就 work 那邊這隻龍截脖子後腳放大」)。
-
-     u/v 是原圖 0–1 的座標。骨架的排法:頭骨在左上、S 形往右下走、尾巴收在右下。
-     所以:
-       Works  取上半段(脖子 → 前肢 → 後腳),**跳過左上的頭**(首頁已經有了)
-       About  取中下段(後腳 → 尾椎)
-       Photos 只取右下的尾巴末端 */
-  var SEGS = [
-    { u0: 0.20, u1: 1.00, v0: 0.02, v1: 0.52 },   // Works:脖子 → 後腳
-    { u0: 0.05, u1: 0.95, v0: 0.46, v1: 0.92 },   // About:後腳 → 尾椎
-    { u0: 0.62, u1: 1.00, v0: 0.68, v1: 1.00 }    // Photos:只剩尾巴末端
-  ];
-
-  function lerpSeg(p) {
-    /* p 0→1 走完三段:0 = Works、0.5 = About、1 = Photos,中間連續內插,
-       所以捲動時是「鏡頭沿著身體滑過去」,不是硬切換。 */
-    var f = p * 2;
-    var i = f < 1 ? 0 : 1;
-    var k = f - i; if (k < 0) k = 0; if (k > 1) k = 1;
-    k = k * k * (3 - 2 * k);                       // smoothstep,換段不會有頓點
-    var a = SEGS[i], b = SEGS[i + 1];
-    return {
-      u0: a.u0 + (b.u0 - a.u0) * k, u1: a.u1 + (b.u1 - a.u1) * k,
-      v0: a.v0 + (b.v0 - a.v0) * k, v1: a.v1 + (b.v1 - a.v1) * k
-    };
+  /* 現在在哪一區、在這一區裡走了多少 —— 決定畫哪一塊、散得多開 */
+  function state() {
+    var vh = window.innerHeight, best = null;
+    ['works', 'about', 'photos'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (!el) return;
+      var r = el.getBoundingClientRect();
+      /* 這一區走了幾成:頂端到視窗中線 → 0,底端到視窗中線 → 1 */
+      var p = (vh * 0.5 - r.top) / Math.max(1, r.height);
+      if (p >= -0.15 && p <= 1.15 && (!best || Math.abs(p - 0.5) < Math.abs(best.p - 0.5))) {
+        best = { id: id, p: p < 0 ? 0 : (p > 1 ? 1 : p) };
+      }
+    });
+    return best;
   }
 
   function render() {
     ctx.clearRect(0, 0, W, H);
-    var st = scrollState();
-    if (st.vis <= 0.01 || !pts.length) return;
+    var st = state();
+    if (!st || !pts.length) return;
+    var sg = SEGS[st.id];
+    if (!sg) return;
 
-    var sg = lerpSeg(st.p);
+    /* 進場淡入、出場往下散開並淡掉 —— 跟首屏換段的動作是同一件事 */
+    var fadeIn = Math.min(1, st.p / 0.18);
+    /* 散開要**收在區塊交界**,不要在中途就散完留下一個切面浮在空白裡。
+       0.72 才開始、到 1.0(正好是換區)剛好散光。 */
+    var burst = st.p < 0.72 ? 0 : (st.p - 0.72) / 0.28;
+    var vis = fadeIn * (1 - burst);
+    if (vis <= 0.01) return;
+
     var du = sg.u1 - sg.u0, dv = sg.v1 - sg.v0;
+    /* 只佔右邊窄帶的一部分,不佔滿 —— 「一部分當設計飄在一旁」 */
+    var boxH = H * 0.56;
+    var boxW = boxH * (du / dv) * aspect;
+    if (boxW > W * 0.92) { boxW = W * 0.92; boxH = boxW / ((du / dv) * aspect); }
+    var cx = W * 0.52, cy = H * 0.46;
 
-    /* ⚠️ 要**填滿寬度**,不是填滿高度。
-       裁切窗是橫的(寬>高),依高度縮放會讓寬度爆出畫布,兩邊都被切掉 ——
-       實測 Works 那段算出 1287px 寬,而畫布只有 883,左右各丟掉一截,
-       結果看到的是身體中段,根本讀不出「脖子到後腳」。
-       依寬度縮放,整段就完整落在畫面裡,右邊只留一點出血。 */
-    var segW = W * 1.12;
-    var segH = segW / ((du / dv) * aspect);
-    var topY = (H - segH) / 2;
-    var leftX = W - segW * 0.86;
+    /* 🔴 立體感:繞 Y 軸慢慢自轉 + 透視投影(首屏那支的做法) */
+    var ry = Math.sin(t * 0.16) * 0.55;
+    var cy2 = Math.cos(ry), sy2 = Math.sin(ry);
+    var depth = boxW * 0.42;
 
     for (var i = 0; i < pts.length; i++) {
       var p = pts[i];
       if (p.u < sg.u0 || p.u > sg.u1 || p.v < sg.v0 || p.v > sg.v1) continue;
-      var wob = Math.sin(t * 0.55 + p.ph) * p.amp;
-      var x = leftX + ((p.u - sg.u0) / du) * segW + wob;
-      var y = topY + ((p.v - sg.v0) / dv) * segH + Math.cos(t * 0.4 + p.ph) * p.amp * 0.6;
-      if (x < -30 || x > W + 30 || y < -30 || y > H + 30) continue;
-      var d = p.sz;
-      ctx.globalAlpha = p.a * st.vis;
-      ctx.drawImage(p.sp[p.si], x - d / 2, y - d / 2, d, d);
+      /* ⚠️ 裁切是一個矩形,邊界會切出一條**直的切口**,浮在空白裡很醜
+         (Zakk:「截斷面…不要斷在空白的地方很醜」)。
+         靠近邊界的碎片淡掉,讓它化開而不是被切斷。 */
+      var eu = Math.min(p.u - sg.u0, sg.u1 - p.u) / du;
+      var ev = Math.min(p.v - sg.v0, sg.v1 - p.v) / dv;
+      var edge = Math.min(1, Math.min(eu, ev) / 0.14);
+
+      var dx = ((p.u - sg.u0) / du - 0.5) * boxW;
+      var dy = ((p.v - sg.v0) / dv - 0.5) * boxH;
+      var dz = p.z * depth;
+
+      // 自轉
+      var x1 = dx * cy2 - dz * sy2;
+      var z1 = dx * sy2 + dz * cy2;
+      var scale = F / (F - z1);            // 近大遠小
+
+      // 飄動 + 換區時往下散開
+      dy += Math.sin(t * 0.5 + p.ph) * p.amp;
+      dy += burst * H * 0.85 * p.fall;
+      var px = cx + (x1 + Math.cos(t * 0.4 + p.ph) * p.amp * 0.7) * scale;
+      var py = cy + dy * scale;
+      if (px < -40 || px > W + 40 || py < -40 || py > H + 40) continue;
+
+      var d = p.sz * scale;
+      ctx.globalAlpha = p.a * vis * edge;
+      ctx.drawImage(p.sp[p.si], px - d / 2, py - d / 2, d, d);
     }
     ctx.globalAlpha = 1;
   }
 
-  var tick2 = 0;
+  /* 每兩偵畫一次 —— 它是背景裝飾,30fps 看不出來,
+     但全速時會把整頁從 16.7ms 拖到 24.4ms(實測過)。 */
   function frame() {
     raf = requestAnimationFrame(frame);
-    if (++tick2 & 1) return;
-    t += 0.032;              // 跳偵之後時間要走兩倍,不然飄動速度剩一半
+    if (++tick & 1) return;
+    t += 0.032;
     render();
   }
 
+  var aspect = 0.73;
   var img = new Image();
   img.onload = function () {
+    aspect = img.width / img.height;
     layout();
     build(img);
     if (!raf) frame();
   };
-  /* 路徑從 main.js 自己的位置推算(主頁 js/main.js,內頁 ../../js/main.js) */
   var self = (document.currentScript && document.currentScript.src) || '';
   img.src = (self ? self.replace(/js\/main\.js.*$/, '') : '') + SRC;
 
