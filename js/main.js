@@ -1215,7 +1215,11 @@
          (Zakk 的截圖:碎片壓在「Works」那一行)。
          改成 0.10 起跑、0.50 散完 → 首屏捲到 60% 就乾淨了,
          還有 40% 的距離才會看到 Works。 */
-      var HX0 = SMALL ? 0.10 : 0.55, HXL = SMALL ? 0.50 : 0.80;
+      /* ⚠️ 手機的首屏差不多**剛好一個螢幕高**,所以 Works 的上緣從捲動的第一刻
+         就已經在往上頂 —— 沒有「首屏還獨佔畫面」的那段路可用。
+         0.10/0.50 還是太晚(Zakk 第二次回報「到這邊還沒炸開」)。
+         改成 5% 起跑、40% 散完 —— 大約捲三分之一個螢幕就乾淨。 */
+      var HX0 = SMALL ? 0.05 : 0.55, HXL = SMALL ? 0.35 : 0.80;
       hx = (hp - HX0) / HXL;
       hx = hx < 0 ? 0 : (hx > 1 ? 1 : hx);
       hx = hx * hx * (3 - 2 * hx);
@@ -2069,7 +2073,10 @@ window.__fragSprites = (function () {
   if (!window.matchMedia('(min-width: 1720px)').matches) return;
 
   var SRC = 'assets/3d/dragon-bones.webp';
-  var PER_SEG = 4600;       // 每一段自己的點數(不再跟其他段分)
+  /* 碎片改成跟首屏一樣大(Zakk 指定)。首屏的算式是
+     sz = gap*(0.3~0.7) 再 ×2.1,在 2000px 寬時約 7~17px ——
+     這裡直接對齊。顆粒變大,顆數就要降,不然會糊成一片。 */
+  var PER_SEG = 2600;
   var SAMPLE_W = 620;       // 取樣解析度:肋骨很細,320 會整條跳過
   var F = 820;
 
@@ -2085,14 +2092,19 @@ window.__fragSprites = (function () {
      ⚠️ photos 特別放高、放小:照片帶是滿版的,尾巴垂到中間就會壓在照片上
      (Zakk:「photo 那邊尾巴不用到照片」)。 */
   var SEGS = {
-    works:  { u0: 0.30, u1: 0.78, v0: 0.05, v1: 0.42, cy: 0.46, kh: 0.56 },
-    about:  { u0: 0.10, u1: 0.55, v0: 0.55, v1: 0.90, cy: 0.50, kh: 0.56 },
-    photos: { u0: 0.70, u1: 1.00, v0: 0.74, v1: 1.00, cy: 0.20, kh: 0.34 }
+    /* works 往脖子靠(Zakk 指定):頭骨在左中,脖子往右上延伸,
+       所以裁切框整個往左移、往上抬 */
+    works:  { u0: 0.20, u1: 0.64, v0: 0.08, v1: 0.46, cy: 0.46, kh: 0.72 },
+    about:  { u0: 0.10, u1: 0.55, v0: 0.55, v1: 0.90, cy: 0.50, kh: 0.72 },
+    photos: { u0: 0.70, u1: 1.00, v0: 0.74, v1: 1.00, cy: 0.20, kh: 0.42 }
   };
 
   /* 滑鼠扭曲(數值沿用首屏那支,那組是 Zakk 調過的) */
   var PUSH_R = 62, PUSH_F = 16, SWIRL_F = 34;
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
+  /* 🔴 立體感的關鍵:讓滑鼠**帶動兩軸旋轉**(首屏就是這樣才像可以繞著看的物件),
+     再加一點持續自轉,讓它一直有生命。只有單軸擺動看起來還是一張紙。 */
+  var ay = 0, ax = 0, tay = 0, tax = 0;
 
   function layout() {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
@@ -2137,7 +2149,7 @@ window.__fragSprites = (function () {
         z: (h[2] - 0.5) + (Math.random() - 0.5) * 0.5,
         sp: sprites[rgb],
         si: (Math.random() * 7) | 0,
-        sz: 2.6 + Math.random() * 3.4,
+        sz: 7.0 + Math.random() * 10.0,
         /* 軌道飄動:cos/sin 同一個角度 = 閉合橢圓,繞完回原位(跟首屏同一招) */
         sp1: 0.35 + Math.random() * 0.5,
         ph: Math.random() * 6.28,
@@ -2180,11 +2192,14 @@ window.__fragSprites = (function () {
     var boxH = H * sg.kh;
     var boxW = boxH * ratio;
     if (boxW > W * 0.92) { boxW = W * 0.92; boxH = boxW / ratio; }
-    var cx = W * 0.52, cy = H * sg.cy;
+    var cx = W * 0.44, cy = H * sg.cy;   // 往中間靠一點(Zakk 指定)
 
-    var ry = Math.sin(t * 0.16) * 0.55;
-    var cyr = Math.cos(ry), syr = Math.sin(ry);
-    var depth = boxW * 0.42;
+    ay += (tay - ay) * 0.06;
+    ax += (tax - ax) * 0.06;
+    ay += 0.0022;                       // 持續自轉:一直有生命
+    var cyr = Math.cos(ay), syr = Math.sin(ay);
+    var cxr = Math.cos(ax), sxr = Math.sin(ax);
+    var depth = boxW * 0.80;            // z 深度加倍,近大遠小才明顯
 
     // 滑鼠平滑追蹤(直接用原始座標的話,游標一停碎片就瞬間彈回,很生硬)
     if (pxm >= 0) {
@@ -2206,11 +2221,14 @@ window.__fragSprites = (function () {
 
       dy += burst * H * 0.85 * p.fall;
 
+      /* 先繞 Y 再繞 X —— 跟首屏同一套順序 */
       var x1 = dx * cyr - dz * syr;
-      var z1 = dx * syr + dz * cyr;
-      var scale = F / (F - z1);
+      var zz = dx * syr + dz * cyr;
+      var y1 = dy * cxr - zz * sxr;
+      var z2 = dy * sxr + zz * cxr;
+      var scale = F / (F - z2);
       var px = cx + x1 * scale;
-      var py = cy + dy * scale;
+      var py = cy + y1 * scale;
 
       /* 🔴 滑鼠扭曲:纏著游標繞(切線),不是被彈開(法線)——
          首屏那支就是這樣才不像「爆炸」而像「攪動」。 */
@@ -2261,6 +2279,8 @@ window.__fragSprites = (function () {
     var b = canvas.getBoundingClientRect();
     pxm = e.clientX - b.left;
     pym = e.clientY - b.top;
+    tay = (e.clientX / window.innerWidth - 0.5) * 0.9;      // 左右轉
+    tax = (e.clientY / window.innerHeight - 0.5) * -0.6;    // 上下俯仰
   }, { passive: true });
 
   window.addEventListener('resize', function () {

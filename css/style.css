@@ -2264,11 +2264,11 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .dragon-side {
   position: fixed;
   top: 0;
-  left: 1340px;                /* 內容欄右緣 1296 + 44 的安全距離 */
+  left: 1150px;                /* Zakk:「不用那麼省版面」—— 往左讓出更多空間 */
   /* ⚠️ canvas 是 replaced element:只給 left + right 的話,
      寬度會取「點陣尺寸」而不是兩邊的距離(實測算出 2200px,整個蓋到字上)。
      必須明確給 width。 */
-  width: calc(100vw - 1340px);
+  width: calc(100vw - 1150px);
   height: 100svh;
   z-index: 0;                  /* 跟 .fragments 同層,墊在 #main(z-index 1)後面 */
   pointer-events: none;
