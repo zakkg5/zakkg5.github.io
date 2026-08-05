@@ -768,10 +768,10 @@
   var ay = 0, ax = 0, tay = 0, tax = 0;   // 旋轉角(目前/滑鼠目標)
   /* 滑鼠的實際像素位置,用來把附近的碎片推開(-1 = 還沒進畫面) */
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
-  var LENS_R = 100;    // 透鏡影響半徑(Zakk:「扭曲可以範圍小點」)
-  var LENS_K = 0.62;   // < 1 放大;越小越誇張
-  var LENS_MAG = 0.30; // 中心的碎片本身放大幅度(Zakk:「扭曲效果直接變超大」)
-  var LENS_SPIN = 0.55; // 碎片自己歪掉的角度(弧度,約 31°)
+  var LENS_R = 110;    // 影響半徑(Zakk:「扭曲可以範圍小點」)
+  var TWIST = 1.15;    // 游標正中心扭轉的角度(弧度,約 66°)
+  var LENS_MAG = 0.22; // 中心的碎片本身放大一點,才有厚度感
+  var LENS_SPIN = 0.45; // 每片自己額外歪掉的量
   var F = 900;                            // 透視焦距(越小越誇張)
 
 
@@ -1391,15 +1391,22 @@
           var mdx = px - pxe, mdy = py - pye;
           var md = Math.sqrt(mdx * mdx + mdy * mdy);
           if (md < LENS_R && md > 0.01) {
-            var tt = md / LENS_R;
-            var nr = LENS_R * Math.pow(tt, LENS_K);
-            px = pxe + (mdx / md) * nr;
-            py = pye + (mdy / md) * nr;
-            var fo = (1 - tt) * (1 - tt);
+            var tt = md / LENS_R, fo = (1 - tt) * (1 - tt);
+            /* 🔴 扭轉,不是放大。
+               放大版是 r' = R·(r/R)^k —— 那會把碎片**往外推**。
+               真的放大鏡底下有連續的東西可以填進來,粒子只有有限顆,
+               往外推就是中間被掏空(Zakk:「滑鼠移過去他碎片會直接消失」)。
+               我為了避開「洞」改成透鏡,結果繞一圈又做出同一個洞。
+
+               旋轉不改變面積 → 密度完全不變,一顆都不會少,
+               看起來是整片結構被擰過去。 */
+            var th = TWIST * fo;
+            var cs = Math.cos(th), sn = Math.sin(th);
+            px = pxe + mdx * cs - mdy * sn;
+            py = pye + mdx * sn + mdy * cs;
             d *= 1 + LENS_MAG * fo;
-            /* 每一片自己也轉一點:玻璃底下的東西不只被放大,朝向也會歪掉。
-               ph 是這顆碎片自己的相位,所以每片轉的方向不一樣,不會整片一起歪。 */
-            spin = Math.sin(p.ph * 3.1) * LENS_SPIN * fo;
+            /* 每一片自己也歪一點,朝向被擰掉,不是整片一起轉 */
+            spin = th + Math.sin(p.ph * 3.1) * LENS_SPIN * fo;
           }
         }
 
@@ -2142,9 +2149,9 @@ window.__fragSprites = (function () {
        (Zakk:「這還有一小塊飄著」)—— 用 drop 挖掉。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
               drop: [[0.00, 0.60, 0.44, 1.00]], flip: true,
-              cx: 0.86, cy: 0.44, kh: 0.56, dens: 0.95 },
+              cx: 0.86, cy: 0.44, kh: 0.56, dens: 1.60 },
     about:  { src: 'bones-claw.webp', crop: [0.22, 0.10, 1.00, 0.95], flip: true,
-              cx: 0.80, cy: 0.30, kh: 0.62, dens: 0.85 },
+              cx: 0.80, cy: 0.30, kh: 0.62, dens: 1.35 },
     /* 尾巴:⚠️ 兩次錯誤都記著 ——
        ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
        ② 改細之後我把它推到更右邊,但他要的是更左(「我是指從左邊一點的地方,
@@ -2154,23 +2161,19 @@ window.__fragSprites = (function () {
        ⚠️ 關鍵事實(量出來的,不是猜的):Photos 的跑馬燈是**滿版** 0→2000px,
        跟 Works / About 不一樣,那一區右邊沒有留白欄。
        照片上緣在 y≈317,所以尾巴只能待在標題右邊那條空白帶裡。
-       → 橫的、從右界進來、往左掃,整條壓在 y 320 以上。 */
-    photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00], flip: true,
-              cx: 0.75, cy: 0.15, kh: 0.28, dens: 0.70 }
+       → 根從上界出去(Zakk 圈的位置),往右生長,整條壓在 y 320 以上。
+       ⚠️ 不鏡射:原圖的尾巴本來就是「根在左上、尖在右下」,正好是他要的方向。 */
+    photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00],
+              cx: 0.55, cy: 0.13, kh: 0.34, dens: 1.00 }
   };
 
 
-  /* 🔴 滑鼠扭曲改成「透鏡」而不是「推開」(Zakk:「我想要滑鼠移到粒子上的扭曲感,
-     而不是像現在這樣擠掉」)。
-
-     舊做法:沿法線往外推 + 沿切線繞 → 游標底下會出現一個**洞**,
-     結構被清掉了,看起來是「碎片閃開」。
-     新做法:半徑重映射 r' = R·(r/R)^k —— 每一顆都還在,只是位置被拉開,
-     所以是**整片結構被壓過去變形**,像一片透鏡蓋在上面。
-     k < 1 = 放大(中心稀、外圍密),再讓靠近游標的碎片本身也變大一點。 */
-  var LENS_R = 100;      // 影響半徑(Zakk:「扭曲可以範圍小點」)
-  var LENS_K = 0.62;     // < 1 放大;越小越誇張
-  var LENS_MAG = 0.30;   // 中心的碎片放大幅度(Zakk:「扭曲效果直接變超大」)
+  /* 滑鼠扭曲 —— 跟首屏同一套。演變過程寫在首屏那一段:
+     推開 → 洞;半徑重映射(透鏡)→ 還是洞;現在是**扭轉**,面積不變,不會少碎片。 */
+  var LENS_R = 110;      // 影響半徑
+  var TWIST = 1.15;      // 正中心扭轉角度(弧度)
+  var LENS_MAG = 0.22;   // 中心的碎片放大幅度
+  var LENS_SPIN = 0.45;  // 每片自己額外歪掉的量
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
   /* 🔴 立體感的關鍵:讓滑鼠**帶動兩軸旋轉**(首屏就是這樣才像可以繞著看的物件),
      再加一點持續自轉,讓它一直有生命。只有單軸擺動看起來還是一張紙。 */
@@ -2292,13 +2295,13 @@ window.__fragSprites = (function () {
         /* 尖端要看得出是尖的:碎片大小跟著骨頭的粗細走 ——
            細的地方(h[3] 小)用小碎片,不然尾尖會被大碎片糊成一團
            (Zakk:「他尾巴是尖的ㄟ」)。 */
-        sz: (4.8 + Math.random() * 5.4) * (0.55 + h[3] * 0.9),
+        sz: (6.4 + Math.random() * 6.0) * (0.72 + h[3] * 0.7),
         sp1: 0.35 + Math.random() * 0.5,
         ph: Math.random() * 6.28,
         amp: 0.4 + Math.random() * 1.0,   // 飄動幅度也收小,不要飄離骨頭
         ecc: 0.5 + Math.random() * 0.6,
         fall: 0.5 + Math.random() * 1.4,
-        a: 0.20 + Math.random() * 0.30    // 整體再透明一點
+        a: 0.28 + Math.random() * 0.40    // 透明,但要看得出形狀
       });
     }
     out.aspect = sw / sh;
@@ -2385,19 +2388,19 @@ window.__fragSprites = (function () {
       var px = cx + x1 * scale;
       var py = cy + y1 * scale;
 
-      /* 透鏡扭曲:把半徑重映射,不是把碎片推走 */
+      /* 扭轉:繞著游標轉一個角度,角度隨距離衰減。面積不變 = 密度不變 */
       var mag = 1, spin = 0;
       if (pxe >= 0) {
         var vx = px - pxe, vy = py - pye;
         var dist = Math.sqrt(vx * vx + vy * vy);
         if (dist < LENS_R && dist > 0.01) {
-          var tt = dist / LENS_R;
-          var nr = LENS_R * Math.pow(tt, LENS_K);   // r' = R·(r/R)^k
-          px = pxe + (vx / dist) * nr;
-          py = pye + (vy / dist) * nr;
-          var fo = (1 - tt) * (1 - tt);
-          mag = 1 + LENS_MAG * fo;                  // 中心的碎片也放大
-          spin = Math.sin(p.ph * 3.1) * LENS_SPIN * fo;   // 每片自己也歪一點
+          var tt = dist / LENS_R, fo = (1 - tt) * (1 - tt);
+          var th = TWIST * fo;
+          var cs = Math.cos(th), sn = Math.sin(th);
+          px = pxe + vx * cs - vy * sn;
+          py = pye + vx * sn + vy * cs;
+          mag = 1 + LENS_MAG * fo;
+          spin = th + Math.sin(p.ph * 3.1) * LENS_SPIN * fo;
         }
       }
 
