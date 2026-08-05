@@ -768,9 +768,9 @@
   var ay = 0, ax = 0, tay = 0, tax = 0;   // 旋轉角(目前/滑鼠目標)
   /* 滑鼠的實際像素位置,用來把附近的碎片推開(-1 = 還沒進畫面) */
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
-  var PUSH_R = 62;     // 影響半徑(Zakk:滑鼠周遭扭曲的空間再小點)
-  var PUSH_F = 16;     // 往外推(小)
-  var SWIRL_F = 34;    // 沿切線繞(主要):碎片纏著游標轉,不是被彈開
+  var LENS_R = 150;    // 透鏡影響半徑(比舊的推開 62 大很多,才看得出是「一片」被扭)
+  var LENS_K = 0.62;   // < 1 放大;越小越誇張
+  var LENS_MAG = 0.55; // 中心的碎片本身放大幅度
   var F = 900;                            // 透視焦距(越小越誇張)
 
 
@@ -1377,20 +1377,23 @@
 
         var aMul = skullA;
 
-        /* ── 滑鼠扭曲 ──
-           游標附近的碎片被往外推,離愈近推愈多(平方衰減,邊界不會有硬邊)。
-           只動畫面座標、不動碎片自己的家,所以滑走之後會自己回去。 */
+        /* ── 滑鼠扭曲:透鏡,不是推開 ──
+           🔴 舊做法是沿法線推 + 沿切線繞,結果游標底下會出現一個**洞**,
+           結構被清掉,看起來是「碎片閃開」(Zakk:「我想要扭曲感,而不是像現在這樣擠掉」)。
+
+           改成半徑重映射 r' = R·(r/R)^k —— 每一顆都還在原本的位置關係上,
+           只是被拉開,所以是**整片結構被壓過去變形**,像一片透鏡蓋在上面。
+           k < 1 = 放大,再讓靠近游標的碎片本身也變大,才有玻璃的厚度感。
+           跟右側龍身用的是同一組參數。 */
         if (hasPtr) {
           var mdx = px - pxe, mdy = py - pye;
-          var md2 = mdx * mdx + mdy * mdy;
-          if (md2 < PUSH_R * PUSH_R) {
-            var md = Math.sqrt(md2) || 1;
-            var f = 1 - md / PUSH_R;
-            f = f * f;
-            var ux = mdx / md, uy = mdy / md;
-            // 往外推一點點 + 沿切線繞很多 → 碎片纏著游標轉,不是被彈開
-            px += ux * f * PUSH_F - uy * f * SWIRL_F;
-            py += uy * f * PUSH_F + ux * f * SWIRL_F;
+          var md = Math.sqrt(mdx * mdx + mdy * mdy);
+          if (md < LENS_R && md > 0.01) {
+            var tt = md / LENS_R;
+            var nr = LENS_R * Math.pow(tt, LENS_K);
+            px = pxe + (mdx / md) * nr;
+            py = pye + (mdy / md) * nr;
+            d *= 1 + LENS_MAG * (1 - tt) * (1 - tt);
           }
         }
 
@@ -2097,10 +2100,20 @@ window.__fragSprites = (function () {
 
      每一段是一張獨立的去背圖(整張都用,不再裁切),所以也沒有「切口」問題了。
      kh 是它在畫面上佔的高度比例,cx/cy 是位置,dens 是密度倍率。 */
+  /* 三段各是一張獨立的去背圖:翅膀 / 腳掌 / 尾巴。
+
+     🔴 但**不是整張照放**(Zakk:「我給你整張圖就是要讓你截可能比較好放的角度」)。
+     crop 是原圖上的取樣框 [x0, y0, x1, y1](0~1),用來:
+       ① 切掉「接到身體的那一端」—— 翅膀左邊那條脊椎、腳掌上面的髖、
+          尾巴根部那幾節粗椎骨。那些是身體的邊,不是元素(「身體的邊邊不用做出來」)。
+       ② 只留辨識點:翅膀留手肘的 V + 指骨張開,腳掌留小腿到腳趾,尾巴留那個勾。 */
   var SEGS = {
-    works:  { src: 'bones-wing.webp', cx: 0.52, cy: 0.44, kh: 0.62, dens: 1.00 },
-    about:  { src: 'bones-claw.webp', cx: 0.60, cy: 0.52, kh: 0.46, dens: 1.00 },
-    photos: { src: 'bones-tail.webp', cx: 0.50, cy: 0.20, kh: 0.40, dens: 0.60 }
+    works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
+              cx: 0.52, cy: 0.42, kh: 0.52, dens: 1.00 },
+    about:  { src: 'bones-claw.webp', crop: [0.22, 0.10, 1.00, 0.95],
+              cx: 0.58, cy: 0.50, kh: 0.40, dens: 0.90 },
+    photos: { src: 'bones-tail.webp', crop: [0.15, 0.20, 0.95, 1.00],
+              cx: 0.52, cy: 0.22, kh: 0.32, dens: 0.55 }
   };
 
 
@@ -2130,11 +2143,15 @@ window.__fragSprites = (function () {
 
   /* 只把「這一段」畫進離屏 canvas 再取樣 —— 整段的點數全部落在看得到的地方 */
   function buildSeg(img, sg) {
-    var ow = SAMPLE_W, oh = Math.round(ow * img.height / img.width);
+    var c = sg.crop || [0, 0, 1, 1];
+    var sx = c[0] * img.width, sy = c[1] * img.height;
+    var sw = (c[2] - c[0]) * img.width, sh = (c[3] - c[1]) * img.height;
+
+    var ow = SAMPLE_W, oh = Math.round(ow * sh / sw);
     var oc = document.createElement('canvas');
     oc.width = ow; oc.height = oh;
     var og = oc.getContext('2d');
-    og.drawImage(img, 0, 0, ow, oh);
+    og.drawImage(img, sx, sy, sw, sh, 0, 0, ow, oh);
     var d;
     try { d = og.getImageData(0, 0, ow, oh).data; } catch (e) { return []; }
 
@@ -2172,7 +2189,7 @@ window.__fragSprites = (function () {
         a: 0.34 + Math.random() * 0.46
       });
     }
-    out.aspect = img.width / img.height;
+    out.aspect = sw / sh;
     return out;
   }
 
@@ -2208,9 +2225,14 @@ window.__fragSprites = (function () {
     if (boxW > W * 0.92) { boxW = W * 0.92; boxH = boxW / ratio; }
     var cx = W * (sg.cx || 0.44), cy = H * sg.cy;
 
-    ay += (tay - ay) * 0.06;
-    ax += (tax - ax) * 0.06;
-    ay += 0.0022;                       // 持續自轉:一直有生命
+    /* 🔴 不可以一直往同一個方向自轉。翅膀只有**正面**看得出是翅膀,
+       轉過 90° 就整片收成一條、變成一團看不出是什麼的東西
+       (Zakk:「work 有點看不出是什麼」的真正原因)。
+       改成在正面附近來回擺(約 ±20°),夠看出是立體的就好。 */
+    var swayY = Math.sin(t * 0.28) * 0.30;
+    var swayX = Math.sin(t * 0.19 + 1.7) * 0.13;
+    ay += (tay + swayY - ay) * 0.06;
+    ax += (tax + swayX - ax) * 0.06;
     var cyr = Math.cos(ay), syr = Math.sin(ay);
     var cxr = Math.cos(ax), sxr = Math.sin(ax);
     var depth = boxW * 0.80;            // z 深度加倍,近大遠小才明顯
