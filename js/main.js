@@ -2170,9 +2170,17 @@ window.__fragSprites = (function () {
        忘了脊椎那條切口跟著轉到**下面**,而它就落在版面中間。
        rot 'cw' + flip:切口翻到上面、指骨還是朝右,
        再把 cy 壓小讓上緣出畫面 —— 切口就看不到了。 */
+    /* ⚠️ 切口出「上界」是行不通的 —— 導覽列就在右上角。
+       我在 2000px 寬測不出來,Zakk 的螢幕是 2560:
+       翅膀 x 1976–2524 / y 0–608,導覽列 x 2305–2504 / y 6–30,整個疊在一起。
+
+       改成切口出**右界**(不轉 90°,只左右鏡射 → 斷面在右、指骨朝下),
+       整塊往下移到導覽列底下(cy 0.40 → 上緣約 y 190~245)。
+       這樣兩種寬度都成立,不是只在我測的那一個尺寸剛好。
+       tilt 只給一點點(26° 太多)。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
-              drop: [[0.00, 0.60, 0.44, 1.00]], rot: 'cw', flip: true, tilt: 26,
-              cx: 0.78, cy: 0.20, kh: 0.46, dens: 1.25 },
+              drop: [[0.00, 0.60, 0.44, 1.00]], flip: true, tilt: -12,
+              cx: 0.88, cy: 0.40, kh: 0.46, dens: 1.25 },
     /* 腳掌:⚠️ 原本整條腿(含髖)一起放,看起來只是一根斜的骨頭
        (Zakk:「about 那頁的碎片看不太出來是腳了」)。
        改成只留小腿到腳趾、不鏡射(腳掌在左邊,朝空白處),
@@ -2182,7 +2190,7 @@ window.__fragSprites = (function () {
        cy 0.20 + kh 0.55 → 方框上緣在 -82px,腳跟以上全部在畫面外。
        所以要把整塊往下移(cy 0.34)、同時放大(kh 0.74)並把 crop 往上開到 0.05,
        腿才有東西可以露出來。 */
-    about:  { src: 'bones-claw.webp', crop: [0.06, 0.05, 1.00, 1.00],
+    about:  { src: 'bones-claw.webp', crop: [0.06, 0.05, 1.00, 1.00], tilt: 12,
               cx: 0.70, cy: 0.34, kh: 0.74, dens: 1.05 },
     /* 尾巴:⚠️ 兩次錯誤都記著 ——
        ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
@@ -2212,12 +2220,40 @@ window.__fragSprites = (function () {
      再加一點持續自轉,讓它一直有生命。只有單軸擺動看起來還是一張紙。 */
   var ay = 0, ax = 0, tay = 0, tax = 0;
 
+  /* 🔴 導覽列避讓區(畫布座標)。
+     ⚠️ 用位置去閃導覽列是行不通的:2560px 寬時翅膀 x 1976–2524、
+     導覽列 2305–2504,整個疊在一起;但把骨頭縮到閃得開,
+     在 2000px 寬時那隻腳有 720px、畫布只有 850px —— 根本擠不下。
+     所以改成跟首屏一樣「碎片避開文字」:進到導覽列附近就淡掉。
+     這個做法跟視窗寬度無關,不會只在我測的那個尺寸剛好。 */
+  var navBox = null;
+  function measureNav() {
+    var el = document.querySelector('.topbar .nav');
+    if (!el) { navBox = null; return; }
+    var r = el.getBoundingClientRect(), b = canvas.getBoundingClientRect();
+    var PAD = 26;
+    navBox = { l: r.left - b.left - PAD, t: r.top - PAD,
+               r: r.right - b.left + PAD, b: r.bottom + PAD, fade: 30 };
+  }
+  function navClear(px, py) {
+    var nb = navBox;
+    if (!nb || px < nb.l - nb.fade || px > nb.r + nb.fade ||
+        py < nb.t - nb.fade || py > nb.b + nb.fade) return 1;
+    if (px > nb.l && px < nb.r && py > nb.t && py < nb.b) return 0;
+    /* 邊緣 30px 內漸淡,不要切出一條硬邊 */
+    var dx = px < nb.l ? nb.l - px : (px > nb.r ? px - nb.r : 0);
+    var dy = py < nb.t ? nb.t - py : (py > nb.b ? py - nb.b : 0);
+    var dd = Math.sqrt(dx * dx + dy * dy) / nb.fade;
+    return dd > 1 ? 1 : dd;
+  }
+
   function layout() {
     DPR = Math.min(window.devicePixelRatio || 1, 2);
     W = canvas.clientWidth; H = canvas.clientHeight;
     canvas.width = Math.round(W * DPR);
     canvas.height = Math.round(H * DPR);
     ctx.setTransform(DPR, 0, 0, DPR, 0, 0);
+    measureNav();
   }
 
   /* 只把「這一段」畫進離屏 canvas 再取樣 —— 整段的點數全部落在看得到的地方 */
@@ -2446,14 +2482,18 @@ window.__fragSprites = (function () {
     if (boxW > W * 0.92) { boxW = W * 0.92; boxH = boxW / ratio; }
     var cx = W * (sg.cx || 0.44), cy = H * sg.cy;
 
-    /* 🔴 不可以一直往同一個方向自轉。翅膀只有**正面**看得出是翅膀,
-       轉過 90° 就整片收成一條、變成一團看不出是什麼的東西
-       (Zakk:「work 有點看不出是什麼」的真正原因)。
-       改成在正面附近來回擺(約 ±20°),夠看出是立體的就好。 */
-    var swayY = Math.sin(t * 0.28) * 0.30;
-    var swayX = Math.sin(t * 0.19 + 1.7) * 0.12;
-    ay += (tay + swayY - ay) * 0.06;
-    ax += (tax + swayX - ax) * 0.06;
+    /* 🔴 這幾塊骨頭**不自轉**(Zakk:「不要讓那些部位自轉,你會錯意了」)。
+       它們是版面上的裝飾元素,角度是設計決定的、不是動畫 ——
+       一直擺動反而讓人看不出那是翅膀還是腳。
+       (首屏那顆頭骨是主角,才需要一直轉。)
+
+       ⚠️ 我之前把「他覺得角度怪」讀成「要能調角度」,加了 tilt 參數;
+       又把「你可以自己去看轉哪個角度最好看」讀成「要有旋轉動畫」。
+       兩次都錯:他要的是**挑一個固定角度**。
+
+       只留滑鼠帶動的極小幅度傾斜(±8°),當作立體的暗示,不構成「自轉」。 */
+    ay += (tay * 0.16 - ay) * 0.05;
+    ax += (tax * 0.16 - ax) * 0.05;
     var cyr = Math.cos(ay), syr = Math.sin(ay);
     var cxr = Math.cos(ax), sxr = Math.sin(ax);
     /* 深度 = 骨頭真實的粗細 × 2.2(稍微誇張一點才看得出來)。
@@ -2514,8 +2554,11 @@ window.__fragSprites = (function () {
       var edge = Math.min(1,
         Math.min(Math.min(p.u, 1 - p.u), Math.min(p.v, 1 - p.v)) / 0.04);
 
+      var nc = navClear(px, py);       // 靠近導覽列就淡掉
+      if (nc <= 0) continue;
+
       var d2 = p.sz * scale * mag;
-      ctx.globalAlpha = p.a * vis * edge * segA;
+      ctx.globalAlpha = p.a * vis * edge * segA * nc;
       ctx.drawImage(p.sp[p.si], px - d2 / 2, py - d2 / 2, d2, d2);
     }
     ctx.globalAlpha = 1;
