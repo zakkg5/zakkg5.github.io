@@ -775,8 +775,17 @@
   var ay = 0, ax = 0, tay = 0, tax = 0;   // 旋轉角(目前/滑鼠目標)
   /* 滑鼠的實際像素位置,用來把附近的碎片推開(-1 = 還沒進畫面) */
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
+  /* ── 滑鼠互動:散開 ──
+     Zakk 的參考圖「有一種粒子散開的感覺」。前三代都做錯方向:
+       ① 推開 + 沿切線繞 → 游標下面一個洞
+       ② 半徑重映射(透鏡)→ 還是洞
+       ③ 純扭轉 → 沒有洞,但那是「被擰過去」,不是散開
+     真正的散開 = 往外推 + **每顆各自往自己的方向亂跑**。
+     亂跑的方向用 p.ph 算(固定值),不是每幀重擲 —— 不然會抖。 */
   var LENS_R = 110;    // 影響半徑(Zakk:「扭曲可以範圍小點」)
-  var TWIST = 0.62;    // 游標正中心扭轉的角度(弧度,約 36°)
+  var TWIST = 0.34;    // 留一點旋轉,散開才有方向感
+  var SCAT_R = 26;     // 往外推多少 px
+  var SCAT_J = 30;     // 每顆各自亂跑的幅度 px
   var LENS_MAG = 0.16; // 中心的碎片本身放大一點,才有厚度感
   /* ⚠️ 碎片自己的旋轉已經拿掉(Zakk:「不要有碎片轉動」)。
      整片被擰過去是對的,但每一片還各轉各的,看起來就是在抖。 */
@@ -1393,20 +1402,19 @@
           var md = Math.sqrt(mdx * mdx + mdy * mdy);
           if (md < LENS_R && md > 0.01) {
             var tt = md / LENS_R, fo = (1 - tt) * (1 - tt);
-            /* 🔴 扭轉,不是放大。
-               放大版是 r' = R·(r/R)^k —— 那會把碎片**往外推**。
-               真的放大鏡底下有連續的東西可以填進來,粒子只有有限顆,
-               往外推就是中間被掏空(Zakk:「滑鼠移過去他碎片會直接消失」)。
-               我為了避開「洞」改成透鏡,結果繞一圈又做出同一個洞。
-
-               旋轉不改變面積 → 密度完全不變,一顆都不會少,
-               看起來是整片結構被擰過去。 */
+            /* 散開 = 旋轉(給方向)+ 往外推 + 每顆各自亂跑(這一項才是「散」)。
+               ⚠️ 亂跑的方向用 p.ph 這個固定值算,不能每幀 Math.random()——
+               那樣每顆會自己抖,不是散開。
+               ⚠️ 碎片自己的朝向不轉(Zakk:「不要有碎片轉動」)。 */
             var th = TWIST * fo;
             var cs = Math.cos(th), sn = Math.sin(th);
-            px = pxe + mdx * cs - mdy * sn;
-            py = pye + mdx * sn + mdy * cs;
+            var rx = mdx * cs - mdy * sn, ry = mdx * sn + mdy * cs;
+            var inv = 1 / md;
+            px = pxe + rx + rx * inv * SCAT_R * fo
+                     + Math.cos(p.ph * 7.3) * SCAT_J * fo;
+            py = pye + ry + ry * inv * SCAT_R * fo
+                     + Math.sin(p.ph * 5.1) * SCAT_J * fo;
             d *= 1 + LENS_MAG * fo;
-            /* Zakk:「不要有碎片轉動」 —— 碎片自己的朝向不動,只有位置被擰過去 */
           }
         }
 
@@ -2113,6 +2121,7 @@ window.__fragSprites = (function () {
   var EMBER = '180,85,42';
   var sprites = {};
   var sets = {};            // id → 這一段自己的碎片陣列
+  var prevVis = {}, dirOf = {};   // 換頁位移用:上一幀的能見度、以及進場/退場方向
 
   /* 每一區取骨架的一小塊 —— 只是「身體的一部分」,不求連貫。
      cy / kh 是這一塊在畫面上的位置與大小。
@@ -2150,15 +2159,22 @@ window.__fragSprites = (function () {
        (Zakk:「這還有一小塊飄著」)—— 用 drop 挖掉。 */
     /* 翅膀轉橫的(Zakk:「work 的翅膀可以改橫的嗎」)。
        rot 'ccw' 之後:指骨朝右(伸出右界),手肘的 V 留在空白欄中間。 */
+    /* ⚠️ 切點又飄在空白處了(第三次)。轉成橫的之後我只顧著指骨朝右,
+       忘了脊椎那條切口跟著轉到**下面**,而它就落在版面中間。
+       rot 'cw' + flip:切口翻到上面、指骨還是朝右,
+       再把 cy 壓小讓上緣出畫面 —— 切口就看不到了。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
-              drop: [[0.00, 0.60, 0.44, 1.00]], rot: 'ccw',
-              cx: 0.72, cy: 0.46, kh: 0.42, dens: 1.25 },
+              drop: [[0.00, 0.60, 0.44, 1.00]], rot: 'cw', flip: true,
+              cx: 0.72, cy: 0.17, kh: 0.42, dens: 1.25 },
     /* 腳掌:⚠️ 原本整條腿(含髖)一起放,看起來只是一根斜的骨頭
        (Zakk:「about 那頁的碎片看不太出來是腳了」)。
        改成只留小腿到腳趾、不鏡射(腳掌在左邊,朝空白處),
        腿的斷面從**上界**出去 —— 像從畫面上方踩下來。 */
-    about:  { src: 'bones-claw.webp', crop: [0.20, 0.30, 1.00, 1.00],
-              cx: 0.72, cy: 0.20, kh: 0.55, dens: 1.05 },
+    /* 左邊往外多切一點,腳跟(踝關節那一塊)才進得來 ——
+       原本 x0=0.20 剛好切在腳掌邊上,只剩腳趾
+       (Zakk:「about 的腳可以多截一點,把一點腳跟都截到,不然現在只有腳指」)。 */
+    about:  { src: 'bones-claw.webp', crop: [0.06, 0.26, 1.00, 1.00],
+              cx: 0.70, cy: 0.20, kh: 0.55, dens: 1.05 },
     /* 尾巴:⚠️ 兩次錯誤都記著 ——
        ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
        ② 改細之後我把它推到更右邊,但他要的是更左(「我是指從左邊一點的地方,
@@ -2171,14 +2187,16 @@ window.__fragSprites = (function () {
        → 根從上界出去(Zakk 圈的位置),往右生長,整條壓在 y 320 以上。
        ⚠️ 不鏡射:原圖的尾巴本來就是「根在左上、尖在右下」,正好是他要的方向。 */
     photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00],
-              cx: 0.55, cy: 0.13, kh: 0.34, dens: 0.80 }
+              cx: 0.55, cy: 0.13, kh: 0.34, dens: 0.80, alpha: 0.68 }
   };
 
 
   /* 滑鼠扭曲 —— 跟首屏同一套。演變過程寫在首屏那一段:
      推開 → 洞;半徑重映射(透鏡)→ 還是洞;現在是**扭轉**,面積不變,不會少碎片。 */
   var LENS_R = 110;      // 影響半徑
-  var TWIST = 0.62;      // 正中心扭轉角度(弧度)
+  var TWIST = 0.34;      // 旋轉,給散開一個方向感
+  var SCAT_R = 26;       // 往外推
+  var SCAT_J = 30;       // 每顆各自亂跑
   var LENS_MAG = 0.16;   // 中心的碎片放大幅度
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
   /* 🔴 立體感的關鍵:讓滑鼠**帶動兩軸旋轉**(首屏就是這樣才像可以繞著看的物件),
@@ -2362,6 +2380,19 @@ window.__fragSprites = (function () {
     var vis = st.vis;               // 跟內容同一條曲線
     if (vis <= 0.01) return;
 
+    /* ── 換頁時往上/往下跑 ──
+       Zakk:「切換下一頁碎片還是要有往下或上跑的特效」。
+       只有淡入淡出太安靜。用 vis 是**升還是降**判斷這一段是進場還是退場:
+         進場(vis 在升)→ 從下面升上來
+         退場(vis 在降)→ 往上飄走
+       方向記在 dirOf,不是每幀重算 —— 過場中間 vis 會有小抖動,
+       每幀重判會讓整片來回彈。 */
+    var pv = prevVis[st.id];
+    if (pv !== undefined && Math.abs(vis - pv) > 0.004) dirOf[st.id] = vis > pv ? 1 : -1;
+    prevVis[st.id] = vis;
+    var travel = (1 - vis) * H * 0.42 * (dirOf[st.id] || 1);
+
+    var segA = sg.alpha || 1;      // 這一段自己的透明度(Zakk:「photo 碎片可以透明一點」)
     var ratio = pts.aspect || 0.8;
     var boxH = H * sg.kh;
     var boxW = boxH * ratio;
@@ -2400,6 +2431,7 @@ window.__fragSprites = (function () {
       var w1 = t * p.sp1 + p.ph;
       dx += Math.cos(w1) * p.amp;
       dy += Math.sin(w1) * p.amp * p.ecc;
+      dy += travel * p.fall;      // 換頁位移;p.fall 讓每顆快慢不同,是「跑」不是整塊平移
 
 
 
@@ -2421,10 +2453,11 @@ window.__fragSprites = (function () {
           var tt = dist / LENS_R, fo = (1 - tt) * (1 - tt);
           var th = TWIST * fo;
           var cs = Math.cos(th), sn = Math.sin(th);
-          px = pxe + vx * cs - vy * sn;
-          py = pye + vx * sn + vy * cs;
+          var rx = vx * cs - vy * sn, ry = vx * sn + vy * cs;
+          var inv = 1 / dist;
+          px = pxe + rx + rx * inv * SCAT_R * fo + Math.cos(p.ph * 7.3) * SCAT_J * fo;
+          py = pye + ry + ry * inv * SCAT_R * fo + Math.sin(p.ph * 5.1) * SCAT_J * fo;
           mag = 1 + LENS_MAG * fo;
-          /* 碎片自己的朝向不動,見首屏那一段 */
         }
       }
 
@@ -2435,7 +2468,7 @@ window.__fragSprites = (function () {
         Math.min(Math.min(p.u, 1 - p.u), Math.min(p.v, 1 - p.v)) / 0.04);
 
       var d2 = p.sz * scale * mag;
-      ctx.globalAlpha = p.a * vis * edge;
+      ctx.globalAlpha = p.a * vis * edge * segA;
       ctx.drawImage(p.sp[p.si], px - d2 / 2, py - d2 / 2, d2, d2);
     }
     ctx.globalAlpha = 1;
