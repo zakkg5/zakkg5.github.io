@@ -2110,8 +2110,17 @@ window.__fragSprites = (function () {
     photos: { u0: 0.70, u1: 1.00, v0: 0.74, v1: 1.00, cx: 0.50, cy: 0.20, kh: 0.42, dens: 0.48 }
   };
 
-  /* 滑鼠扭曲(數值沿用首屏那支,那組是 Zakk 調過的) */
-  var PUSH_R = 62, PUSH_F = 16, SWIRL_F = 34;
+  /* 🔴 滑鼠扭曲改成「透鏡」而不是「推開」(Zakk:「我想要滑鼠移到粒子上的扭曲感,
+     而不是像現在這樣擠掉」)。
+
+     舊做法:沿法線往外推 + 沿切線繞 → 游標底下會出現一個**洞**,
+     結構被清掉了,看起來是「碎片閃開」。
+     新做法:半徑重映射 r' = R·(r/R)^k —— 每一顆都還在,只是位置被拉開,
+     所以是**整片結構被壓過去變形**,像一片透鏡蓋在上面。
+     k < 1 = 放大(中心稀、外圍密),再讓靠近游標的碎片本身也變大一點。 */
+  var LENS_R = 150;      // 影響半徑(比舊的 62 大很多,才看得出是「一片」被扭)
+  var LENS_K = 0.62;     // < 1 放大;越小越誇張
+  var LENS_MAG = 0.55;   // 中心的碎片放大幅度
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
   /* 🔴 立體感的關鍵:讓滑鼠**帶動兩軸旋轉**(首屏就是這樣才像可以繞著看的物件),
      再加一點持續自轉,讓它一直有生命。只有單軸擺動看起來還是一張紙。 */
@@ -2242,16 +2251,17 @@ window.__fragSprites = (function () {
       var px = cx + x1 * scale;
       var py = cy + y1 * scale;
 
-      /* 🔴 滑鼠扭曲:纏著游標繞(切線),不是被彈開(法線)——
-         首屏那支就是這樣才不像「爆炸」而像「攪動」。 */
+      /* 透鏡扭曲:把半徑重映射,不是把碎片推走 */
+      var mag = 1;
       if (pxe >= 0) {
         var vx = px - pxe, vy = py - pye;
         var dist = Math.sqrt(vx * vx + vy * vy);
-        if (dist < PUSH_R && dist > 0.01) {
-          var kk = 1 - dist / PUSH_R;
-          kk *= kk;
-          px += (vx / dist) * PUSH_F * kk + (-vy / dist) * SWIRL_F * kk;
-          py += (vy / dist) * PUSH_F * kk + (vx / dist) * SWIRL_F * kk;
+        if (dist < LENS_R && dist > 0.01) {
+          var tt = dist / LENS_R;
+          var nr = LENS_R * Math.pow(tt, LENS_K);   // r' = R·(r/R)^k
+          px = pxe + (vx / dist) * nr;
+          py = pye + (vy / dist) * nr;
+          mag = 1 + LENS_MAG * (1 - tt) * (1 - tt); // 中心的碎片也放大
         }
       }
 
@@ -2261,7 +2271,7 @@ window.__fragSprites = (function () {
       var edge = Math.min(1,
         Math.min(Math.min(p.u, 1 - p.u), Math.min(p.v, 1 - p.v)) / 0.10);
 
-      var d2 = p.sz * scale;
+      var d2 = p.sz * scale * mag;
       ctx.globalAlpha = p.a * vis * edge;
       ctx.drawImage(p.sp[p.si], px - d2 / 2, py - d2 / 2, d2, d2);
     }
