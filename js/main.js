@@ -2091,12 +2091,23 @@ window.__fragSprites = (function () {
      cy / kh 是這一塊在畫面上的位置與大小。
      ⚠️ photos 特別放高、放小:照片帶是滿版的,尾巴垂到中間就會壓在照片上
      (Zakk:「photo 那邊尾巴不用到照片」)。 */
+  /* ⚠️ 裁切位置是**把框畫回原圖看過**才定的,不是猜的。
+     前一版三段都有問題:
+       works  切在彎道內側,全是往內指的肋骨、沒有一條清楚的脊椎線
+              → Zakk:「work 有點看不出是什麼」
+       about  切到後腳那團散落的骨頭,本身就雜;而且它在原圖最左邊,
+              擺上去自然往左侵入內容 → Zakk:「about 碎片不要跑到內容去」
+       photos 尾巴很乾淨,只是太密 → Zakk:「再少一點」
+
+     現在三段都改成「一段清楚的脊椎 + 規則的肋骨」:
+     dens 是各段的密度倍率,cx 是各段在畫布上的水平位置。 */
   var SEGS = {
-    /* works 往脖子靠(Zakk 指定):頭骨在左中,脖子往右上延伸,
-       所以裁切框整個往左移、往上抬 */
-    works:  { u0: 0.20, u1: 0.64, v0: 0.08, v1: 0.46, cy: 0.46, kh: 0.72 },
-    about:  { u0: 0.10, u1: 0.55, v0: 0.55, v1: 0.90, cy: 0.50, kh: 0.72 },
-    photos: { u0: 0.70, u1: 1.00, v0: 0.74, v1: 1.00, cy: 0.20, kh: 0.42 }
+    // 頭骨旁邊那一段頸椎 —— 有頭有尾,一眼看得出是脊椎
+    works:  { u0: 0.12, u1: 0.54, v0: 0.22, v1: 0.52, cx: 0.56, cy: 0.46, kh: 0.60, dens: 1.00 },
+    // 中後段的斜向脊椎,肋骨排列規則;放在原圖右側,擺上去不會往左跑
+    about:  { u0: 0.42, u1: 0.84, v0: 0.54, v1: 0.86, cx: 0.62, cy: 0.50, kh: 0.66, dens: 0.95 },
+    // 尾巴末端的勾 —— 密度砍一半
+    photos: { u0: 0.70, u1: 1.00, v0: 0.74, v1: 1.00, cx: 0.50, cy: 0.20, kh: 0.42, dens: 0.48 }
   };
 
   /* 滑鼠扭曲(數值沿用首屏那支,那組是 Zakk 調過的) */
@@ -2137,8 +2148,9 @@ window.__fragSprites = (function () {
     }
     if (!hits.length) return [];
 
-    var out = [], step = Math.max(1, hits.length / PER_SEG);
-    for (var k = 0; k < PER_SEG; k++) {
+    var want = Math.round(PER_SEG * (sg.dens || 1));
+    var out = [], step = Math.max(1, hits.length / want);
+    for (var k = 0; k < want; k++) {
       var h = hits[(k * step) | 0];
       if (!h) continue;
       var band = h[2] < 0.30 ? 0 : (h[2] < 0.55 ? 1 : 2);
@@ -2192,7 +2204,7 @@ window.__fragSprites = (function () {
     var boxH = H * sg.kh;
     var boxW = boxH * ratio;
     if (boxW > W * 0.92) { boxW = W * 0.92; boxH = boxW / ratio; }
-    var cx = W * 0.44, cy = H * sg.cy;   // 往中間靠一點(Zakk 指定)
+    var cx = W * (sg.cx || 0.44), cy = H * sg.cy;
 
     ay += (tay - ay) * 0.06;
     ax += (tax - ax) * 0.06;
