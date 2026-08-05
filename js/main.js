@@ -2122,6 +2122,13 @@ window.__fragSprites = (function () {
   var sprites = {};
   var sets = {};            // id → 這一段自己的碎片陣列
   var prevVis = {}, dirOf = {};   // 換頁位移用:上一幀的能見度、以及進場/退場方向
+  /* 滾輪方向:+1 往下捲。用 12px 的門檻濾掉微幅晃動,不然方向會一直跳。 */
+  var scrollSign = 1, lastSY = window.pageYOffset;
+  window.addEventListener('scroll', function () {
+    var y = window.pageYOffset, d = y - lastSY;
+    if (d > 12) { scrollSign = 1; lastSY = y; }
+    else if (d < -12) { scrollSign = -1; lastSY = y; }
+  }, { passive: true });
 
   /* 每一區取骨架的一小塊 —— 只是「身體的一部分」,不求連貫。
      cy / kh 是這一塊在畫面上的位置與大小。
@@ -2164,17 +2171,19 @@ window.__fragSprites = (function () {
        rot 'cw' + flip:切口翻到上面、指骨還是朝右,
        再把 cy 壓小讓上緣出畫面 —— 切口就看不到了。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
-              drop: [[0.00, 0.60, 0.44, 1.00]], rot: 'cw', flip: true,
-              cx: 0.72, cy: 0.17, kh: 0.42, dens: 1.25 },
+              drop: [[0.00, 0.60, 0.44, 1.00]], rot: 'cw', flip: true, tilt: 26,
+              cx: 0.78, cy: 0.20, kh: 0.46, dens: 1.25 },
     /* 腳掌:⚠️ 原本整條腿(含髖)一起放,看起來只是一根斜的骨頭
        (Zakk:「about 那頁的碎片看不太出來是腳了」)。
        改成只留小腿到腳趾、不鏡射(腳掌在左邊,朝空白處),
        腿的斷面從**上界**出去 —— 像從畫面上方踩下來。 */
-    /* 左邊往外多切一點,腳跟(踝關節那一塊)才進得來 ——
-       原本 x0=0.20 剛好切在腳掌邊上,只剩腳趾
-       (Zakk:「about 的腳可以多截一點,把一點腳跟都截到,不然現在只有腳指」)。 */
-    about:  { src: 'bones-claw.webp', crop: [0.06, 0.26, 1.00, 1.00],
-              cx: 0.70, cy: 0.20, kh: 0.55, dens: 1.05 },
+    /* ⚠️ 「看不到腳跟以上」改兩次都沒中,因為我一直在調 crop ——
+       但 crop 已經含到腿了,真正把腿切掉的是**視窗上緣**:
+       cy 0.20 + kh 0.55 → 方框上緣在 -82px,腳跟以上全部在畫面外。
+       所以要把整塊往下移(cy 0.34)、同時放大(kh 0.74)並把 crop 往上開到 0.05,
+       腿才有東西可以露出來。 */
+    about:  { src: 'bones-claw.webp', crop: [0.06, 0.05, 1.00, 1.00],
+              cx: 0.70, cy: 0.34, kh: 0.74, dens: 1.05 },
     /* 尾巴:⚠️ 兩次錯誤都記著 ——
        ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
        ② 改細之後我把它推到更右邊,但他要的是更左(「我是指從左邊一點的地方,
@@ -2336,6 +2345,31 @@ window.__fragSprites = (function () {
       });
     }
     out.aspect = sg.rot ? sh / sw : sw / sh;   // 轉 90° 之後長寬對調
+
+    /* ── tilt:任意角度(度) ──
+       rot 只能轉 90 的倍數,不夠用(Zakk:「翅膀可以轉個角度嗎」)。
+       ⚠️ u/v 是 0~1 的正規化座標,直接在上面轉會**把形狀壓扁** ——
+       因為兩軸的實際長度不一樣。要先乘回 aspect 變成等比例,
+       轉完再重新量邊界、重新正規化,aspect 也跟著換成轉後的。 */
+    if (sg.tilt) {
+      var ang = sg.tilt * Math.PI / 180;
+      var ca = Math.cos(ang), sa = Math.sin(ang), A = out.aspect;
+      var nx0 = 1e9, nx1 = -1e9, ny0 = 1e9, ny1 = -1e9, q2;
+      for (q2 = 0; q2 < out.length; q2++) {
+        var pp = out[q2];
+        var ex = (pp.u - 0.5) * A, ey = pp.v - 0.5;
+        pp.u = ex * ca - ey * sa;
+        pp.v = ex * sa + ey * ca;
+        if (pp.u < nx0) nx0 = pp.u; if (pp.u > nx1) nx1 = pp.u;
+        if (pp.v < ny0) ny0 = pp.v; if (pp.v > ny1) ny1 = pp.v;
+      }
+      var rw = (nx1 - nx0) || 1, rh = (ny1 - ny0) || 1;
+      for (q2 = 0; q2 < out.length; q2++) {
+        out[q2].u = (out[q2].u - nx0) / rw;
+        out[q2].v = (out[q2].v - ny0) / rh;
+      }
+      out.aspect = rw / rh;
+    }
     /* 最粗的骨頭半徑,換算成 boxW 的比例 —— 深度用這個,
        而不是固定的 boxW × 0.8。骨頭的厚度是它自己的事,
        跟這塊骨頭被放多大無關。 */
@@ -2380,17 +2414,30 @@ window.__fragSprites = (function () {
     var vis = st.vis;               // 跟內容同一條曲線
     if (vis <= 0.01) return;
 
-    /* ── 換頁時往上/往下跑 ──
-       Zakk:「切換下一頁碎片還是要有往下或上跑的特效」。
-       只有淡入淡出太安靜。用 vis 是**升還是降**判斷這一段是進場還是退場:
-         進場(vis 在升)→ 從下面升上來
-         退場(vis 在降)→ 往上飄走
-       方向記在 dirOf,不是每幀重算 —— 過場中間 vis 會有小抖動,
-       每幀重判會讓整片來回彈。 */
+    /* ── 換頁位移 ──
+       🔴 方向要跟**滾輪**一致,不是跟進場/退場一致
+       (Zakk:「滾輪下滑的時候碎片要往下掉」)。
+       下滑時:退場的往下掉、進場的也從上面往下進來 —— 整體都往下,
+       跟手指的方向同一邊,才不會覺得畫面在跟你作對。
+         退場(vis 在降)→ 位移 +(往下離開)
+         進場(vis 在升)→ 位移 -(在上面,往下落到定位)
+       上滑時整組反過來。
+
+       ⚠️ 進場/退場記在 dirOf,不是每幀用 vis 升降重判 ——
+       過場中 vis 有小抖動,每幀重判會讓整片來回彈。
+
+       ⚠️ 幅度用 (1-vis)^2 而不是 (1-vis):原本線性、係數 0.42,
+       vis 0.5 時就偏了 230px —— 內容都讀得了碎片還在半路
+       (Zakk:「粒子還沒到定位,感覺要滑更多圈才能到畫面」)。
+       平方讓它一離開過場就迅速歸位:vis 0.8 時只剩 13px。 */
     var pv = prevVis[st.id];
     if (pv !== undefined && Math.abs(vis - pv) > 0.004) dirOf[st.id] = vis > pv ? 1 : -1;
     prevVis[st.id] = vis;
-    var travel = (1 - vis) * H * 0.42 * (dirOf[st.id] || 1);
+    var g = 1 - vis;
+    /* ⚠️ 預設要當成「進場」。寫 (dirOf > 0 ? -1 : 1) 的話,
+       第一幀 dirOf 還沒設定,undefined > 0 是 false → 被當成退場,
+       於是進場的碎片從下面往上跑,跟滾輪反方向。 */
+    var travel = g * g * H * 0.34 * (dirOf[st.id] === -1 ? 1 : -1) * scrollSign;
 
     var segA = sg.alpha || 1;      // 這一段自己的透明度(Zakk:「photo 碎片可以透明一點」)
     var ratio = pts.aspect || 0.8;
