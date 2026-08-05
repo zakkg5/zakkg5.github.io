@@ -2151,10 +2151,19 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     padding-inline: 0;
   }
 
-  /* 每一塊自己限寬。這些數字是「讀起來舒服的寬度」,不是版面寬度:
-     作品清單再寬,名字與年份之間的距離就會拉到看不出是同一列。 */
-  .works { max-width: 1240px; }
-  .about { max-width: 1240px; }
+  /* 🔴 內容佔螢幕 70%,不是跟裝飾五五分
+     (Zakk:「通常內容應該要站到螢幕的 70 趴吧,而不是跟粒子設計元素 5050」)。
+     ⚠️ 原本固定 1240px:在 2560 的螢幕上只有 48%,右邊的骨頭拿到 49% ——
+     裝飾拿到跟作品一樣多的版面,主從關係是反的。
+     改成跟著螢幕走,右邊永遠只剩 30%。 */
+  .works { max-width: calc(70vw - var(--gutter)); }
+  .about { max-width: calc(70vw - var(--gutter)); }
+
+  /* ⚠️ 欄位一寬,名字和年份會被拉到兩端、看不出是同一列。
+     所以「線」拉滿 70%,但**欄位內容**維持原本的節奏:
+     類別欄固定 22ch、年份固定 4rem,兩者都靠右但不會飄到天邊。 */
+  .works__line { grid-template-columns: 3.25rem minmax(0, 1fr) 22ch 4rem; }
+  .works__name { max-width: 30ch; }
 
   /* 段落維持可讀的行長(約 70 字元) */
   .section__lede,

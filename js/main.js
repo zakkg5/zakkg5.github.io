@@ -2178,16 +2178,15 @@ window.__fragSprites = (function () {
        整塊往下移到導覽列底下(cy 0.40 → 上緣約 y 190~245)。
        這樣兩種寬度都成立,不是只在我測的那一個尺寸剛好。
        tilt 只給一點點(26° 太多)。 */
-    /* 切口改回朝**上**(rot 'cw' + flip)。
-       切口在右邊時它被綁死在右界,不能往左移 —— Works 因此空了 874px
-       (Zakk:「這空格真的有點大」)。切口朝上之後左右可以自由移動。
-       ⚠️ 之前不敢這樣做是怕撞導覽列;現在有 navClear 淡出,不是問題了。 */
+    /* 🔴 方向:指骨往下垂(只左右鏡射,不轉 90°)。
+       我為了收掉右邊的空格,把它轉成橫的、指骨朝右 —— 那是他先前就要我改掉的方向
+       (Zakk:「方向可以改回來嗎,這樣又變成我之前想改的樣子」)。
+       ⚠️ 空格不該用「轉方向 + 往左搬」來解,要用**大小** ——
+       他自己講了:「不能用內容大小或圖的大小去變嗎」。
+       所以方向轉回來、切口回到右邊(anchor right),空格改由 wFrac 控制。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
-              drop: [[0.00, 0.60, 0.44, 1.00]], rot: 'cw', flip: true, tilt: 10,
-              /* kh 兩段取中間值(Zakk:「about 跟 work 圖的大小差太多了」)。
-                 原本 works 0.46 / about 0.74 —— 方框高 662 vs 1066,差 1.6 倍。
-                 幾何平均 840 → 兩段都用 0.58。 */
-              padL: 0.20, cy: 0.22, kh: 0.58, dens: 1.25 },
+              drop: [[0.00, 0.60, 0.44, 1.00]], flip: true, tilt: -12,
+              anchor: 'right', wFrac: 0.86, cy: 0.42, dens: 1.25 },
     /* 腳掌:⚠️ 原本整條腿(含髖)一起放,看起來只是一根斜的骨頭
        (Zakk:「about 那頁的碎片看不太出來是腳了」)。
        改成只留小腿到腳趾、不鏡射(腳掌在左邊,朝空白處),
@@ -2203,7 +2202,7 @@ window.__fragSprites = (function () {
               /* 往左靠一點:2560 寬時內容右緣 1220、腳左緣 1792,
                  中間空了 572px(Zakk:「這兩個中間有點太空了」)。
                  腳的切口在上緣,左右可以自由移動 —— 翅膀不行(切口在右邊,要出右界)。 */
-              padL: 0.24, cy: 0.26, kh: 0.58, dens: 1.05 },
+              padL: 0.20, topOut: 0.16, wFrac: 0.82, dens: 1.05 },
     /* 尾巴:⚠️ 兩次錯誤都記著 ——
        ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
        ② 改細之後我把它推到更右邊,但他要的是更左(「我是指從左邊一點的地方,
@@ -2216,7 +2215,7 @@ window.__fragSprites = (function () {
        → 根從上界出去(Zakk 圈的位置),往右生長,整條壓在 y 320 以上。
        ⚠️ 不鏡射:原圖的尾巴本來就是「根在左上、尖在右下」,正好是他要的方向。 */
     photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00],
-              padL: 0.20, cy: 0.13, kh: 0.34, dens: 0.80, alpha: 0.68 }
+              padL: 0.16, topOut: 0.20, wFrac: 0.58, dens: 0.80, alpha: 0.68 }
   };
 
 
@@ -2489,22 +2488,39 @@ window.__fragSprites = (function () {
 
     var segA = sg.alpha || 1;      // 這一段自己的透明度(Zakk:「photo 碎片可以透明一點」)
     var ratio = pts.aspect || 0.8;
-    var boxH = H * sg.kh;
-    var boxW = boxH * ratio;
+    /* 🔴 大小和位置**都**從「右邊那條空欄」算,不從視窗高度算。
+       (Zakk:「不能用內容大小或圖的大小去變嗎」——
+        空格不該靠移動骨頭來解決,骨頭本來就該跟著空欄一起縮放。)
+
+       ⚠️ 用視窗高度當基準時,同一個 kh 在不同螢幕會留下完全不同的空白:
+       2560 空 330px、1800 只剩 16px。空欄寬度才是這件事真正的變數。
+
+       wFrac = 骨頭寬度佔空欄的比例。空欄變窄,骨頭跟著變窄,留白比例不變。 */
+    /* 內容欄佔螢幕 70%(見 style.css 的 min-width:1441 那一段),
+       骨頭只能用剩下的 30%。⚠️ 這個數字是硬編的 1296 改過來的 ——
+       固定值在 2560 的螢幕上會讓骨頭拿到 49% 的版面。 */
+    var CONTENT_R = window.innerWidth * 0.70;
+    var freeW = Math.max(160, window.innerWidth - CONTENT_R);
+    var canvasL = canvas.getBoundingClientRect().left;
+
+    var boxW = freeW * (sg.wFrac || 0.8);
+    var boxH = boxW / ratio;
+
     /* ⚠️ 這裡原本有「boxW 超過畫布 92% 就整個縮小」的保護 ——
        那會連 boxH 一起縮,於是切口從畫面外掉回畫面內
-       (1800px 寬實測:上緣從 0 變成 56,斷面露出來)。
-       骨頭本來就該溢出右邊,不需要保護。 */
+       (1800px 寬實測:上緣從 0 變成 56,斷面露出來)。已移除。 */
 
-    /* 🔴 水平位置用「離內容右緣多遠」算,不是畫布寬度的固定比例。
-       固定比例在不同螢幕會得到完全不同的留白:
-       cx 0.59 在 2560 是 330px、在 1800 只剩 16px。
-       改成佔「內容右緣到視窗右緣」這段的固定比例,各種寬度才一致。 */
-    var contentR = 1296;                         // 寬螢幕內容欄的右緣
-    var freeW = Math.max(120, window.innerWidth - contentR);
-    var leftPx = contentR + freeW * (sg.padL != null ? sg.padL : 0.28);
-    var cx = leftPx - canvas.getBoundingClientRect().left + boxW / 2;
-    var cy = H * sg.cy;
+    var cx;
+    if (sg.anchor === 'right') {
+      /* 切口在右邊的(翅膀):右緣固定溢出視窗,左緣由 wFrac 決定 */
+      cx = (window.innerWidth + freeW * 0.06) - canvasL - boxW / 2;
+    } else {
+      cx = CONTENT_R + freeW * (sg.padL != null ? sg.padL : 0.24) - canvasL + boxW / 2;
+    }
+
+    /* 垂直:切口在上緣的,要用**方框高度**的比例把上緣推出畫面 ——
+       用視窗高度的比例(cy)在骨頭縮小時會讓切口掉回畫面內。 */
+    var cy = sg.topOut != null ? boxH * (0.5 - sg.topOut) : H * sg.cy;
 
     /* 🔴 這幾塊骨頭**不自轉**(Zakk:「不要讓那些部位自轉,你會錯意了」)。
        它們是版面上的裝飾元素,角度是設計決定的、不是動畫 ——
