@@ -470,3 +470,64 @@
 @media (prefers-reduced-motion: reduce) {
   .plate--drawing.reveal img { clip-path: none; }
 }
+
+
+/* ═══════════ 寬螢幕:跟首頁同一條線 ═══════════
+   🔴 首頁貼左 + 內容 70%,內頁卻是容器置中 1440 —— 同一個站兩套規則。
+   實測 2560:內頁容器 560–2000,左右各空 560px,而且容器裡面
+   章節說明只有 401px(28%)、章節線卻拉 1090px(76%)——
+   最長的元素什麼都沒說。
+
+   ⚠️ 跟 About 一樣,這不能靠「把段落拉寬」解決:70% 是 1736px,
+   段落拉滿等於一行破百字。要讓線變短,只能把右半也放內容。 */
+
+@media (min-width: 1441px) {
+
+  /* 貼左,不再置中 —— 跟 topbar / 首頁的 gutter 對齊 */
+  .work {
+    max-width: 70vw;
+    margin: 0;
+  }
+
+  /* 開場:大標與規格表左右分。
+     ⚠️ facts 原本在標題正下方、橫跨整欄,列高只有一行字,
+     所以那條 1736px 的分隔線比內容還醒目。 */
+  .work-hero {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--s6);
+    align-items: start;
+  }
+  .work-eyebrow,
+  .work-title { grid-column: 1 / -1; }
+  .work-lede {
+    grid-column: 1;
+    max-width: none;      /* 欄本身已經是可讀寬度 */
+  }
+  .facts {
+    grid-column: 2;
+    margin-top: var(--s5);
+  }
+
+  /* 章節:標題在左、說明在右。
+     章節線因此只跨左半,不再是全頁最長又最空的東西。 */
+  .ch {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--s6);
+    align-items: baseline;
+  }
+  .ch__head { grid-column: 1; margin-bottom: var(--s5); }
+  .ch__note {
+    grid-column: 2;
+    max-width: none;
+    margin-bottom: var(--s5);
+  }
+  /* 圖版仍然吃滿整欄 —— 圖是這裡的主角 */
+  .plates,
+  .work-next { grid-column: 1 / -1; }
+
+  /* 去背實物照的限高跟著放寬:欄位從 463px 變成 828px,
+     還卡在 440px 的話圖只用掉半欄。 */
+  .plates .plate--cutout img { max-height: 560px; }
+}
