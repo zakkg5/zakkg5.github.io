@@ -770,8 +770,8 @@
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
   var LENS_R = 100;    // 透鏡影響半徑(Zakk:「扭曲可以範圍小點」)
   var LENS_K = 0.62;   // < 1 放大;越小越誇張
-  var LENS_MAG = 0.55; // 中心的碎片本身放大幅度
-  var LENS_SPIN = 0.9; // 碎片自己歪掉的角度(弧度,約 50°)
+  var LENS_MAG = 0.30; // 中心的碎片本身放大幅度(Zakk:「扭曲效果直接變超大」)
+  var LENS_SPIN = 0.55; // 碎片自己歪掉的角度(弧度,約 31°)
   var F = 900;                            // 透視焦距(越小越誇張)
 
 
@@ -2145,11 +2145,18 @@ window.__fragSprites = (function () {
               cx: 0.86, cy: 0.44, kh: 0.56, dens: 0.95 },
     about:  { src: 'bones-claw.webp', crop: [0.22, 0.10, 1.00, 0.95], flip: true,
               cx: 0.80, cy: 0.30, kh: 0.62, dens: 0.85 },
-    /* 尾巴:⚠️ 原本把整個 C 型都放進去,那是「一段脊椎的彎」,又寬又粗
-       (Zakk:「他尾巴不可能那麼寬」)。只取後半段到尾尖那條漸細的,
-       根從右邊出去,往左掃進畫面 —— 細、長,而且左緣離照片夠遠。 */
+    /* 尾巴:⚠️ 兩次錯誤都記著 ——
+       ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
+       ② 改細之後我把它推到更右邊,但他要的是更左(「我是指從左邊一點的地方,
+          你反而更右邊了」)。
+       ③ 改成直的往下掃 —— 壓到照片上。
+
+       ⚠️ 關鍵事實(量出來的,不是猜的):Photos 的跑馬燈是**滿版** 0→2000px,
+       跟 Works / About 不一樣,那一區右邊沒有留白欄。
+       照片上緣在 y≈317,所以尾巴只能待在標題右邊那條空白帶裡。
+       → 橫的、從右界進來、往左掃,整條壓在 y 320 以上。 */
     photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00], flip: true,
-              cx: 0.72, cy: 0.20, kh: 0.34, dens: 0.70 }
+              cx: 0.75, cy: 0.15, kh: 0.28, dens: 0.70 }
   };
 
 
@@ -2163,7 +2170,7 @@ window.__fragSprites = (function () {
      k < 1 = 放大(中心稀、外圍密),再讓靠近游標的碎片本身也變大一點。 */
   var LENS_R = 100;      // 影響半徑(Zakk:「扭曲可以範圍小點」)
   var LENS_K = 0.62;     // < 1 放大;越小越誇張
-  var LENS_MAG = 0.55;   // 中心的碎片放大幅度
+  var LENS_MAG = 0.30;   // 中心的碎片放大幅度(Zakk:「扭曲效果直接變超大」)
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
   /* 🔴 立體感的關鍵:讓滑鼠**帶動兩軸旋轉**(首屏就是這樣才像可以繞著看的物件),
      再加一點持續自轉,讓它一直有生命。只有單軸擺動看起來還是一張紙。 */
@@ -2192,26 +2199,75 @@ window.__fragSprites = (function () {
     var d;
     try { d = og.getImageData(0, 0, ow, oh).data; } catch (e) { return []; }
 
-    var hits = [];
+    /* ① 先做出骨頭的遮罩 */
+    var mask = new Uint8Array(ow * oh);
     for (var y = 0; y < oh; y++) {
       for (var x = 0; x < ow; x++) {
         var i = (y * ow + x) * 4;
         /* 門檻拉到 90:去背的邊緣還留著一點很淡的暈,55 會把那圈也當成骨頭 */
-        if (d[i + 3] > 90) {
-          /* drop:矩形裁不掉的零星碎骨,在這裡挖掉。
-             座標是**原圖**的 0~1(不是 crop 之後的),比較好對圖。 */
-          if (drops) {
-            var su = c[0] + (x / ow) * (c[2] - c[0]);
-            var sv = c[1] + (y / oh) * (c[3] - c[1]);
-            var skip = false;
-            for (var q = 0; q < drops.length; q++) {
-              var r = drops[q];
-              if (su >= r[0] && su <= r[2] && sv >= r[1] && sv <= r[3]) { skip = true; break; }
-            }
-            if (skip) continue;
+        if (d[i + 3] <= 90) continue;
+        /* drop:矩形裁不掉的零星碎骨,在這裡挖掉。
+           座標是**原圖**的 0~1(不是 crop 之後的),比較好對圖。 */
+        if (drops) {
+          var su = c[0] + (x / ow) * (c[2] - c[0]);
+          var sv = c[1] + (y / oh) * (c[3] - c[1]);
+          var skip = false;
+          for (var q = 0; q < drops.length; q++) {
+            var r = drops[q];
+            if (su >= r[0] && su <= r[2] && sv >= r[1] && sv <= r[3]) { skip = true; break; }
           }
-          hits.push([x / ow, y / oh, (d[i] + d[i + 1] + d[i + 2]) / 765]);
+          if (skip) continue;
         }
+        mask[y * ow + x] = 1;
+      }
+    }
+
+    /* ② 🔴 距離場:每個骨頭像素離最近的空白有多遠。
+       這是整個立體感的來源。骨頭是純黑剪影,亮度沒有變化,
+       所以**深度不可能從顏色來** —— 以前用 Math.random() 湊,
+       那不是厚度,是雜訊:一轉,隨機的前後就變成隨機的左右位移,
+       輪廓當場爛掉(Zakk:「粒子自己會很大範圍亂動,還跑到變形」),
+       而且因為深度不是形狀,看起來反而是扁的。
+
+       改成「離邊緣多遠」→ 骨頭中央厚、邊緣薄 → 每根骨頭是一根圓管。
+       轉的時候輪廓不會壞,尾尖也會自己收成一點。
+       兩趟 chamfer(正向 + 反向),O(n),620x? 的圖大約 1ms。 */
+    var dist = new Float32Array(ow * oh);
+    var INF = 1e9, n;
+    for (n = 0; n < dist.length; n++) dist[n] = mask[n] ? INF : 0;
+    for (y = 0; y < oh; y++) {
+      for (x = 0; x < ow; x++) {
+        n = y * ow + x; if (!dist[n]) continue;
+        var m = dist[n];
+        if (x > 0) m = Math.min(m, dist[n - 1] + 1);
+        if (y > 0) m = Math.min(m, dist[n - ow] + 1);
+        if (x > 0 && y > 0) m = Math.min(m, dist[n - ow - 1] + 1.414);
+        if (x < ow - 1 && y > 0) m = Math.min(m, dist[n - ow + 1] + 1.414);
+        dist[n] = m;
+      }
+    }
+    var maxD = 0;
+    for (y = oh - 1; y >= 0; y--) {
+      for (x = ow - 1; x >= 0; x--) {
+        n = y * ow + x; if (!dist[n]) continue;
+        var m2 = dist[n];
+        if (x < ow - 1) m2 = Math.min(m2, dist[n + 1] + 1);
+        if (y < oh - 1) m2 = Math.min(m2, dist[n + ow] + 1);
+        if (x < ow - 1 && y < oh - 1) m2 = Math.min(m2, dist[n + ow + 1] + 1.414);
+        if (x > 0 && y < oh - 1) m2 = Math.min(m2, dist[n + ow - 1] + 1.414);
+        dist[n] = m2;
+        if (m2 > maxD) maxD = m2;
+      }
+    }
+    if (maxD <= 0) maxD = 1;
+
+    var hits = [];
+    for (y = 0; y < oh; y++) {
+      for (x = 0; x < ow; x++) {
+        n = y * ow + x;
+        if (!mask[n]) continue;
+        var j = n * 4;
+        hits.push([x / ow, y / oh, (d[j] + d[j + 1] + d[j + 2]) / 765, dist[n] / maxD]);
       }
     }
     if (!hits.length) return [];
@@ -2226,13 +2282,17 @@ window.__fragSprites = (function () {
       if (!sprites[rgb]) sprites[rgb] = window.__fragSprites(rgb);
       out.push({
         u: sg.flip ? 1 - h[0] : h[0], v: h[1],
-        /* ⚠️ 這個隨機量就是**厚度**。我曾經為了收斂形狀把它砍到 0.28,
-           結果碎片全貼在同一個平面上,轉起來像一張紙(Zakk:「變一個扁掉的紙了」)。
-           「散」的原因是點數不夠(dens 太低),不是厚度 —— 別再動這個。 */
-        z: (h[2] - 0.5) + (Math.random() - 0.5) * 0.55,
+        /* 圓管的表面:離邊緣的距離 → 半徑,sqrt 是圓的側面輪廓。
+           隨機正負 = 這顆碎片落在管子的前面還是後面(是殼,不是實心)。
+           只留一點點抖動,免得表面太乾淨像塑膠。 */
+        z: (Math.random() < 0.5 ? 1 : -1) * Math.sqrt(h[3]) * 0.5
+           + (Math.random() - 0.5) * 0.05,
         sp: sprites[rgb],
         si: (Math.random() * 7) | 0,
-        sz: 7.0 + Math.random() * 10.0,
+        /* 尖端要看得出是尖的:碎片大小跟著骨頭的粗細走 ——
+           細的地方(h[3] 小)用小碎片,不然尾尖會被大碎片糊成一團
+           (Zakk:「他尾巴是尖的ㄟ」)。 */
+        sz: (4.8 + Math.random() * 5.4) * (0.55 + h[3] * 0.9),
         sp1: 0.35 + Math.random() * 0.5,
         ph: Math.random() * 6.28,
         amp: 0.4 + Math.random() * 1.0,   // 飄動幅度也收小,不要飄離骨頭
@@ -2242,6 +2302,10 @@ window.__fragSprites = (function () {
       });
     }
     out.aspect = sw / sh;
+    /* 最粗的骨頭半徑,換算成 boxW 的比例 —— 深度用這個,
+       而不是固定的 boxW × 0.8。骨頭的厚度是它自己的事,
+       跟這塊骨頭被放多大無關。 */
+    out.thick = maxD / ow;
     return out;
   }
 
@@ -2281,13 +2345,16 @@ window.__fragSprites = (function () {
        轉過 90° 就整片收成一條、變成一團看不出是什麼的東西
        (Zakk:「work 有點看不出是什麼」的真正原因)。
        改成在正面附近來回擺(約 ±20°),夠看出是立體的就好。 */
-    var swayY = Math.sin(t * 0.28) * 0.45;   // 擺幅要夠大才看得出「它在轉」
-    var swayX = Math.sin(t * 0.19 + 1.7) * 0.18;
+    var swayY = Math.sin(t * 0.28) * 0.30;
+    var swayX = Math.sin(t * 0.19 + 1.7) * 0.12;
     ay += (tay + swayY - ay) * 0.06;
     ax += (tax + swayX - ax) * 0.06;
     var cyr = Math.cos(ay), syr = Math.sin(ay);
     var cxr = Math.cos(ax), sxr = Math.sin(ax);
-    var depth = boxW * 0.80;            // z 深度加倍,近大遠小才明顯
+    /* 深度 = 骨頭真實的粗細 × 2.2(稍微誇張一點才看得出來)。
+       ⚠️ 以前是 boxW × 0.80 —— 那等於把碎片丟在前後 ±200px,
+       一轉就變成 ±200px 的左右亂跑。 */
+    var depth = boxW * (pts.thick || 0.05) * 2.2;
 
     // 滑鼠平滑追蹤(直接用原始座標的話,游標一停碎片就瞬間彈回,很生硬)
     if (pxm >= 0) {
