@@ -2178,12 +2178,16 @@ window.__fragSprites = (function () {
        整塊往下移到導覽列底下(cy 0.40 → 上緣約 y 190~245)。
        這樣兩種寬度都成立,不是只在我測的那一個尺寸剛好。
        tilt 只給一點點(26° 太多)。 */
+    /* 切口改回朝**上**(rot 'cw' + flip)。
+       切口在右邊時它被綁死在右界,不能往左移 —— Works 因此空了 874px
+       (Zakk:「這空格真的有點大」)。切口朝上之後左右可以自由移動。
+       ⚠️ 之前不敢這樣做是怕撞導覽列;現在有 navClear 淡出,不是問題了。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
-              drop: [[0.00, 0.60, 0.44, 1.00]], flip: true, tilt: -12,
+              drop: [[0.00, 0.60, 0.44, 1.00]], rot: 'cw', flip: true, tilt: 10,
               /* kh 兩段取中間值(Zakk:「about 跟 work 圖的大小差太多了」)。
                  原本 works 0.46 / about 0.74 —— 方框高 662 vs 1066,差 1.6 倍。
                  幾何平均 840 → 兩段都用 0.58。 */
-              cx: 0.88, cy: 0.40, kh: 0.58, dens: 1.25 },
+              padL: 0.20, cy: 0.22, kh: 0.58, dens: 1.25 },
     /* 腳掌:⚠️ 原本整條腿(含髖)一起放,看起來只是一根斜的骨頭
        (Zakk:「about 那頁的碎片看不太出來是腳了」)。
        改成只留小腿到腳趾、不鏡射(腳掌在左邊,朝空白處),
@@ -2199,7 +2203,7 @@ window.__fragSprites = (function () {
               /* 往左靠一點:2560 寬時內容右緣 1220、腳左緣 1792,
                  中間空了 572px(Zakk:「這兩個中間有點太空了」)。
                  腳的切口在上緣,左右可以自由移動 —— 翅膀不行(切口在右邊,要出右界)。 */
-              cx: 0.56, cy: 0.26, kh: 0.58, dens: 1.05 },
+              padL: 0.24, cy: 0.26, kh: 0.58, dens: 1.05 },
     /* 尾巴:⚠️ 兩次錯誤都記著 ——
        ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
        ② 改細之後我把它推到更右邊,但他要的是更左(「我是指從左邊一點的地方,
@@ -2212,7 +2216,7 @@ window.__fragSprites = (function () {
        → 根從上界出去(Zakk 圈的位置),往右生長,整條壓在 y 320 以上。
        ⚠️ 不鏡射:原圖的尾巴本來就是「根在左上、尖在右下」,正好是他要的方向。 */
     photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00],
-              cx: 0.55, cy: 0.13, kh: 0.34, dens: 0.80, alpha: 0.68 }
+              padL: 0.20, cy: 0.13, kh: 0.34, dens: 0.80, alpha: 0.68 }
   };
 
 
@@ -2487,8 +2491,20 @@ window.__fragSprites = (function () {
     var ratio = pts.aspect || 0.8;
     var boxH = H * sg.kh;
     var boxW = boxH * ratio;
-    if (boxW > W * 0.92) { boxW = W * 0.92; boxH = boxW / ratio; }
-    var cx = W * (sg.cx || 0.44), cy = H * sg.cy;
+    /* ⚠️ 這裡原本有「boxW 超過畫布 92% 就整個縮小」的保護 ——
+       那會連 boxH 一起縮,於是切口從畫面外掉回畫面內
+       (1800px 寬實測:上緣從 0 變成 56,斷面露出來)。
+       骨頭本來就該溢出右邊,不需要保護。 */
+
+    /* 🔴 水平位置用「離內容右緣多遠」算,不是畫布寬度的固定比例。
+       固定比例在不同螢幕會得到完全不同的留白:
+       cx 0.59 在 2560 是 330px、在 1800 只剩 16px。
+       改成佔「內容右緣到視窗右緣」這段的固定比例,各種寬度才一致。 */
+    var contentR = 1296;                         // 寬螢幕內容欄的右緣
+    var freeW = Math.max(120, window.innerWidth - contentR);
+    var leftPx = contentR + freeW * (sg.padL != null ? sg.padL : 0.28);
+    var cx = leftPx - canvas.getBoundingClientRect().left + boxW / 2;
+    var cy = H * sg.cy;
 
     /* 🔴 這幾塊骨頭**不自轉**(Zakk:「不要讓那些部位自轉,你會錯意了」)。
        它們是版面上的裝飾元素,角度是設計決定的、不是動畫 ——
