@@ -2072,7 +2072,6 @@ window.__fragSprites = (function () {
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   if (!window.matchMedia('(min-width: 1720px)').matches) return;
 
-  var SRC = 'assets/3d/dragon-bones.webp';
   /* 碎片改成跟首屏一樣大(Zakk 指定)。首屏的算式是
      sz = gap*(0.3~0.7) 再 ×2.1,在 2000px 寬時約 7~17px ——
      這裡直接對齊。顆粒變大,顆數就要降,不然會糊成一片。 */
@@ -2091,24 +2090,19 @@ window.__fragSprites = (function () {
      cy / kh 是這一塊在畫面上的位置與大小。
      ⚠️ photos 特別放高、放小:照片帶是滿版的,尾巴垂到中間就會壓在照片上
      (Zakk:「photo 那邊尾巴不用到照片」)。 */
-  /* ⚠️ 裁切位置是**把框畫回原圖看過**才定的,不是猜的。
-     前一版三段都有問題:
-       works  切在彎道內側,全是往內指的肋骨、沒有一條清楚的脊椎線
-              → Zakk:「work 有點看不出是什麼」
-       about  切到後腳那團散落的骨頭,本身就雜;而且它在原圖最左邊,
-              擺上去自然往左侵入內容 → Zakk:「about 碎片不要跑到內容去」
-       photos 尾巴很乾淨,只是太密 → Zakk:「再少一點」
+  /* 🔴 改用**象徵性的部位**,不再切同一張大圖(Zakk:「不如去找有象徵性的,
+     像翅膀、腳掌」)。他說得對:脊椎中段不管怎麼切都是「一排重複的肋骨」,
+     沒有辨識點,所以才會「站很滿卻看不出是什麼」。
+     翅膀一看就是龍;腳掌小而集中、輪廓清楚;尾巴的勾本來就是三個裡最成功的。
 
-     現在三段都改成「一段清楚的脊椎 + 規則的肋骨」:
-     dens 是各段的密度倍率,cx 是各段在畫布上的水平位置。 */
+     每一段是一張獨立的去背圖(整張都用,不再裁切),所以也沒有「切口」問題了。
+     kh 是它在畫面上佔的高度比例,cx/cy 是位置,dens 是密度倍率。 */
   var SEGS = {
-    // 頭骨旁邊那一段頸椎 —— 有頭有尾,一眼看得出是脊椎
-    works:  { u0: 0.12, u1: 0.54, v0: 0.22, v1: 0.52, cx: 0.56, cy: 0.46, kh: 0.60, dens: 1.00 },
-    // 中後段的斜向脊椎,肋骨排列規則;放在原圖右側,擺上去不會往左跑
-    about:  { u0: 0.42, u1: 0.84, v0: 0.54, v1: 0.86, cx: 0.62, cy: 0.50, kh: 0.66, dens: 0.95 },
-    // 尾巴末端的勾 —— 密度砍一半
-    photos: { u0: 0.70, u1: 1.00, v0: 0.74, v1: 1.00, cx: 0.50, cy: 0.20, kh: 0.42, dens: 0.48 }
+    works:  { src: 'bones-wing.webp', cx: 0.52, cy: 0.44, kh: 0.62, dens: 1.00 },
+    about:  { src: 'bones-claw.webp', cx: 0.60, cy: 0.52, kh: 0.46, dens: 1.00 },
+    photos: { src: 'bones-tail.webp', cx: 0.50, cy: 0.20, kh: 0.40, dens: 0.60 }
   };
+
 
   /* 🔴 滑鼠扭曲改成「透鏡」而不是「推開」(Zakk:「我想要滑鼠移到粒子上的扭曲感,
      而不是像現在這樣擠掉」)。
@@ -2136,13 +2130,11 @@ window.__fragSprites = (function () {
 
   /* 只把「這一段」畫進離屏 canvas 再取樣 —— 整段的點數全部落在看得到的地方 */
   function buildSeg(img, sg) {
-    var sw = img.width * (sg.u1 - sg.u0);
-    var sh = img.height * (sg.v1 - sg.v0);
-    var ow = SAMPLE_W, oh = Math.round(ow * sh / sw);
+    var ow = SAMPLE_W, oh = Math.round(ow * img.height / img.width);
     var oc = document.createElement('canvas');
     oc.width = ow; oc.height = oh;
     var og = oc.getContext('2d');
-    og.drawImage(img, img.width * sg.u0, img.height * sg.v0, sw, sh, 0, 0, ow, oh);
+    og.drawImage(img, 0, 0, ow, oh);
     var d;
     try { d = og.getImageData(0, 0, ow, oh).data; } catch (e) { return []; }
 
@@ -2150,7 +2142,8 @@ window.__fragSprites = (function () {
     for (var y = 0; y < oh; y++) {
       for (var x = 0; x < ow; x++) {
         var i = (y * ow + x) * 4;
-        if (d[i + 3] > 55) {
+        /* 門檻拉到 90:去背的邊緣還留著一點很淡的暈,55 會把那圈也當成骨頭 */
+        if (d[i + 3] > 90) {
           hits.push([x / ow, y / oh, (d[i] + d[i + 1] + d[i + 2]) / 765]);
         }
       }
@@ -2171,7 +2164,6 @@ window.__fragSprites = (function () {
         sp: sprites[rgb],
         si: (Math.random() * 7) | 0,
         sz: 7.0 + Math.random() * 10.0,
-        /* 軌道飄動:cos/sin 同一個角度 = 閉合橢圓,繞完回原位(跟首屏同一招) */
         sp1: 0.35 + Math.random() * 0.5,
         ph: Math.random() * 6.28,
         amp: 0.9 + Math.random() * 2.1,
@@ -2180,6 +2172,7 @@ window.__fragSprites = (function () {
         a: 0.34 + Math.random() * 0.46
       });
     }
+    out.aspect = img.width / img.height;
     return out;
   }
 
@@ -2209,7 +2202,7 @@ window.__fragSprites = (function () {
     var vis = fadeIn * (1 - burst);
     if (vis <= 0.01) return;
 
-    var ratio = ((sg.u1 - sg.u0) / (sg.v1 - sg.v0)) * aspect;
+    var ratio = pts.aspect || 0.8;
     var boxH = H * sg.kh;
     var boxW = boxH * ratio;
     if (boxW > W * 0.92) { boxW = W * 0.92; boxH = boxW / ratio; }
@@ -2269,7 +2262,7 @@ window.__fragSprites = (function () {
 
       /* 裁切邊界要化開,不要切出一條直線浮在空白裡 */
       var edge = Math.min(1,
-        Math.min(Math.min(p.u, 1 - p.u), Math.min(p.v, 1 - p.v)) / 0.10);
+        Math.min(Math.min(p.u, 1 - p.u), Math.min(p.v, 1 - p.v)) / 0.04);
 
       var d2 = p.sz * scale * mag;
       ctx.globalAlpha = p.a * vis * edge;
@@ -2285,16 +2278,18 @@ window.__fragSprites = (function () {
     render();
   }
 
-  var aspect = 0.73;
-  var img = new Image();
-  img.onload = function () {
-    aspect = img.width / img.height;
-    layout();
-    Object.keys(SEGS).forEach(function (id) { sets[id] = buildSeg(img, SEGS[id]); });
-    if (!raf) frame();
-  };
-  var self = (document.currentScript && document.currentScript.src) || '';
-  img.src = (self ? self.replace(/js\/main\.js.*$/, '') : '') + SRC;
+  /* 三張圖各自載入,各自建自己的碎片 */
+  var loaded = 0, imgs = {};
+  Object.keys(SEGS).forEach(function (id) {
+    var im = new Image();
+    imgs[id] = im;
+    im.onload = im.onerror = function () {
+      if (im.naturalWidth) { layout(); sets[id] = buildSeg(im, SEGS[id]); }
+      if (++loaded === 3 && !raf) frame();
+    };
+    var self = (document.currentScript && document.currentScript.src) || '';
+    im.src = (self ? self.replace(/js\/main\.js.*$/, '') : '') + 'assets/3d/' + SEGS[id].src;
+  });
 
   /* 畫布是 pointer-events: none,所以滑鼠事件掛在 window 上 */
   window.addEventListener('mousemove', function (e) {
@@ -2307,6 +2302,8 @@ window.__fragSprites = (function () {
 
   window.addEventListener('resize', function () {
     layout();
-    if (img.complete) Object.keys(SEGS).forEach(function (id) { sets[id] = buildSeg(img, SEGS[id]); });
+    Object.keys(SEGS).forEach(function (id) {
+      if (imgs[id] && imgs[id].naturalWidth) sets[id] = buildSeg(imgs[id], SEGS[id]);
+    });
   });
 }());
