@@ -301,6 +301,13 @@
          (--lock 那套「用位移抵銷位移」已作廢 —— 只要抵銷差一點點就看得出來)。
          這裡只剩一件事:所有幀疊在同一個位置,只有夠亮的那一幀能吃點擊。 */
       var vis = vin * (1 - vout);
+      /* 🔴 右側的骨頭要跟內容**同一個時間軸**。
+         它本來自己用 getBoundingClientRect 算一套進退場,
+         跟這裡的 vin/vout 是兩條不同的曲線 —— 所以換頁時
+         文字都出來了骨頭還沒到、或反過來(Zakk:「滑到下一頁時
+         內容跟碎片沒有同時出現,回上一頁也是」)。
+         把這裡算好的能見度掛出去,骨頭直接讀它。 */
+      if (sec.id) (window.__frameVis || (window.__frameVis = {}))[sec.id] = vis;
       sec.__sheet.setAttribute('data-live', vis > 0.5 ? '1' : '0');
       sec.__sheet.style.zIndex = (vis * 100) | 0;
       sec.__pin.style.setProperty('--in', vin.toFixed(3));
@@ -769,9 +776,10 @@
   /* 滑鼠的實際像素位置,用來把附近的碎片推開(-1 = 還沒進畫面) */
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
   var LENS_R = 110;    // 影響半徑(Zakk:「扭曲可以範圍小點」)
-  var TWIST = 1.15;    // 游標正中心扭轉的角度(弧度,約 66°)
-  var LENS_MAG = 0.22; // 中心的碎片本身放大一點,才有厚度感
-  var LENS_SPIN = 0.45; // 每片自己額外歪掉的量
+  var TWIST = 0.62;    // 游標正中心扭轉的角度(弧度,約 36°)
+  var LENS_MAG = 0.16; // 中心的碎片本身放大一點,才有厚度感
+  /* ⚠️ 碎片自己的旋轉已經拿掉(Zakk:「不要有碎片轉動」)。
+     整片被擰過去是對的,但每一片還各轉各的,看起來就是在抖。 */
   var F = 900;                            // 透視焦距(越小越誇張)
 
 
@@ -1378,15 +1386,8 @@
 
         var aMul = skullA;
 
-        /* ── 滑鼠扭曲:透鏡,不是推開 ──
-           🔴 舊做法是沿法線推 + 沿切線繞,結果游標底下會出現一個**洞**,
-           結構被清掉,看起來是「碎片閃開」(Zakk:「我想要扭曲感,而不是像現在這樣擠掉」)。
-
-           改成半徑重映射 r' = R·(r/R)^k —— 每一顆都還在原本的位置關係上,
-           只是被拉開,所以是**整片結構被壓過去變形**,像一片透鏡蓋在上面。
-           k < 1 = 放大,再讓靠近游標的碎片本身也變大,才有玻璃的厚度感。
-           跟右側龍身用的是同一組參數。 */
-        var spin = 0;
+        /* ── 滑鼠扭曲 ──
+           試過三代,兩代都失敗,原因寫在下面免得再走一次: */
         if (hasPtr) {
           var mdx = px - pxe, mdy = py - pye;
           var md = Math.sqrt(mdx * mdx + mdy * mdy);
@@ -1405,8 +1406,7 @@
             px = pxe + mdx * cs - mdy * sn;
             py = pye + mdx * sn + mdy * cs;
             d *= 1 + LENS_MAG * fo;
-            /* 每一片自己也歪一點,朝向被擰掉,不是整片一起轉 */
-            spin = th + Math.sin(p.ph * 3.1) * LENS_SPIN * fo;
+            /* Zakk:「不要有碎片轉動」 —— 碎片自己的朝向不動,只有位置被擰過去 */
           }
         }
 
@@ -1421,18 +1421,7 @@
         if (band < 1) continue;                  // 淡到看不見就不用畫
         if (band > 20) band = 20;
 
-        var sprite = fragsFor(bk.col, band)[p.sh];
-        if (spin) {
-          /* rotate 要 save/restore,比純 drawImage 貴不少 ——
-             所以只有透鏡半徑內的那幾十片才走這條,其他幾千片維持原本的畫法。 */
-          ctx.save();
-          ctx.translate(px, py);
-          ctx.rotate(spin);
-          ctx.drawImage(sprite, -d / 2, -d / 2, d, d);
-          ctx.restore();
-        } else {
-          ctx.drawImage(sprite, px - d / 2, py - d / 2, d, d);
-        }
+        ctx.drawImage(fragsFor(bk.col, band)[p.sh], px - d / 2, py - d / 2, d, d);
       }
     }
     ctx.globalAlpha = 1;
@@ -1595,8 +1584,20 @@ window.__fragSprites = (function () {
      現在主頁**每次重新載入都播**;只有從作品內頁按返回回來時才跳過
      (那時 referrer 是站內的作品頁,人已經等過一次了)。 */
   var fromWork = document.referrer.indexOf('/works/') > -1;
+  /* 🔴 漏洞:**重新載入會保留 referrer**。
+     從作品內頁回主頁(referrer = 作品頁)之後再按重新整理,
+     referrer 還是那一頁,所以 fromWork 依然成立 → 開場被跳過
+     (Zakk:「我希望重新載入時載入動畫會再出現」)。
+     用 Navigation Timing 直接問瀏覽器這次是不是 reload,那個不會騙人。 */
+  var isReload = false;
   try {
-    if (fromWork && sessionStorage.getItem(SEEN) === '1') {
+    var nav = performance.getEntriesByType('navigation')[0];
+    isReload = nav ? nav.type === 'reload'
+                   : performance.navigation && performance.navigation.type === 1;
+  } catch (e) { /* 舊瀏覽器沒有這個 API,就當成一般進站 */ }
+
+  try {
+    if (fromWork && !isReload && sessionStorage.getItem(SEEN) === '1') {
       pl.style.display = 'none';
       window.__loadK = 1;          // 頭骨直接是組好的狀態,不要從碎片重來
       return;
@@ -2147,11 +2148,17 @@ window.__fragSprites = (function () {
   var SEGS = {
     /* ⚠️ 翅膀左下角還有一根**斷掉的碎骨**,跟指骨同一個高度,矩形裁不掉
        (Zakk:「這還有一小塊飄著」)—— 用 drop 挖掉。 */
+    /* 翅膀轉橫的(Zakk:「work 的翅膀可以改橫的嗎」)。
+       rot 'ccw' 之後:指骨朝右(伸出右界),手肘的 V 留在空白欄中間。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
-              drop: [[0.00, 0.60, 0.44, 1.00]], flip: true,
-              cx: 0.86, cy: 0.44, kh: 0.56, dens: 1.60 },
-    about:  { src: 'bones-claw.webp', crop: [0.22, 0.10, 1.00, 0.95], flip: true,
-              cx: 0.80, cy: 0.30, kh: 0.62, dens: 1.35 },
+              drop: [[0.00, 0.60, 0.44, 1.00]], rot: 'ccw',
+              cx: 0.72, cy: 0.46, kh: 0.42, dens: 1.25 },
+    /* 腳掌:⚠️ 原本整條腿(含髖)一起放,看起來只是一根斜的骨頭
+       (Zakk:「about 那頁的碎片看不太出來是腳了」)。
+       改成只留小腿到腳趾、不鏡射(腳掌在左邊,朝空白處),
+       腿的斷面從**上界**出去 —— 像從畫面上方踩下來。 */
+    about:  { src: 'bones-claw.webp', crop: [0.20, 0.30, 1.00, 1.00],
+              cx: 0.72, cy: 0.20, kh: 0.55, dens: 1.05 },
     /* 尾巴:⚠️ 兩次錯誤都記著 ——
        ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
        ② 改細之後我把它推到更右邊,但他要的是更左(「我是指從左邊一點的地方,
@@ -2164,16 +2171,15 @@ window.__fragSprites = (function () {
        → 根從上界出去(Zakk 圈的位置),往右生長,整條壓在 y 320 以上。
        ⚠️ 不鏡射:原圖的尾巴本來就是「根在左上、尖在右下」,正好是他要的方向。 */
     photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00],
-              cx: 0.55, cy: 0.13, kh: 0.34, dens: 1.00 }
+              cx: 0.55, cy: 0.13, kh: 0.34, dens: 0.80 }
   };
 
 
   /* 滑鼠扭曲 —— 跟首屏同一套。演變過程寫在首屏那一段:
      推開 → 洞;半徑重映射(透鏡)→ 還是洞;現在是**扭轉**,面積不變,不會少碎片。 */
   var LENS_R = 110;      // 影響半徑
-  var TWIST = 1.15;      // 正中心扭轉角度(弧度)
-  var LENS_MAG = 0.22;   // 中心的碎片放大幅度
-  var LENS_SPIN = 0.45;  // 每片自己額外歪掉的量
+  var TWIST = 0.62;      // 正中心扭轉角度(弧度)
+  var LENS_MAG = 0.16;   // 中心的碎片放大幅度
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
   /* 🔴 立體感的關鍵:讓滑鼠**帶動兩軸旋轉**(首屏就是這樣才像可以繞著看的物件),
      再加一點持續自轉,讓它一直有生命。只有單軸擺動看起來還是一張紙。 */
@@ -2283,8 +2289,15 @@ window.__fragSprites = (function () {
       var band = h[2] < 0.30 ? 0 : (h[2] < 0.55 ? 1 : 2);
       var rgb = (Math.random() < 0.04) ? EMBER : COLS[band];
       if (!sprites[rgb]) sprites[rgb] = window.__fragSprites(rgb);
+      /* rot:'ccw' 把整塊轉 90°(u,v) → (v, 1-u)。長寬也跟著對調,
+         所以 aspect 要取倒數 —— 在下面 out.aspect 那裡處理。 */
+      var hu = h[0], hv = h[1], tmp;
+      if (sg.rot === 'ccw') { tmp = hu; hu = hv; hv = 1 - tmp; }
+      else if (sg.rot === 'cw') { tmp = hu; hu = 1 - hv; hv = tmp; }
+      if (sg.flip) hu = 1 - hu;
+
       out.push({
-        u: sg.flip ? 1 - h[0] : h[0], v: h[1],
+        u: hu, v: hv,
         /* 圓管的表面:離邊緣的距離 → 半徑,sqrt 是圓的側面輪廓。
            隨機正負 = 這顆碎片落在管子的前面還是後面(是殼,不是實心)。
            只留一點點抖動,免得表面太乾淨像塑膠。 */
@@ -2301,10 +2314,10 @@ window.__fragSprites = (function () {
         amp: 0.4 + Math.random() * 1.0,   // 飄動幅度也收小,不要飄離骨頭
         ecc: 0.5 + Math.random() * 0.6,
         fall: 0.5 + Math.random() * 1.4,
-        a: 0.28 + Math.random() * 0.40    // 透明,但要看得出形狀
+        a: 0.24 + Math.random() * 0.34    // 透明,但要看得出形狀
       });
     }
-    out.aspect = sw / sh;
+    out.aspect = sg.rot ? sh / sw : sw / sh;   // 轉 90° 之後長寬對調
     /* 最粗的骨頭半徑,換算成 boxW 的比例 —— 深度用這個,
        而不是固定的 boxW × 0.8。骨頭的厚度是它自己的事,
        跟這塊骨頭被放多大無關。 */
@@ -2312,16 +2325,29 @@ window.__fragSprites = (function () {
     return out;
   }
 
+  /* 🔴 挑哪一段、以及它多明顯,**完全交給幀系統**(window.__frameVis)——
+     那是內容自己在用的能見度,所以骨頭跟文字必然同進同出。
+     以前這裡自己用 getBoundingClientRect 再算一次,兩條曲線對不起來。
+     內頁沒有幀系統(它是一般捲動的長頁),那邊退回舊的算法。 */
   function state() {
-    var vh = window.innerHeight, best = null;
+    var fv = window.__frameVis, best = null;
+    if (fv) {
+      ['works', 'about', 'photos'].forEach(function (id) {
+        var v = fv[id];
+        if (v > 0.01 && (!best || v > best.vis)) best = { id: id, vis: v };
+      });
+      return best;
+    }
+    var vh = window.innerHeight;
     ['works', 'about', 'photos'].forEach(function (id) {
       var el = document.getElementById(id);
       if (!el) return;
       var r = el.getBoundingClientRect();
       var p = (vh * 0.5 - r.top) / Math.max(1, r.height);
-      if (p >= -0.15 && p <= 1.15 && (!best || Math.abs(p - 0.5) < Math.abs(best.p - 0.5))) {
-        best = { id: id, p: p < 0 ? 0 : (p > 1 ? 1 : p) };
-      }
+      if (p < -0.15 || p > 1.15) return;
+      p = p < 0 ? 0 : (p > 1 ? 1 : p);
+      var v = Math.min(1, p / 0.18) * (p < 0.72 ? 1 : 1 - (p - 0.72) / 0.28);
+      if (!best || v > best.vis) best = { id: id, vis: v < 0 ? 0 : v };
     });
     return best;
   }
@@ -2333,9 +2359,7 @@ window.__fragSprites = (function () {
     var pts = sets[st.id], sg = SEGS[st.id];
     if (!pts || !pts.length) return;
 
-    var fadeIn = Math.min(1, st.p / 0.18);
-    var burst = st.p < 0.72 ? 0 : (st.p - 0.72) / 0.28;
-    var vis = fadeIn * (1 - burst);
+    var vis = st.vis;               // 跟內容同一條曲線
     if (vis <= 0.01) return;
 
     var ratio = pts.aspect || 0.8;
@@ -2377,7 +2401,7 @@ window.__fragSprites = (function () {
       dx += Math.cos(w1) * p.amp;
       dy += Math.sin(w1) * p.amp * p.ecc;
 
-      dy += burst * H * 0.85 * p.fall;
+
 
       /* 先繞 Y 再繞 X —— 跟首屏同一套順序 */
       var x1 = dx * cyr - dz * syr;
@@ -2389,7 +2413,7 @@ window.__fragSprites = (function () {
       var py = cy + y1 * scale;
 
       /* 扭轉:繞著游標轉一個角度,角度隨距離衰減。面積不變 = 密度不變 */
-      var mag = 1, spin = 0;
+      var mag = 1;
       if (pxe >= 0) {
         var vx = px - pxe, vy = py - pye;
         var dist = Math.sqrt(vx * vx + vy * vy);
@@ -2400,7 +2424,7 @@ window.__fragSprites = (function () {
           px = pxe + vx * cs - vy * sn;
           py = pye + vx * sn + vy * cs;
           mag = 1 + LENS_MAG * fo;
-          spin = th + Math.sin(p.ph * 3.1) * LENS_SPIN * fo;
+          /* 碎片自己的朝向不動,見首屏那一段 */
         }
       }
 
@@ -2412,15 +2436,7 @@ window.__fragSprites = (function () {
 
       var d2 = p.sz * scale * mag;
       ctx.globalAlpha = p.a * vis * edge;
-      if (spin) {
-        ctx.save();
-        ctx.translate(px, py);
-        ctx.rotate(spin);
-        ctx.drawImage(p.sp[p.si], -d2 / 2, -d2 / 2, d2, d2);
-        ctx.restore();
-      } else {
-        ctx.drawImage(p.sp[p.si], px - d2 / 2, py - d2 / 2, d2, d2);
-      }
+      ctx.drawImage(p.sp[p.si], px - d2 / 2, py - d2 / 2, d2, d2);
     }
     ctx.globalAlpha = 1;
   }
