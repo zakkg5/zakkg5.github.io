@@ -768,9 +768,10 @@
   var ay = 0, ax = 0, tay = 0, tax = 0;   // 旋轉角(目前/滑鼠目標)
   /* 滑鼠的實際像素位置,用來把附近的碎片推開(-1 = 還沒進畫面) */
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
-  var LENS_R = 150;    // 透鏡影響半徑(比舊的推開 62 大很多,才看得出是「一片」被扭)
+  var LENS_R = 100;    // 透鏡影響半徑(Zakk:「扭曲可以範圍小點」)
   var LENS_K = 0.62;   // < 1 放大;越小越誇張
   var LENS_MAG = 0.55; // 中心的碎片本身放大幅度
+  var LENS_SPIN = 0.9; // 碎片自己歪掉的角度(弧度,約 50°)
   var F = 900;                            // 透視焦距(越小越誇張)
 
 
@@ -1385,6 +1386,7 @@
            只是被拉開,所以是**整片結構被壓過去變形**,像一片透鏡蓋在上面。
            k < 1 = 放大,再讓靠近游標的碎片本身也變大,才有玻璃的厚度感。
            跟右側龍身用的是同一組參數。 */
+        var spin = 0;
         if (hasPtr) {
           var mdx = px - pxe, mdy = py - pye;
           var md = Math.sqrt(mdx * mdx + mdy * mdy);
@@ -1393,7 +1395,11 @@
             var nr = LENS_R * Math.pow(tt, LENS_K);
             px = pxe + (mdx / md) * nr;
             py = pye + (mdy / md) * nr;
-            d *= 1 + LENS_MAG * (1 - tt) * (1 - tt);
+            var fo = (1 - tt) * (1 - tt);
+            d *= 1 + LENS_MAG * fo;
+            /* 每一片自己也轉一點:玻璃底下的東西不只被放大,朝向也會歪掉。
+               ph 是這顆碎片自己的相位,所以每片轉的方向不一樣,不會整片一起歪。 */
+            spin = Math.sin(p.ph * 3.1) * LENS_SPIN * fo;
           }
         }
 
@@ -1408,7 +1414,18 @@
         if (band < 1) continue;                  // 淡到看不見就不用畫
         if (band > 20) band = 20;
 
-        ctx.drawImage(fragsFor(bk.col, band)[p.sh], px - d / 2, py - d / 2, d, d);
+        var sprite = fragsFor(bk.col, band)[p.sh];
+        if (spin) {
+          /* rotate 要 save/restore,比純 drawImage 貴不少 ——
+             所以只有透鏡半徑內的那幾十片才走這條,其他幾千片維持原本的畫法。 */
+          ctx.save();
+          ctx.translate(px, py);
+          ctx.rotate(spin);
+          ctx.drawImage(sprite, -d / 2, -d / 2, d, d);
+          ctx.restore();
+        } else {
+          ctx.drawImage(sprite, px - d / 2, py - d / 2, d, d);
+        }
       }
     }
     ctx.globalAlpha = 1;
@@ -2107,13 +2124,32 @@ window.__fragSprites = (function () {
        ① 切掉「接到身體的那一端」—— 翅膀左邊那條脊椎、腳掌上面的髖、
           尾巴根部那幾節粗椎骨。那些是身體的邊,不是元素(「身體的邊邊不用做出來」)。
        ② 只留辨識點:翅膀留手肘的 V + 指骨張開,腳掌留小腿到腳趾,尾巴留那個勾。 */
+  /* 🔴 切口要**剛好落在畫面外**(Zakk:「切點可以剛好從網站邊界出來嗎,
+     這樣不會有很像截一部份飄著的感覺」)。
+
+     一塊骨頭浮在版面正中間,兩端都是切口 —— 那看起來就是「一塊碎片」。
+     但如果切口那一端伸出畫面,大腦會自動補完:它是**從畫面外延伸進來的**,
+     只是被視窗裁到而已。同一塊骨頭,差別只在位置。
+
+     所以每一段:
+       flip  左右鏡射,把切口那一側翻到右邊(他說「你都可以自己換角度去放」)
+       cx/cy 把切口推出邊界:翅膀、腳掌從右邊出去,尾巴的根從上面出去
+
+     密度一併調低、透明度也降(「碎片盡量不要太密,只要明顯有形狀,
+     感覺可以整體透明一點」)。 */
   var SEGS = {
+    /* ⚠️ 翅膀左下角還有一根**斷掉的碎骨**,跟指骨同一個高度,矩形裁不掉
+       (Zakk:「這還有一小塊飄著」)—— 用 drop 挖掉。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
-              cx: 0.52, cy: 0.42, kh: 0.52, dens: 1.00 },
-    about:  { src: 'bones-claw.webp', crop: [0.22, 0.10, 1.00, 0.95],
-              cx: 0.58, cy: 0.50, kh: 0.40, dens: 0.90 },
-    photos: { src: 'bones-tail.webp', crop: [0.15, 0.20, 0.95, 1.00],
-              cx: 0.52, cy: 0.22, kh: 0.32, dens: 0.55 }
+              drop: [[0.00, 0.60, 0.44, 1.00]], flip: true,
+              cx: 0.86, cy: 0.44, kh: 0.56, dens: 0.95 },
+    about:  { src: 'bones-claw.webp', crop: [0.22, 0.10, 1.00, 0.95], flip: true,
+              cx: 0.80, cy: 0.30, kh: 0.62, dens: 0.85 },
+    /* 尾巴:⚠️ 原本把整個 C 型都放進去,那是「一段脊椎的彎」,又寬又粗
+       (Zakk:「他尾巴不可能那麼寬」)。只取後半段到尾尖那條漸細的,
+       根從右邊出去,往左掃進畫面 —— 細、長,而且左緣離照片夠遠。 */
+    photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00], flip: true,
+              cx: 0.72, cy: 0.20, kh: 0.34, dens: 0.70 }
   };
 
 
@@ -2125,7 +2161,7 @@ window.__fragSprites = (function () {
      新做法:半徑重映射 r' = R·(r/R)^k —— 每一顆都還在,只是位置被拉開,
      所以是**整片結構被壓過去變形**,像一片透鏡蓋在上面。
      k < 1 = 放大(中心稀、外圍密),再讓靠近游標的碎片本身也變大一點。 */
-  var LENS_R = 150;      // 影響半徑(比舊的 62 大很多,才看得出是「一片」被扭)
+  var LENS_R = 100;      // 影響半徑(Zakk:「扭曲可以範圍小點」)
   var LENS_K = 0.62;     // < 1 放大;越小越誇張
   var LENS_MAG = 0.55;   // 中心的碎片放大幅度
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
@@ -2147,6 +2183,7 @@ window.__fragSprites = (function () {
     var sx = c[0] * img.width, sy = c[1] * img.height;
     var sw = (c[2] - c[0]) * img.width, sh = (c[3] - c[1]) * img.height;
 
+    var drops = sg.drop;
     var ow = SAMPLE_W, oh = Math.round(ow * sh / sw);
     var oc = document.createElement('canvas');
     oc.width = ow; oc.height = oh;
@@ -2161,6 +2198,18 @@ window.__fragSprites = (function () {
         var i = (y * ow + x) * 4;
         /* 門檻拉到 90:去背的邊緣還留著一點很淡的暈,55 會把那圈也當成骨頭 */
         if (d[i + 3] > 90) {
+          /* drop:矩形裁不掉的零星碎骨,在這裡挖掉。
+             座標是**原圖**的 0~1(不是 crop 之後的),比較好對圖。 */
+          if (drops) {
+            var su = c[0] + (x / ow) * (c[2] - c[0]);
+            var sv = c[1] + (y / oh) * (c[3] - c[1]);
+            var skip = false;
+            for (var q = 0; q < drops.length; q++) {
+              var r = drops[q];
+              if (su >= r[0] && su <= r[2] && sv >= r[1] && sv <= r[3]) { skip = true; break; }
+            }
+            if (skip) continue;
+          }
           hits.push([x / ow, y / oh, (d[i] + d[i + 1] + d[i + 2]) / 765]);
         }
       }
@@ -2176,17 +2225,20 @@ window.__fragSprites = (function () {
       var rgb = (Math.random() < 0.04) ? EMBER : COLS[band];
       if (!sprites[rgb]) sprites[rgb] = window.__fragSprites(rgb);
       out.push({
-        u: h[0], v: h[1],
-        z: (h[2] - 0.5) + (Math.random() - 0.5) * 0.5,
+        u: sg.flip ? 1 - h[0] : h[0], v: h[1],
+        /* ⚠️ 這個隨機量就是**厚度**。我曾經為了收斂形狀把它砍到 0.28,
+           結果碎片全貼在同一個平面上,轉起來像一張紙(Zakk:「變一個扁掉的紙了」)。
+           「散」的原因是點數不夠(dens 太低),不是厚度 —— 別再動這個。 */
+        z: (h[2] - 0.5) + (Math.random() - 0.5) * 0.55,
         sp: sprites[rgb],
         si: (Math.random() * 7) | 0,
         sz: 7.0 + Math.random() * 10.0,
         sp1: 0.35 + Math.random() * 0.5,
         ph: Math.random() * 6.28,
-        amp: 0.9 + Math.random() * 2.1,
+        amp: 0.4 + Math.random() * 1.0,   // 飄動幅度也收小,不要飄離骨頭
         ecc: 0.5 + Math.random() * 0.6,
         fall: 0.5 + Math.random() * 1.4,
-        a: 0.34 + Math.random() * 0.46
+        a: 0.20 + Math.random() * 0.30    // 整體再透明一點
       });
     }
     out.aspect = sw / sh;
@@ -2229,8 +2281,8 @@ window.__fragSprites = (function () {
        轉過 90° 就整片收成一條、變成一團看不出是什麼的東西
        (Zakk:「work 有點看不出是什麼」的真正原因)。
        改成在正面附近來回擺(約 ±20°),夠看出是立體的就好。 */
-    var swayY = Math.sin(t * 0.28) * 0.30;
-    var swayX = Math.sin(t * 0.19 + 1.7) * 0.13;
+    var swayY = Math.sin(t * 0.28) * 0.45;   // 擺幅要夠大才看得出「它在轉」
+    var swayX = Math.sin(t * 0.19 + 1.7) * 0.18;
     ay += (tay + swayY - ay) * 0.06;
     ax += (tax + swayX - ax) * 0.06;
     var cyr = Math.cos(ay), syr = Math.sin(ay);
@@ -2267,7 +2319,7 @@ window.__fragSprites = (function () {
       var py = cy + y1 * scale;
 
       /* 透鏡扭曲:把半徑重映射,不是把碎片推走 */
-      var mag = 1;
+      var mag = 1, spin = 0;
       if (pxe >= 0) {
         var vx = px - pxe, vy = py - pye;
         var dist = Math.sqrt(vx * vx + vy * vy);
@@ -2276,7 +2328,9 @@ window.__fragSprites = (function () {
           var nr = LENS_R * Math.pow(tt, LENS_K);   // r' = R·(r/R)^k
           px = pxe + (vx / dist) * nr;
           py = pye + (vy / dist) * nr;
-          mag = 1 + LENS_MAG * (1 - tt) * (1 - tt); // 中心的碎片也放大
+          var fo = (1 - tt) * (1 - tt);
+          mag = 1 + LENS_MAG * fo;                  // 中心的碎片也放大
+          spin = Math.sin(p.ph * 3.1) * LENS_SPIN * fo;   // 每片自己也歪一點
         }
       }
 
@@ -2288,7 +2342,15 @@ window.__fragSprites = (function () {
 
       var d2 = p.sz * scale * mag;
       ctx.globalAlpha = p.a * vis * edge;
-      ctx.drawImage(p.sp[p.si], px - d2 / 2, py - d2 / 2, d2, d2);
+      if (spin) {
+        ctx.save();
+        ctx.translate(px, py);
+        ctx.rotate(spin);
+        ctx.drawImage(p.sp[p.si], -d2 / 2, -d2 / 2, d2, d2);
+        ctx.restore();
+      } else {
+        ctx.drawImage(p.sp[p.si], px - d2 / 2, py - d2 / 2, d2, d2);
+      }
     }
     ctx.globalAlpha = 1;
   }
