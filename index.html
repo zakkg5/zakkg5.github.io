@@ -34,7 +34,7 @@
   <link rel="preload" href="assets/3d/dragon.webp" as="image" type="image/webp">
 
   <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1,瀏覽器才會抓新的 -->
-  <link rel="stylesheet" href="css/style.css?v=106">
+  <link rel="stylesheet" href="css/style.css?v=107">
 </head>
 
 <body>
@@ -269,8 +269,12 @@
           <img src="assets/about/about-summit.webp" alt="Zakk 站在紐西蘭山頂的岩石上,遠方是山脈與平原" loading="lazy" width="1050" height="1400">
         </figure>
 
-        <!-- 右:文字流 -->
+        <!-- 右:文字流。
+             寬螢幕再拆成兩欄(見 style.css min-width:1441):
+             左半是自我介紹、右半是經歷 —— ⚠️ 這是為了讓「字」跟「線」一樣長。
+             單純把段落拉到整欄寬會變成一行 85 個字,遠超過可讀上限(約 75)。 -->
         <div class="about__body">
+         <div class="about__col about__col--text">
 
           <p class="about__name reveal">Zakk Tseng
             <span class="about__name-zh" lang="zh-Hant">曾莛翔</span>
@@ -287,6 +291,15 @@
                untangling problems, and turning them into something that works.</p>
             <p lang="zh-Hant" class="about__intro-zh">空間、產品、數位都做過,也處理過中間最麻煩的部分:理解需求、拆解問題,把它變成真正能用的東西。</p>
           </div>
+
+          <p class="about__cta reveal" style="--delay: 240ms">
+            Currently open to work — in design, and beyond.
+            <a class="about__cv" href="assets/cv/zakk-tseng-cv.pdf" download>Download CV &darr;</a>
+          </p>
+
+         </div><!-- /about__col--text -->
+
+         <div class="about__col about__col--side">
 
           <!-- Experience 收進 <details>:一幀只放入口,細節點開再看。
                用原生元件不寫 JS —— 鍵盤、讀螢幕軟體、沒有 JS 的環境都能展開。 -->
@@ -326,11 +339,7 @@
             <p class="about__list">English (TOEIC 720) &middot; New Zealand &middot; Cross-role communication</p>
           </div>
 
-          <p class="about__cta reveal" style="--delay: 240ms">
-            Currently open to work — in design, and beyond.
-            <a class="about__cv" href="assets/cv/zakk-tseng-cv.pdf" download>Download CV &darr;</a>
-          </p>
-
+         </div><!-- /about__col--side -->
         </div>
       </div>
     </section>

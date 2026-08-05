@@ -2170,6 +2170,19 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .photos__intro,
   #photos p { max-width: 62ch; }
 
+  /* 🔴 About 拆兩欄:左半自我介紹、右半經歷
+     (Zakk:「這種字內容是不是也要拉長,不然只有線長」)。
+     ⚠️ 不能靠「把段落拉寬」解決 —— 欄寬 1372px 等於一行 85 個字,
+     遠超過可讀上限(約 75)。要讓線變短、字變多,只能把右半也放內容。 */
+  .about__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--s6);
+    align-items: start;
+  }
+  .about__intro,
+  .about__list { max-width: none; }   /* 欄本身已經是可讀寬度了 */
+
   /* 照片帶仍然滿版出血 —— 那是這一區的張力來源,收進來就沒力了。
      它用 margin-inline: calc(50% - vw/2) 從容器裡「撐」出去,
      容器換成貼左之後這個算法仍然成立(實測 0 → 2560)。 */
