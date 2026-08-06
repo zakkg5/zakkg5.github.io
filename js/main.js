@@ -103,6 +103,103 @@
 
   window.addEventListener('resize', function () {
     target = window.pageYOffset || 0;
+    restY = -1;                 // 視窗改了,定格點跟著變,出發點要重算
+  }, { passive: true });
+
+
+  /* ══ 停手就吸附到最清楚的位置 ══
+     🔴 Zakk:「滾輪換頁的時候,很多人會沒有滑到透明度最高的地方,
+     他們都沒發現字還有點透明」。
+
+     這是真的可用性問題,不是美感問題:每一幀是「描出來 → 定格 → 淡出」,
+     停在描到一半的地方,看到的是**半透明的內文**,
+     而沒有人會知道那是過場 —— 只會以為「這個網站的字就是淡的」。
+
+     所以滾輪停下來之後,自動落到那一幀的定格點。
+     ⚠️ 只在**使用者停手**時做,不在滾動中途插手 —— 中途改目標會變成
+     「網頁在跟我搶方向盤」。160ms 是「手指離開滾輪」的判斷值,
+     太短會在連續滾動的間隙誤觸發。 */
+  var SNAP_IDLE = 160;      // 停手多久之後才吸附
+  var snapTimer = null;
+
+  function holdY(fr) {
+    /* 定格點:描繪完成、還沒開始退場的中點。
+       跟導覽列錨點用的是同一個算式(0.55),兩邊必須一致,
+       不然點導覽跟滾輪停下來會落在不同位置。 */
+    /* ⚠️ 一定要用 getBoundingClientRect + pageYOffset,不能用 offsetTop。
+       offsetTop 是相對於**最近的定位祖先**,而 #main 有 z-index(所以有定位),
+       算出來的位置整個偏掉 —— 實測吸附後落在 vis 0.00 的地方,
+       比不吸附還糟。導覽列錨點那段用的也是這個算法,兩邊必須一致。 */
+    var r = fr.getBoundingClientRect();
+    var play = r.height - window.innerHeight;
+    return r.top + (window.pageYOffset || 0) + play * 0.55;
+  }
+
+  /* 上一次落定的位置。吸附要以「他從哪裡出發」為準,不是「離哪裡近」——
+     否則往下滑了 900px 卻因為離出發點還比較近,就被拉回原地。 */
+  var restY = -1;
+
+  function snap() {
+    var frames = document.querySelectorAll('.frame');
+    if (!frames.length) return;
+    var m = maxY();
+    if (target <= 4 || target >= m - 4) return;
+
+    /* 所有定格點,由上到下 */
+    var holds = [];
+    for (var i = 0; i < frames.length; i++) {
+      holds.push(Math.max(0, Math.min(m, holdY(frames[i]))));
+    }
+    holds.sort(function (a, b) { return a - b; });
+    if (!holds.length) return;
+
+    /* 第一次進來(或視窗改過)先找離現在最近的當出發點 */
+    if (restY < 0) {
+      var nd = Infinity;
+      for (i = 0; i < holds.length; i++) {
+        var d0 = Math.abs(holds[i] - target);
+        if (d0 < nd) { nd = d0; restY = holds[i]; }
+      }
+    }
+    var from = 0;
+    for (i = 0; i < holds.length; i++) if (holds[i] === restY) from = i;
+
+    var pitch = holds.length > 1 ? (holds[1] - holds[0]) : window.innerHeight;
+    var moved = target - restY;
+
+    /* ⚠️ 門檻只要 22%,不是 50%。
+       一幀相隔 2160px,用「過半才算」的話,滑了 900px 還是會被拉回原地
+       —— 使用者會覺得網頁在跟他作對。往哪個方向動、動得夠明顯,
+       就往那個方向走一幀。 */
+    var idx = from;
+    if (Math.abs(moved) > pitch * 0.22) idx = from + (moved > 0 ? 1 : -1);
+    if (idx < 0) idx = 0;
+    if (idx > holds.length - 1) idx = holds.length - 1;
+
+    /* 最後一幀之後是 footer:已經滑過最後一個定格點就別拉回去 */
+    if (target > holds[holds.length - 1] + window.innerHeight * 0.6) { restY = -1; return; }
+
+    restY = holds[idx];
+    if (Math.abs(restY - target) < 2) return;
+    target = restY;
+    kick();
+  }
+
+  window.addEventListener('wheel', function () {
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(snap, SNAP_IDLE);
+  }, { passive: true });
+
+  /* 觸控與鍵盤也一樣 —— 手指離開螢幕、放開方向鍵之後要落定 */
+  window.addEventListener('touchend', function () {
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(snap, SNAP_IDLE + 120);
+  }, { passive: true });
+  window.addEventListener('keyup', function (e) {
+    if (e.key !== 'PageDown' && e.key !== 'PageUp' &&
+        e.key !== 'ArrowDown' && e.key !== 'ArrowUp' && e.key !== ' ') return;
+    clearTimeout(snapTimer);
+    snapTimer = setTimeout(snap, SNAP_IDLE);
   }, { passive: true });
 })();
 
