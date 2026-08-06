@@ -86,7 +86,13 @@
   --hair:    #C9D4DA;   /* 分隔線:1.39:1,只能畫線,**絕對不可拿來寫字** */
   --blue-line: #B6C7DC; /* 標註線與網格用的淡藍,只能畫線,不可拿來寫字 */
 
-  --ember:   #B4552A;   /* 餘燼橘:全站唯一的暖色(對比 4.53:1,低空飛過) */
+  /* 🔴 橘拿掉,全站收成單一色相(Zakk:「橘色感覺可以拿掉」)。
+     ⚠️ 變數留著、只換值 —— 它用在 23 個地方(章節編號、狀態點、載入的筆、
+     hover 箭頭、十字規線的橫線…)。一個一個改成藍會漏,而且以後想加回來
+     要再找一遍。這裡只要把這一行換回 #B4552A 就全部復原。
+     值用比大標更深的藍:它原本的工作是「最強的重點」,換成同色相之後
+     靠明度接手,不然那些小標記會跟大標混在一起。 */
+  --ember:   #15355C;   /* 原本是餘燼橘 #B4552A;現在是深製圖藍(對比 11.9:1) */
 
   /* ── 間距尺標 ── 所有垂直間距只能從這組挑,節奏才會一致 */
   --s1: 4px;
@@ -698,6 +704,19 @@ a { color: inherit; text-decoration: none; }
      ⚠️ 原本是把導覽縮成 01 02 03 —— 省了寬度,但看的人不知道那是什麼
      (Zakk:「手機版分類不要寫 01 02 03」)。
      WORKS / ABOUT / PHOTOS 三個字用最小的字級 + 縮小字距,375px 放得下。 */
+  /* 🔴 引線標籤在手機收掉。它是 nowrap + 128px 的引線,
+     在 375px 寬會把整列撐爆(大標被擠成一行一個字)。
+     ⚠️ 這種「桌機加的裝飾」每次都要回頭關手機 —— 加東西時就要一起想。 */
+  .section__head::after { display: none; }
+  /* 十字規線也縮小:22px 在手機跟大標一樣高,會變成第二個主角 */
+  .section__head::before {
+    width: 14px;
+    height: 14px;
+    background:
+      linear-gradient(var(--ember), var(--ember)) center / 14px 1.5px no-repeat,
+      linear-gradient(var(--slate), var(--slate)) center / 1.5px 14px no-repeat;
+  }
+
   .nav__num { display: none; }
   /* ⚠️ 這裡**不可以動 display**。.nav__label 是 flex(滾字效果的裁切窗),
      每個字母是它的 flex 子項、排成一列。我曾經寫 display:inline ——
@@ -827,8 +846,8 @@ a { color: inherit; text-decoration: none; }
       rgba(23, 27, 30, 0) 0%,
       rgba(23, 27, 30, 0.018) 42%,
       rgba(23, 27, 30, 0.055) 100%),
-    radial-gradient(58% 52% at 10% 88%, rgba(180, 85, 42, 0.075), transparent 70%),
-    radial-gradient(44% 40% at 94% 10%, rgba(180, 85, 42, 0.05), transparent 70%),
+    radial-gradient(58% 52% at 10% 88%, rgba(21, 53, 92, 0.055), transparent 70%),
+    radial-gradient(44% 40% at 94% 10%, rgba(21, 53, 92, 0.04), transparent 70%),
     radial-gradient(66% 58% at 80% 62%, rgba(31, 74, 120, 0.055), transparent 72%),
     radial-gradient(50% 46% at 26% 34%, rgba(31, 74, 120, 0.04), transparent 72%);
 }
@@ -847,7 +866,7 @@ a { color: inherit; text-decoration: none; }
 /* hover 大標時,字本身也來一道紅/藍色差(呼應照片的 glitch) */
 .hb2-title { transition: text-shadow var(--t-quick) var(--ease); }
 .hero-b.ghost-lit .hb2-title {
-  text-shadow: -2px 0 rgba(180, 85, 42, 0.45), 2px 0 rgba(91, 115, 134, 0.42);
+  text-shadow: -2px 0 rgba(21, 53, 92, 0.42), 2px 0 rgba(134, 164, 200, 0.45);
 }
 
 /* 副標與關鍵字:載入時跟著大標往上浮 */
@@ -1186,14 +1205,24 @@ html.is-loading, html.is-loading body { overflow: hidden; }
 }
 .preloader.is-done { opacity: 0; }
 
-/* 載入時先藏住首屏文字,組合完成再浮現 —— 過程只看得到碎片成形 */
-.hb2-head, .hb2-meta, .hb2-status, .topbar {
+/* 載入時先藏住首屏文字,組合完成再浮現 —— 過程只看得到碎片成形。
+
+   🔴 這份清單原本**只寫了 .hb2-***,那是 `?hero=b` 那個實驗版的類別。
+   預設首屏(.hero__title / .hero__lede / .hero__bar)完全沒被關掉,
+   所以重新整理時「From space to screen.」跟載入動畫的 ZAKK 會同時出現、
+   疊在一起(Zakk:「重新整理時載入動畫都會跑掉」)。
+   實驗版當初是複製一份新類別,漏了把原版加進來。 */
+.hb2-head, .hb2-meta, .hb2-status, .topbar,
+.hero__title, .hero__lede, .hero__bar {
   transition: opacity var(--t-slow) var(--ease);
 }
 html.is-loading .hb2-head,
 html.is-loading .hb2-meta,
 html.is-loading .hb2-status,
-html.is-loading .topbar { opacity: 0; }
+html.is-loading .topbar,
+html.is-loading .hero__title,
+html.is-loading .hero__lede,
+html.is-loading .hero__bar { opacity: 0; }
 
 /* 比例尺放左下角 —— 圖紙上它本來待的位置。畫面中間讓給頭骨碎片。 */
 .pl__inner {
@@ -2363,9 +2392,15 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   align-self: baseline;
   transform: translateY(-0.52em);
   margin-left: auto;               /* 推到大標右邊,不擠著標題 */
-  padding-left: 86px;              /* 讓出引線的長度 */
-  background: linear-gradient(var(--blue-line), var(--blue-line))
-              left center / 74px 1px no-repeat;
+  padding-left: 128px;             /* 讓出引線的長度 */
+  /* ⚠️ 引線要跟右邊骨頭那個標註**長一樣**:方形節點 → 斜線 → 水平段 → 標籤。
+     原本只有一條純水平的線,那看起來是「底線」不是「引線」——
+     引線的意思是「這段字在指某個東西」,所以一定要有節點和轉折
+     (Zakk:「這些也還沒做像圖片這樣」)。
+     用一張 inline SVG 當背景,一個元素同時是線也是字,不必多加 DOM。 */
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='116' height='22'%3E%3Crect x='0.5' y='11.5' width='7' height='7' fill='none' stroke='%231F4A78'/%3E%3Cpath d='M8 15 H44 L66 4 H116' fill='none' stroke='%23B6C7DC'/%3E%3C/svg%3E")
+    left center / 116px 22px no-repeat;
   font-family: var(--mono);
   font-size: 10px;
   font-weight: 500;

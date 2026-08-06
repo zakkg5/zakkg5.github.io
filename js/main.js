@@ -799,8 +799,13 @@
      深淺的中段因此帶藍,整團才有「兩塊版疊印」的感覺。
      橘從 4% 提到 7%:它是第三塊版,太少會看不出來是「有這個顏色」,
      只會像雜訊。 */
-  var COLS = ['22,35,44', '31,74,120', '96,110,120'];   // 黑墨 → 製圖藍 → 石灰
-  var EMBER = '180,85,42';
+  /* 🔴 碎片改成**單一色相**:製圖藍的三個階(Zakk:「我想看看她同顏色的樣子」)。
+     原本是黑墨/藍/石灰三個不同的顏色混在一起 —— 那是「雜色」不是「配色」,
+     遠看就是一團灰。同一個色相只變明度,整團才會被讀成一個東西。
+     ⚠️ 橘版也一併關掉(下面 EMBER_RATE = 0)——「同顏色」要看得準,
+     留 8% 的橘就測不出來了。要加回來把 RATE 調回 0.07 就好。 */
+  var COLS = ['20,48,79', '31,74,120', '86,124,168'];   // 製圖藍:深 / 中 / 淺
+  var EMBER = '21,53,92';   // 原本是餘燼橘 180,85,42;全站改單色相後換成深藍
 
   function layout() {
     /* ⚠️ 曾經在手機把上限壓到 1.5 換效能 —— **那是「糊」的元兇。**
@@ -945,7 +950,7 @@
       // 每顆碎片自己的炸開方向(過場時往這個方向飛出去再回來)
       var ba = Math.random() * 6.283, bv = Math.acos(2 * Math.random() - 1);
 
-      bucketPush(map, Math.random() < 0.08 ? EMBER : COLS[(Math.random() * COLS.length) | 0], alLv, {
+      bucketPush(map, COLS[(Math.random() * COLS.length) | 0], alLv, {
         idx: i,
         bx: Math.sin(bv) * Math.cos(ba),
         by: Math.sin(bv) * Math.sin(ba) * 0.7,
@@ -968,7 +973,7 @@
     for (var n = 0; n < 130; n++) {   // Zakk:「環繞的粒子太雜了」
       var u = Math.random() * 6.283, v = Math.acos(2 * Math.random() - 1);
       var rr = R * (0.5 + Math.random() * 1.05);
-      bucketPush(map, Math.random() < 0.18 ? EMBER : COLS[(Math.random() * COLS.length) | 0],
+      bucketPush(map, COLS[(Math.random() * COLS.length) | 0],
         Math.max(1, Math.min(9, Math.round((0.16 + Math.random() * 0.3) * 10))), {
           idx: -1,                                   // -1 = 不跟著骨頭變形
           ox2: rr * Math.sin(v) * Math.cos(u),
@@ -1701,8 +1706,8 @@ window.__fragSprites = (function () {
   var clouds = [];                                // 每一區自己的碎片雲
   var lastY = window.pageYOffset || 0, vel = 0;   // 捲動速度 → 碎片拖曳方向
 
-  var COLS = ['107,118,125', '84,118,160', '150,168,178'];   // 石灰 / 製圖藍(淡) / 淡藍灰
-  var EMBER = '180,85,42';
+  var COLS = ['84,118,160', '108,142,182', '146,172,204'];   // 製圖藍的淡階(氛圍層)
+  var EMBER = '21,53,92';   // 原本是餘燼橘 180,85,42;全站改單色相後換成深藍
 
   function layout() {
     DPR = Math.min(window.devicePixelRatio || 1, 1.5);
@@ -1797,7 +1802,7 @@ window.__fragSprites = (function () {
         ph: Math.random() * 6.283,
         sz: 0.8 + Math.random() * 2.2,
         al: 0.08 + Math.random() * 0.26,
-        col: Math.random() < 0.1 ? EMBER : COLS[(Math.random() * COLS.length) | 0],
+        col: COLS[(Math.random() * COLS.length) | 0],   // 單一色相測試中,橘版關掉
         sh: (Math.random() * 7) | 0
       });
     }
@@ -2128,9 +2133,10 @@ window.__fragSprites = (function () {
 
   var ctx = canvas.getContext('2d', { alpha: true });
   var W = 0, H = 0, DPR = 1, raf = null, t = 0, tick = 0;
-  var COLS = ['22,35,44', '48,70,86', '96,110,120'];   // 黑墨 / 中間調 / 石灰
-  var PLATE_BLUE = '31,74,120';   // 製圖藍,跟 CSS 的 --slate 同一個值
-  var EMBER = '180,85,42';
+  var COLS = ['20,48,79', '31,74,120', '86,124,168'];   // 製圖藍:深 / 中 / 淺
+  var PLATE_BLUE = '31,74,120';
+  var EMBER = '21,53,92';   // 原本是餘燼橘 180,85,42;全站改單色相後換成深藍
+  var EMBER_RATE = 0;   // 0 = 單一色相。想把橘版加回來就調成 0.07
   var sprites = {};
   var sets = {};            // id → 這一段自己的碎片陣列
   var prevVis = {}, dirOf = {};   // 換頁位移用:上一幀的能見度、以及進場/退場方向
@@ -2383,7 +2389,7 @@ window.__fragSprites = (function () {
          改成固定比例抽:7% 橘版、29% 藍版、其餘照深淺走黑墨/石灰。
          這也才像真的疊印:每一塊版是各自印上去的,跟原圖的深淺無關。 */
       var r0 = Math.random();
-      var rgb = r0 < 0.07 ? EMBER : (r0 < 0.36 ? PLATE_BLUE : COLS[band]);
+      var rgb = r0 < EMBER_RATE ? EMBER : COLS[band];
       if (!sprites[rgb]) sprites[rgb] = window.__fragSprites(rgb);
       /* rot:'ccw' 把整塊轉 90°(u,v) → (v, 1-u)。長寬也跟著對調,
          所以 aspect 要取倒數 —— 在下面 out.aspect 那裡處理。 */
