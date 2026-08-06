@@ -419,7 +419,13 @@ a { color: inherit; text-decoration: none; }
 .hero__lede {
   grid-row: 4;
   max-width: 34ch;
-  color: var(--slate);
+  /* 🔴 段落退回中性灰。
+     這裡原本是 --slate,而 --slate 已經從「湖藍灰」變成飽和的製圖藍 ——
+     於是連內文都變藍,整頁鋪滿同一個顏色,藍反而不特別了。
+     儀器介面的規則是:**介面用一個顏色、內容保持中性**,
+     藍才會被讀成「這是儀器的顏色」。
+     連結與 hover 仍然是藍(那些是可互動的,屬於介面)。 */
+  color: var(--stone);
   font-size: clamp(15px, 1.15vw, 17px);
   line-height: 1.55;
 }
@@ -1083,7 +1089,7 @@ a { color: inherit; text-decoration: none; }
   font-weight: 400;
   font-size: clamp(15px, 1.2vw, 18px);
   letter-spacing: 0.04em;
-  color: var(--slate);
+  color: var(--stone);   /* 同上:段落中性 */
 }
 
 .about__intro { margin-top: var(--s3); max-width: 58ch; }   /* 一幀要塞得下:40 → 16 */
@@ -1207,11 +1213,10 @@ html.is-loading, html.is-loading body { overflow: hidden; }
 
 /* 載入時先藏住首屏文字,組合完成再浮現 —— 過程只看得到碎片成形。
 
-   🔴 這份清單原本**只寫了 .hb2-***,那是 `?hero=b` 那個實驗版的類別。
-   預設首屏(.hero__title / .hero__lede / .hero__bar)完全沒被關掉,
-   所以重新整理時「From space to screen.」跟載入動畫的 ZAKK 會同時出現、
-   疊在一起(Zakk:「重新整理時載入動畫都會跑掉」)。
-   實驗版當初是複製一份新類別,漏了把原版加進來。 */
+   ⚠️ 我一度以為「重新整理時開場疊字」是因為這份清單漏了 .hero__*,
+   但實際上 **.hero(A 版)早就 display:none 退役了**(見下面 .hero 那一行),
+   所以那不是原因 —— 真正看到的是 preloader 淡出(620ms)與首屏文字淡入
+   在時間上重疊。.hero__* 留在清單裡無害,但別把它當成那個問題的解法。 */
 .hb2-head, .hb2-meta, .hb2-status, .topbar,
 .hero__title, .hero__lede, .hero__bar {
   transition: opacity var(--t-slow) var(--ease);
@@ -2463,3 +2468,79 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .dragon-side { display: block; }
 }
 
+
+
+/* ═══════════ 首屏 HUD:取景框 + 讀數 ═══════════
+   🔴 這一層的意思是「你正在一個視窗裡檢視一個標本」。
+
+   ⚠️ 框架先前用錯了。我把整站往「印刷製版」推(套印、網點、裁切標記),
+   但那只涵蓋 Zakk 內容的一半 —— 另一半是 Rhino / KeyShot / CAD 渲染,
+   本來就是螢幕裡的東西;而粒子是**點雲**,是掃描出來的,不是印出來的。
+   Zakk:「這個風格不能適用印表的感覺,他比較偏科技感,偏在用網頁視窗,
+   所以才會有引線、網格,畢竟我們還有粒子。」
+
+   同樣的形狀換個框架,意思完全不同:
+     十字   套印規線(死的) → 準星/座標原點(會跟著、會報數)
+     網格   印刷版定位格   → 座標格,邊緣有刻度
+     標籤   印刷規格(死的) → 讀數(會跳動)
+     骨頭   版面裝飾       → **被檢視的標本**
+   最後一行是關鍵:骨頭因此有了存在的理由。 */
+
+.hud {
+  position: absolute;
+  inset: var(--s5) var(--gutter) var(--s6);
+  pointer-events: none;
+  z-index: 2;
+}
+
+/* 四角取景框:只畫兩條邊,不畫完整的方框 —— 完整的框會變成一個「盒子」,
+   取景框的意思是「範圍在這裡」,不是「這裡有一個容器」。 */
+.hud__corner {
+  position: absolute;
+  width: 18px;
+  height: 18px;
+  border: 1px solid var(--blue-line);
+}
+.hud__corner--tl { top: 0;    left: 0;  border-right: 0; border-bottom: 0; }
+.hud__corner--tr { top: 0;    right: 0; border-left: 0;  border-bottom: 0; }
+.hud__corner--bl { bottom: 0; left: 0;  border-right: 0; border-top: 0; }
+.hud__corner--br { bottom: 0; right: 0; border-left: 0;  border-top: 0; }
+
+.hud__tag {
+  position: absolute;
+  top: -2px;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--slate);
+  white-space: nowrap;
+}
+.hud__tag--tl { left: 30px; }
+.hud__tag--tr { right: 30px; }
+
+/* 讀數列:右下角。
+   ⚠️ 一開始放置中下,結果跟 .hb2-status 完全疊在一起
+   (實測兩個都在 x 1280、bottom 1400)—— hero-b 是絕對定位排版,
+   加東西之前要先看清楚別人佔了哪裡。
+   右下本來就空著,而且儀器的讀數本來就該在角落。 */
+.hero__read {
+  position: absolute;
+  right: 84px;
+  bottom: calc(var(--s6) + 14px);
+  display: flex;
+  gap: var(--s4);
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  color: var(--slate);
+  /* 數字每幀在跳,比例字寬會讓整列左右抖 —— 等寬字型 + tabular 才穩 */
+  font-variant-numeric: tabular-nums;
+}
+
+/* 手機:HUD 收掉。375px 放不下讀數列,取景框也會跟內容打架 */
+@media (max-width: 640px) {
+  .hud { display: none; }
+  .hero__read { display: none; }
+}

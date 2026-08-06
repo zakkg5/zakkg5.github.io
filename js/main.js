@@ -1167,6 +1167,7 @@
   }
 
   function render(anim) {
+    var drawn = 0;                    // 這一偵實際畫出去的粒子數(給 HUD 的讀數)
     var K0 = (window.__loadK === undefined) ? 1 : window.__loadK;
     /* ⚠️ 載入中曾經改成「蓋半透明底色」讓碎片留下軌跡殘影,
        但 3600 顆碎片各自拖一條尾巴,畫面糊成一團 ——
@@ -1442,9 +1443,42 @@
         if (band > 20) band = 20;
 
         ctx.drawImage(fragsFor(bk.col, band)[p.sh], px - d / 2, py - d / 2, d, d);
+        drawn++;
       }
     }
     ctx.globalAlpha = 1;
+    readout(drawn, ay);
+  }
+
+  /* ══ 首屏 HUD 的讀數 ══
+     ⚠️ 這三個數字必須是**真的**:PTS 是這一偵實際畫出去的粒子數、
+     ROT 是頭骨目前的旋轉角、時間是台北時間。
+     寫死的數字是裝飾,會動的才是儀器 —— 這是「視窗/科技感」跟
+     「印刷規格表」最大的差別(Zakk 指出框架用錯的那件事)。
+
+     每 6 偵才寫一次 DOM:每偵寫會讓數字糊成一團,也白白吃掉版面計算。 */
+  var roEls = null, roTick = 0;
+  function readout(n, rot) {
+    if (roEls === null) {
+      roEls = {
+        pts:   document.querySelector('[data-read="pts"]'),
+        rot:   document.querySelector('[data-read="rot"]'),
+        clock: document.querySelector('[data-read="clock"]')
+      };
+      if (!roEls.pts) { roEls = false; return; }
+    }
+    if (roEls === false) return;
+    if (++roTick % 6) return;
+
+    roEls.pts.textContent = 'PTS ' + String(n).replace(/\B(?=(\d{3})+(?!\d))/g, ',');
+    /* 角度換算成 0–360,並取絕對值 —— 負角度讀起來像壞掉 */
+    var deg = ((rot * 180 / Math.PI) % 360 + 360) % 360;
+    roEls.rot.textContent = 'ROT ' + deg.toFixed(1) + '°';
+    /* 台北時間:用 Asia/Taipei 明確指定,不靠使用者的時區
+       —— 這一行講的是 Zakk 在哪,不是看的人在哪。 */
+    roEls.clock.textContent = new Date().toLocaleTimeString('en-GB', {
+      timeZone: 'Asia/Taipei', hour12: false
+    }) + ' TPE';
   }
 
   /* ── 手機:碎片每兩偵才畫一次(30fps)──
