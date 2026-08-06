@@ -63,7 +63,7 @@
 /* 全頁最大的字。用 Archivo 最寬檔位 wdth 125 —— 跟主頁大標同一個聲音 */
 .work-title {
   font-size: clamp(2.75rem, 8.5vw, 6rem);
-  color: var(--ink-dsp);
+  color: var(--ink-blue);
   font-weight: 500;
   font-stretch: 125%;
   font-variation-settings: 'wdth' 125, 'wght' 500;
@@ -155,7 +155,7 @@
    用演算法硬壓成假窄體,筆畫會糊掉。所以只有拉丁字走窄體。 */
 .ch__title {
   font-size: clamp(1.5rem, 3.2vw, 2.6rem);
-  color: var(--ink-dsp);
+  color: var(--ink-blue);
   font-weight: 500;
   font-stretch: 70%;
   font-variation-settings: 'wdth' 70, 'wght' 500;

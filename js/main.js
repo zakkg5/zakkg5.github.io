@@ -2215,7 +2215,7 @@ window.__fragSprites = (function () {
               /* 往左靠一點:2560 寬時內容右緣 1220、腳左緣 1792,
                  中間空了 572px(Zakk:「這兩個中間有點太空了」)。
                  腳的切口在上緣,左右可以自由移動 —— 翅膀不行(切口在右邊,要出右界)。 */
-              padL: 0.20, topOut: 0.16, wFrac: 0.82, dens: 1.05,
+              padL: 0.20, topOut: 0.04, wFrac: 0.82, dens: 1.05,
               tag: 'CLAW', tagSub: 'FROM “DRAGON SKULL”' },
     /* 尾巴:⚠️ 兩次錯誤都記著 ——
        ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
@@ -2229,7 +2229,7 @@ window.__fragSprites = (function () {
        → 根從上界出去(Zakk 圈的位置),往右生長,整條壓在 y 320 以上。
        ⚠️ 不鏡射:原圖的尾巴本來就是「根在左上、尖在右下」,正好是他要的方向。 */
     photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00],
-              padL: 0.16, topOut: 0.20, wFrac: 0.58, dens: 0.80, alpha: 0.68,
+              padL: 0.16, topOut: 0.20, wFrac: 0.58, dens: 0.50, alpha: 0.60,
               tag: 'CAUDAL', tagSub: 'FROM “DRAGON SKULL”' }
   };
 

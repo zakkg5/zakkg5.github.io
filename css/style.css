@@ -54,7 +54,18 @@
   --mist:    #E8ECEE;   /* 次層:淺霧 */
 
   --ink:     #171B1E;   /* 內文墨:中性 — 長文閱讀不該有色偏 */
-  --ink-dsp: #16232C;   /* 顯示墨:偏藍 — 只給大標題,全站最大的色塊 */
+  --ink-dsp: #16232C;   /* 顯示墨:偏藍的黑 — 給次級標題與強調字 */
+  /* 🔴 大標的藍 = 跟碎片、標註線同一個顏色
+     (Zakk:「整體跟碎片跟線我也想用同一個顏色」)。
+
+     雙色印刷的分工:
+       黑墨  內文、作品名、以及所有圖面(那些是真的黑色墨線,不能動)
+       藍墨  大標、線、碎片、標註 —— 也就是**介面層**
+
+     ⚠️ 一開始我是直接把 --ink-dsp 改成藍的 —— 錯了。
+     那個變數用在 21 個地方(內文、經歷、作品名、載入動畫…),
+     一改就整站泛藍,分工反而消失。藍要指名給大標,不能走那個變數。 */
+  --ink-blue: #1F4A78;  /* 大標專用:製圖藍(對比 8.39:1) */
 
   /* 對比值是 2026-07-28 用程式對 --paper 實測的,不是估的。
      舊值 #6B767D 只有 4.29:1,沒過 WCAG AA 的 4.5 —— 壓暗 3% 就過了,
@@ -387,7 +398,7 @@ a { color: inherit; text-decoration: none; }
   /* 字級同時跟著「寬度」和「高度」縮放 —
      視窗越高字越大,文字與留白的比例才會固定,不會被拉散 */
   font-size: clamp(3rem, min(9.2vw, 17vh), 11rem);
-  color: var(--ink-dsp);
+  color: var(--ink-blue);
   font-weight: 500;
   font-stretch: 125%;                          /* 靜態字型走這行 */
   font-variation-settings: 'wdth' 125, 'wght' 500;  /* 可變字型走這行(雙保險) */
@@ -487,7 +498,7 @@ a { color: inherit; text-decoration: none; }
    字級也一起放大:40px → 60px,標題才站得住。 */
 .section__title {
   font-size: clamp(1.75rem, 4.4vw, 3.75rem);   /* 手機 28px → 桌機 60px */
-  color: var(--ink-dsp);
+  color: var(--ink-blue);
   font-weight: 500;
   font-stretch: 70%;
   font-variation-settings: 'wdth' 70, 'wght' 500;
@@ -803,11 +814,23 @@ a { color: inherit; text-decoration: none; }
   inset: 0;
   z-index: 0;
   pointer-events: none;
+  /* 🔴 底層多一道**灰階漸層**(Zakk:「背景有點灰色漸層呢」)。
+     原本只有幾團色暈浮在純色紙上,所以整張紙是平的 ——
+     光線沒有方向,再多色暈也只是斑點。
+
+     漸層由上而下、由淺到深:上緣接近紙白、下緣壓到冷灰,
+     像一張攤在桌上的紙被上方的光打到 —— 這也是「紙」這個底最缺的東西。
+     幅度只有 4%:再多會蓋掉圖面的黑墨線。
+     色暈跟著換成製圖藍(原本的 91,115,134 是舊的湖藍灰)。 */
   background:
-    radial-gradient(58% 52% at 10% 88%, rgba(180, 85, 42, 0.085), transparent 70%),
-    radial-gradient(44% 40% at 94% 10%, rgba(180, 85, 42, 0.055), transparent 70%),
-    radial-gradient(66% 58% at 80% 62%, rgba(91, 115, 134, 0.06), transparent 72%),
-    radial-gradient(50% 46% at 26% 34%, rgba(91, 115, 134, 0.045), transparent 72%);
+    linear-gradient(to bottom,
+      rgba(23, 27, 30, 0) 0%,
+      rgba(23, 27, 30, 0.018) 42%,
+      rgba(23, 27, 30, 0.055) 100%),
+    radial-gradient(58% 52% at 10% 88%, rgba(180, 85, 42, 0.075), transparent 70%),
+    radial-gradient(44% 40% at 94% 10%, rgba(180, 85, 42, 0.05), transparent 70%),
+    radial-gradient(66% 58% at 80% 62%, rgba(31, 74, 120, 0.055), transparent 72%),
+    radial-gradient(50% 46% at 26% 34%, rgba(31, 74, 120, 0.04), transparent 72%);
 }
 
 /* 大標左側一道 ember 紅刻線(視覺錨點,也讓紅色多一處) */
@@ -2183,6 +2206,9 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
      改成跟著螢幕走,右邊永遠只剩 30%。 */
   .works { max-width: calc(70vw - var(--gutter)); }
   .about { max-width: calc(70vw - var(--gutter)); }
+  /* ⚠️ 大標那一列也要收在 70% 裡。它原本沒有限寬(實測 2448px),
+     所以掛在右端的引線標籤會飄到骨頭那一欄上面。 */
+  .section__head { max-width: calc(70vw - var(--gutter)); }
 
   /* ⚠️ 欄位一寬,名字和年份會被拉到兩端、看不出是同一列。
      所以「線」拉滿 70%,但**欄位內容**維持原本的節奏:
@@ -2319,6 +2345,36 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     linear-gradient(var(--ember), var(--ember)) center / 22px 1.5px no-repeat,
     linear-gradient(var(--slate), var(--slate)) center / 1.5px 22px no-repeat;
 }
+
+/* 🔴 大標拉一條引線出去,接一個**真的數據**
+   (Zakk:「首頁的字都可以用引線的方式連到座標,大標那些都可以」)。
+
+   ⚠️ 標籤的內容必須是真的,不能是裝飾用的假編號:
+     Works   08 PROJECTS · 2021—2025   ← 清單真的有 8 件
+     About   23.7°N 120.4°E · TAIWAN   ← 他真的在台灣(雲林)
+     Photos  12 FRAMES · 35MM DIGITAL  ← 照片帶真的有 12 張
+   數字一旦跟內容對不上,這個標註就從「說明」變成「裝飾」——
+   那正是原本那條 28px 短線的問題。
+
+   線用 background 畫,不另外加一個元素:一個 ::after 同時是線也是字。 */
+.section__head::after {
+  content: attr(data-note);
+  flex: none;
+  align-self: baseline;
+  transform: translateY(-0.52em);
+  margin-left: auto;               /* 推到大標右邊,不擠著標題 */
+  padding-left: 86px;              /* 讓出引線的長度 */
+  background: linear-gradient(var(--blue-line), var(--blue-line))
+              left center / 74px 1px no-repeat;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  color: var(--slate);
+  white-space: nowrap;
+}
+/* data-note 沒寫就不要留一條孤零零的線 */
+.section__head:not([data-note])::after { content: none; }
 
 
 
