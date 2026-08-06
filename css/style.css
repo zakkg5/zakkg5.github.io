@@ -972,6 +972,9 @@ a { color: inherit; text-decoration: none; }
   margin-top: var(--s5);
 }
 
+/* ⚠️ <figure> 的瀏覽器預設是 margin: 1em 40px —— 左右各吃掉 40px。
+   人像欄給了 300px,實際只畫出 220px,旁邊多一條空欄。 */
+.about__portrait { margin: 0; }
 .about__portrait img {
   width: 100%;
   height: auto;                /* 維持原比例,不硬裁 */
@@ -2182,6 +2185,18 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   }
   .about__intro,
   .about__list { max-width: none; }   /* 欄本身已經是可讀寬度了 */
+
+  /* 🔴 經歷列的行距放大(Zakk:「這裡間隔行之間可以大一點,太擠了」)。
+     padding 原本被壓到 10px —— 那是「整個 About 要塞進一幀」時代的產物,
+     當時是單欄、內容從上排到下。現在拆成兩欄,右欄的垂直空間多出一倍,
+     那個限制已經不存在了。 */
+  .xp__row { padding: var(--s4) 0; }
+  .about__block { margin-top: var(--s6); }
+  .about__list + .about__list { margin-top: var(--s3); }
+
+  /* 人像欄補滿:原本 minmax(220px,300px) 只解到 220,
+     旁邊多出 80px 的空欄 —— 那是「空白有點多」的來源之一。 */
+  .about { grid-template-columns: 300px minmax(0, 1fr); }
 
   /* 照片帶仍然滿版出血 —— 那是這一區的張力來源,收進來就沒力了。
      它用 margin-inline: calc(50% - vw/2) 從容器裡「撐」出去,
