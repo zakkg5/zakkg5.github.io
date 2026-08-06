@@ -792,7 +792,14 @@
   var F = 900;                            // 透視焦距(越小越誇張)
 
 
-  var COLS = ['22,35,44', '48,70,86', '96,110,120'];   // ink → 湖藍灰 → 石灰
+  /* 🔴 碎片的配色 = 三塊印刷版:黑墨、製圖藍、餘燼橘。
+     原本是「墨黑 → 灰藍 → 石灰」—— 三階全是灰,所以碎片只有明度差、沒有顏色
+     (Zakk:「碎片呢,感覺可以加點顏色」)。
+     中階換成真正的製圖藍(#1F4A78,跟 CSS 的 --slate 同一個值),
+     深淺的中段因此帶藍,整團才有「兩塊版疊印」的感覺。
+     橘從 4% 提到 7%:它是第三塊版,太少會看不出來是「有這個顏色」,
+     只會像雜訊。 */
+  var COLS = ['22,35,44', '31,74,120', '96,110,120'];   // 黑墨 → 製圖藍 → 石灰
   var EMBER = '180,85,42';
 
   function layout() {
@@ -938,7 +945,7 @@
       // 每顆碎片自己的炸開方向(過場時往這個方向飛出去再回來)
       var ba = Math.random() * 6.283, bv = Math.acos(2 * Math.random() - 1);
 
-      bucketPush(map, Math.random() < 0.05 ? EMBER : COLS[(Math.random() * COLS.length) | 0], alLv, {
+      bucketPush(map, Math.random() < 0.08 ? EMBER : COLS[(Math.random() * COLS.length) | 0], alLv, {
         idx: i,
         bx: Math.sin(bv) * Math.cos(ba),
         by: Math.sin(bv) * Math.sin(ba) * 0.7,
@@ -1694,7 +1701,7 @@ window.__fragSprites = (function () {
   var clouds = [];                                // 每一區自己的碎片雲
   var lastY = window.pageYOffset || 0, vel = 0;   // 捲動速度 → 碎片拖曳方向
 
-  var COLS = ['107,118,125', '91,115,134', '150,168,178'];   // stone / slate / 淡藍灰
+  var COLS = ['107,118,125', '84,118,160', '150,168,178'];   // 石灰 / 製圖藍(淡) / 淡藍灰
   var EMBER = '180,85,42';
 
   function layout() {
@@ -2106,7 +2113,11 @@ window.__fragSprites = (function () {
   var canvas = document.querySelector('canvas.dragon-side');
   if (!canvas) return;
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
-  if (!window.matchMedia('(min-width: 1720px)').matches) return;
+  /* ⚠️ 這個門檻要跟 CSS 的 .dragon-side 顯示條件一致。
+     CSS 已經降到 1441(版面保證右邊留 30%),JS 還卡在 1720 的話,
+     1441–1719 之間會出現「格線畫得出來、碎片一顆都沒有」——
+     因為引擎在這裡就 return 了,連骨頭圖都不會下載。 */
+  if (!window.matchMedia('(min-width: 1441px)').matches) return;
 
   /* 碎片改成跟首屏一樣大(Zakk 指定)。首屏的算式是
      sz = gap*(0.3~0.7) 再 ×2.1,在 2000px 寬時約 7~17px ——
@@ -2117,7 +2128,8 @@ window.__fragSprites = (function () {
 
   var ctx = canvas.getContext('2d', { alpha: true });
   var W = 0, H = 0, DPR = 1, raf = null, t = 0, tick = 0;
-  var COLS = ['22,35,44', '48,70,86', '96,110,120'];
+  var COLS = ['22,35,44', '48,70,86', '96,110,120'];   // 黑墨 / 中間調 / 石灰
+  var PLATE_BLUE = '31,74,120';   // 製圖藍,跟 CSS 的 --slate 同一個值
   var EMBER = '180,85,42';
   var sprites = {};
   var sets = {};            // id → 這一段自己的碎片陣列
@@ -2365,7 +2377,13 @@ window.__fragSprites = (function () {
       var h = hits[(k * step) | 0];
       if (!h) continue;
       var band = h[2] < 0.30 ? 0 : (h[2] < 0.55 ? 1 : 2);
-      var rgb = (Math.random() < 0.04) ? EMBER : COLS[band];
+      /* 🔴 藍要當成**獨立的一塊版**,不能靠深淺去挑。
+         這裡的 band 是從骨頭的亮度算的,而骨頭幾乎全是深色 ——
+         所以永遠挑到 COLS[0](黑墨),藍只出現 4.9%(實測)。
+         改成固定比例抽:7% 橘版、29% 藍版、其餘照深淺走黑墨/石灰。
+         這也才像真的疊印:每一塊版是各自印上去的,跟原圖的深淺無關。 */
+      var r0 = Math.random();
+      var rgb = r0 < 0.07 ? EMBER : (r0 < 0.36 ? PLATE_BLUE : COLS[band]);
       if (!sprites[rgb]) sprites[rgb] = window.__fragSprites(rgb);
       /* rot:'ccw' 把整塊轉 90°(u,v) → (v, 1-u)。長寬也跟著對調,
          所以 aspect 要取倒數 —— 在下面 out.aspect 那裡處理。 */
