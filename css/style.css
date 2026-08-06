@@ -1444,10 +1444,9 @@ html.is-loading .hero__bar { opacity: 0; }
   /* ⚠️ 上限原本是 4.2rem(67.2px)—— 1344px 以上就被夾住,
      螢幕再寬大標都一樣大,所以在 1920 上只佔螢幕寬的 20%,看起來很空。
      放寬到 5.25rem(84px);1344px 以下完全不受影響。 */
-  /* ⚠️ 上限再放寬一次:5.25rem(84px)在 2560 的螢幕上只佔寬度的 13%,
-     首屏最大的字卻比 Contact 的「Let's connect」還小。
-     7rem(112px)之後它才真的是這一屏的主角。 */
-  font-size: clamp(2.1rem, 5.6vw, 7rem);
+  /* 字級調過三次:5.25rem(太小,2560 上只佔寬度 13%)→ 7rem(太大)
+     → 5.6rem。首屏的主角是碎片頭骨,大標只要壓得住它,不必比它還搶。 */
+  font-size: clamp(2.1rem, 4.6vw, 5.6rem);
   letter-spacing: -0.03em;
   line-height: 1.02;
   color: var(--ink-blue);
@@ -1534,6 +1533,23 @@ html.is-loading .hero__bar { opacity: 0; }
 .hb2-meta__body { margin: 0; }
 
 
+/* 🔴 桌機把**整條導覽列**拿掉。
+   ① 右上角的選項跟右側中間那排按鈕功能完全一樣
+      (Zakk:「右上角就可以不用了,兩個功能一樣」)。
+   ② 拿掉選項之後只剩左上角一個「ZAKK」,而左下角的身分塊已經寫著
+      「Zakk Tseng 曾莛翔」——(Zakk:「這條感覺也不會用到,
+      可以把那個字放到第二張圖片這」)。
+
+   ⚠️ 手機**不能**跟著拿掉:側邊那排按鈕在 720px 以下是隱藏的,
+   一起拿掉就完全沒有導覽了。所以手機保留整條 topbar 與選項。 */
+@media (min-width: 721px) {
+  .topbar { display: none; }
+}
+@media (max-width: 720px) {
+  .topbar .nav { display: flex; }
+}
+
+
 /* ═══════════ 導覽列 ═══════════ */
 
 /* 導覽列融進背景:沒有底線、沒有色塊邊界。
@@ -1567,6 +1583,9 @@ html.is-loading .hero__bar { opacity: 0; }
 /* ═══════════ 右側中間:全部區塊的線條列(參考 jcedrik) ═══════════
    一區一條短線,滑過會伸長並顯示名稱;目前所在的那條是橘的。 */
 
+/* 🔴 一整條膠囊容器,裡面放選項 —— 參考 Zakk 給的 fuch.ai 導覽列。
+   結構是「容器一顆膠囊 + 目前這頁自己再戴一顆」,
+   而不是五顆各自獨立的按鈕:那樣看起來是五個東西,不是一組導覽。 */
 .side-nav {
   position: fixed;
   right: var(--gutter);
@@ -1574,36 +1593,60 @@ html.is-loading .hero__bar { opacity: 0; }
   transform: translateY(-50%);
   z-index: 5;
   display: grid;
-  gap: var(--s3);
-  justify-items: end;
+  gap: 2px;
+  justify-items: stretch;
+  padding: 6px;
+  border-radius: 999px;
+  border: 1px solid var(--hair);
+  /* 半透明 + 背景模糊:碎片從後面透過來,導覽仍然讀得到 */
+  background: rgba(244, 246, 247, 0.72);
+  -webkit-backdrop-filter: blur(10px);
+  backdrop-filter: blur(10px);
 }
+/* 容器裡的選項:平常沒有外框(不然一整排框會很吵),
+   只有目前這一頁 / 滑過的那一顆才戴上框。 */
 .side-nav a {
-  display: flex;
-  align-items: center;
-  justify-content: flex-end;
-  gap: var(--s2);
-  padding: 3px 0;
-  font-family: var(--mono);
+  justify-content: flex-start;
+  padding: 7px 16px;
   font-size: 10px;
-  letter-spacing: 0.2em;
-  text-transform: uppercase;
-  color: var(--stone);
+  border-color: transparent;
 }
-.side-nav span {          /* 名稱:平常收起來 */
+.side-nav a .chip__mark { opacity: 0; transition: opacity var(--t-quick) var(--ease); }
+.side-nav a:hover { border-color: var(--hair); }
+.side-nav a:hover .chip__mark { opacity: 1; }
+/* 目前所在的那一區:戴上自己的膠囊外框 */
+.side-nav a.is-here {
+  color: var(--ink);
+  border-color: var(--ink);
+}
+.side-nav a.is-here .chip__mark { opacity: 1; background: currentColor; }
+
+/* 手機:整條收掉。375px 塞不下,而且手機沒有 hover,
+   「滑過才知道是什麼」在那裡本來就不成立。 */
+@media (max-width: 720px) { .side-nav { display: none; } }
+
+/* 滑到側邊按鈕時,頭骨旁邊打出那一區的名字。
+   ⚠️ 位置跟著頭骨走(畫面中央偏左),不是跟著按鈕 ——
+   要讓人看的是「頭骨轉去看那個方向」,字只是說明它在看什麼。 */
+.skull-tag {
+  position: fixed;
+  left: 50%;
+  top: 50%;
+  z-index: 4;
+  margin: 0;
+  transform: translate(-50%, -50%) scale(0.96);
+  pointer-events: none;
+  font-family: var(--sans);
+  font-stretch: 70%;
+  font-variation-settings: 'wdth' 70, 'wght' 500;
+  font-size: clamp(2rem, 6vw, 5rem);
+  text-transform: uppercase;
+  letter-spacing: 0.06em;
+  color: var(--ink-blue);
   opacity: 0;
-  transform: translateX(6px);
   transition: opacity var(--t-base) var(--ease), transform var(--t-base) var(--ease);
 }
-.side-nav i {             /* 線 */
-  display: block;
-  width: 24px;
-  height: 1px;
-  background: var(--hair);
-  transition: width var(--t-base) var(--ease), background var(--t-quick) var(--ease);
-}
-.side-nav a:hover span { opacity: 1; transform: none; }
-.side-nav a:hover i { width: 56px; background: var(--ink-dsp); }
-.side-nav a.is-here i { width: 46px; background: var(--ember); }
+.skull-tag.is-on { opacity: 0.16; transform: translate(-50%, -50%) scale(1); }
 
 @media (max-width: 720px) { .side-nav { display: none; } }
 

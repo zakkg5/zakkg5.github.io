@@ -183,9 +183,10 @@
          50% 太嚴 —— 一幀 2160px,滑了 900px 還是被拉回原地,像在跟人作對。
          22% 太鬆 —— 輕輕一撥就跳頁,而且過場被快轉掉
                      (Zakk:「太敏感就跳頁,看不太到換頁的特效」)。
-       40% 是「明確要換頁」與「只是想微調位置」之間的界線。 */
+       40% 還是要滾太多圈(Zakk 再反映一次),收到 30%:
+       一幀 2160px → 滑過 648px 就換頁。 */
     var idx = from;
-    if (Math.abs(moved) > pitch * 0.40) idx = from + (moved > 0 ? 1 : -1);
+    if (Math.abs(moved) > pitch * 0.30) idx = from + (moved > 0 ? 1 : -1);
     if (idx < 0) idx = 0;
     if (idx > holds.length - 1) idx = holds.length - 1;
 
@@ -884,6 +885,24 @@
   var buckets = [];          // [{style, items:[碎片]}] — 依顏色+透明度分桶
   var W = 0, H = 0, DPR = 1, raf = null, t = 0, assemble = 1;
   var ay = 0, ax = 0, tay = 0, tax = 0;   // 旋轉角(目前/滑鼠目標)
+  /* 側邊按鈕指定的視角。null = 沒有人指定,跟著滑鼠走。 */
+  var lookY = null, lookX = null;
+  /* 給側邊按鈕呼叫:轉到指定角度,並在頭骨旁邊打出那一顆的名字。
+     ⚠️ 名字用 DOM 不用 canvas —— 它要能被選取、能被讀螢幕軟體讀到,
+     而且不必每幀重畫。 */
+  var lookTag = null;
+  window.__skullLook = function (y, x, label) {
+    lookY = (y === null || y === undefined) ? null : y;
+    lookX = (x === null || x === undefined) ? null : x;
+    if (!lookTag) {
+      lookTag = document.createElement('p');
+      lookTag.className = 'skull-tag';
+      lookTag.setAttribute('aria-hidden', 'true');
+      document.body.appendChild(lookTag);
+    }
+    if (label) { lookTag.textContent = label; lookTag.classList.add('is-on'); }
+    else { lookTag.classList.remove('is-on'); }
+  };
   /* 滑鼠的實際像素位置,用來把附近的碎片推開(-1 = 還沒進畫面) */
   var pxm = -1, pym = -1, pxe = -1, pye = -1;
   /* ── 滑鼠互動:散開 ──
@@ -1286,7 +1305,12 @@
        每一偵都清乾淨,聚攏靠位移本身表達就夠了。 */
     ctx.clearRect(0, 0, W, H);
     var cx = W * 0.5, cy = H * 0.5;
-    ay += (tay - ay) * 0.06; ax += (tax - ax) * 0.06;
+    /* 🔴 側邊按鈕滑過時,頭骨轉到那一顆指定的角度
+       (Zakk:「鼠標移到按鈕上,龍骨就會旋轉換角度」)。
+       lookY/lookX 不是 null 就蓋掉滑鼠的目標 —— 按鈕的意圖優先於游標位置。 */
+    var wantY = (lookY === null) ? tay : lookY;
+    var wantX = (lookX === null) ? tax : lookX;
+    ay += (wantY - ay) * 0.06; ax += (wantX - ax) * 0.06;
     if (anim) ay += 0.0016;                    // 緩慢自轉,讓它一直有生命
     var sy = Math.sin(ay), cyy = Math.cos(ay), sx = Math.sin(ax), cxx = Math.cos(ax);
 
@@ -2096,8 +2120,12 @@ window.__fragSprites = (function () {
      直著滑 = 換頁,瀏覽器自己就分得開,不需要任何 JS。
      (桌機維持自動播放 + 滾輪,那邊沒有這個衝突。) */
 
-  /* 右側中間:所有區塊的線條列(參考 jcedrik)。
-     一區一條短線,滑過伸長並顯示名稱;目前所在的那條轉橘。 */
+  /* 🔴 右側中間:改成膠囊按鈕(Zakk:「首頁的選項 work 那些就可以用
+     contact 那種按鈕去做,去替代右中的線」)。
+     原本是一區一條短線、滑過才伸出名字 —— 那要「先發現它、再滑上去」
+     才知道是導覽,而右上角的導覽列做的是同一件事,兩個功能重複
+     (Zakk:「右上角就可以不用了,兩個功能一樣」)。
+     改成一直看得到名字的按鈕,右上角那組就拿掉。 */
   var items = [
     ['hero-b', 'Intro'], ['works', 'Works'], ['about', 'About'],
     ['photos', 'Photos'], ['contact', 'Contact']
@@ -2108,14 +2136,30 @@ window.__fragSprites = (function () {
   side.className = 'side-nav';
   side.setAttribute('aria-label', 'Sections');
 
+  /* 滑到哪一顆,頭骨就轉到哪個角度 —— 按鈕與粒子因此是連動的,
+     不是各做各的(Zakk:「鼠標移到按鈕上,龍骨就會旋轉換角度」)。
+     角度是刻意排開的,每一顆都有自己的視角。 */
+  var LOOK = { 'hero-b': [0, 0], works: [-0.62, 0.16], about: [0.55, -0.14],
+               photos: [-0.30, -0.30], contact: [0.72, 0.22] };
+
   var links = items.map(function (it) {
     var a = document.createElement('a');
     a.href = '#' + it[0];
+    a.className = 'chip';
     a.setAttribute('aria-label', it[1]);
-    var s = document.createElement('span'); s.textContent = it[1];
-    a.appendChild(s);
-    a.appendChild(document.createElement('i'));
+    a.setAttribute('data-cursor', 'Jump');
+    var m = document.createElement('i'); m.className = 'chip__mark';
+    a.appendChild(m);
+    a.appendChild(document.createTextNode(it[1]));
     side.appendChild(a);
+
+    var look = LOOK[it[0]] || [0, 0];
+    a.addEventListener('mouseenter', function () {
+      if (window.__skullLook) window.__skullLook(look[0], look[1], it[1]);
+    });
+    a.addEventListener('mouseleave', function () {
+      if (window.__skullLook) window.__skullLook(null, null, null);
+    });
     return a;
   });
   document.body.appendChild(side);
@@ -2955,4 +2999,102 @@ window.__fragSprites = (function () {
     if (e.relatedTarget && a.contains(e.relatedTarget)) return;
     el.classList.remove('is-live');
   }, { passive: true });
+}());
+
+
+/* ═══════════════════════════════════════════════════════
+   亂碼解碼:每一幀的大標進場時,字母先是亂碼再一個一個「解出來」
+
+   Zakk:「他滑鼠一到這個字上會有變換字的特效,我想用在換頁時,
+   字體出來的特效,有點像亂碼」
+
+   為什麼這個效果適合這個站:整站的框架是「儀器在檢視標本」,
+   而儀器讀資料就是**先有雜訊、再收斂成值**。
+   換頁時大標從亂碼解出來,等於「這一幀正在被讀取」。
+
+   ⚠️ 只做大標,不做內文。內文跳字會讓人讀不下去,而且那不是資訊,是噪音。
+   ⚠️ 用等寬字集當亂碼源,長度固定 —— 用比例字的話每一格寬度不同,
+   整行會左右抽動。
+   ═══════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var GLYPHS = 'ABCDEFGHIJKLMNOPQRSTUVWXYZ0123456789/\<>[]{}=+*#%&';
+  var DUR = 620;            // 整行解完的時間
+  var STAGGER = 34;         // 每個字母晚一點開始,才有「由左往右解出來」的方向
+
+  /* ⚠️ 千萬不能用 el.textContent = ... 把整行寫回去 ——
+     那會**清掉所有子元素**。首屏大標裡有 <br> 和第二行的淡色 <span>,
+     我第一版就是這樣把它們吃掉的:「From space / to screen.」變成一行、
+     淡色也沒了。改成逐個**文字節點**處理,DOM 結構完全不動。 */
+  function scramble(el) {
+    if (el.__scrambling) return;
+
+    var nodes = el.__nodes;
+    if (!nodes) {
+      nodes = [];
+      var w = document.createTreeWalker(el, NodeFilter.SHOW_TEXT, null);
+      var n;
+      while ((n = w.nextNode())) {
+        if (n.nodeValue.trim()) nodes.push({ node: n, text: n.nodeValue });
+      }
+      el.__nodes = nodes;
+    }
+    if (!nodes.length) return;
+    el.__scrambling = true;
+
+    var t0 = performance.now();
+
+    function step(now) {
+      var t = now - t0, k = 0, done = true;
+      for (var j = 0; j < nodes.length; j++) {
+        var src = nodes[j].text, out = '';
+        for (var i = 0; i < src.length; i++) {
+          var c = src[i];
+          /* 空白直接放行 —— 讓空白也跳字會看不出字數,像壞掉 */
+          if (c.trim() === '') { out += c; k++; continue; }
+          var start = k * STAGGER;
+          if (t < start + DUR * 0.42) {
+            out += GLYPHS[(Math.random() * GLYPHS.length) | 0];
+            done = false;
+          } else {
+            out += c;
+          }
+          k++;
+        }
+        nodes[j].node.nodeValue = out;
+      }
+      if (done) {
+        for (j = 0; j < nodes.length; j++) nodes[j].node.nodeValue = nodes[j].text;
+        el.__scrambling = false;
+        return;
+      }
+      requestAnimationFrame(step);
+    }
+    requestAnimationFrame(step);
+  }
+
+  /* 綁在「這一幀變成主角」的那一刻。
+     幀系統把能見度掛在 window.__frameVis,所以直接看它從低變高的瞬間 ——
+     不用另外接一套進場偵測,兩邊也不會對不準。 */
+  var was = {};
+  function watch() {
+    var fv = window.__frameVis;
+    if (fv) {
+      for (var id in fv) {
+        var v = fv[id], prev = was[id] || 0;
+        if (prev < 0.55 && v >= 0.55) {
+          var sec = document.getElementById(id);
+          if (sec) {
+            var h = sec.querySelector('.section__title, .hb2-word');
+            if (h) scramble(h);
+          }
+        }
+        was[id] = v;
+      }
+    }
+    requestAnimationFrame(watch);
+  }
+  requestAnimationFrame(watch);
 }());
