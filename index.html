@@ -34,7 +34,7 @@
   <link rel="preload" href="assets/3d/dragon.webp" as="image" type="image/webp">
 
   <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1,瀏覽器才會抓新的 -->
-  <link rel="stylesheet" href="css/style.css?v=127">
+  <link rel="stylesheet" href="css/style.css?v=131">
 </head>
 
 <body>
@@ -141,12 +141,18 @@
     <div class="hb2-head">
       <p class="hb2-eyebrow">Product &middot; Spatial &middot; UX / UI &middot; Creative</p>
       <h1 class="hb2-word">From space<br><span class="hb2-word__dim">to screen.</span></h1>
+      <!-- 引線標註:指的是這行字**自己**的規格。
+           這是真的 —— 它真的是 Archivo 把字寬軸拉到 125 排出來的。
+           標註在講畫面上看得到的東西,不是編出來的參數。 -->
+      <p class="hb2-note" aria-hidden="true">Archivo &middot; wdth 125</p>
     </div>
 
-    <!-- 左下角:身分說明,維持 HUD 小字 -->
+    <!-- 左下角:身分。⚠️ 原本兩行都是 10.5px 的等寬小字擠在一起,
+         名字跟說明同一個份量 —— 誰都不是重點。
+         名字提到 15px、說明維持小字,才有層級。 -->
     <div class="hb2-meta">
       <p class="hb2-meta__lead">Zakk Tseng <span lang="zh-Hant">曾莛翔</span></p>
-      <p>Product and spatial designer. Now delivering digital work with AI tools.</p>
+      <p class="hb2-meta__body">Product and spatial designer.<br>Now delivering digital work with AI tools.</p>
     </div>
 
     <!-- ══════════ HUD:取景框 + 即時讀數 ══════════
@@ -169,13 +175,17 @@
       <p class="hud__tag hud__tag--tr">SPECIMEN / DRAGON SKULL</p>
     </div>
 
-    <!-- 狀態 + 讀數:放頁面中下 -->
-    <p class="status hb2-status"><span class="status__dot" aria-hidden="true"></span>Open to work &mdash; Based in Taiwan</p>
-    <p class="hero__read" aria-hidden="true">
-      <span data-read="pts">PTS ----</span>
-      <span data-read="rot">ROT --.-&deg;</span>
-      <span data-read="clock">--:--:-- TPE</span>
-    </p>
+    <!-- ══════════ 底部儀器列 ══════════
+         ⚠️ 原本狀態列在正中下、讀數在右下,兩條各自漂著。
+         併成同一條線之後,底部才讀得出是「一個面板」而不是散落的小字。 -->
+    <div class="hb2-bar">
+      <p class="status hb2-status"><span class="status__dot" aria-hidden="true"></span>Open to work &mdash; Taiwan</p>
+      <p class="hero__read">
+        <span data-read="pts">PTS ----</span>
+        <span data-read="rot">ROT --.-&deg;</span>
+        <span data-read="clock">--:--:-- TPE</span>
+      </p>
+    </div>
   </section>
 
 

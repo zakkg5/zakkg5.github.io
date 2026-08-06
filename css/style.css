@@ -1444,32 +1444,75 @@ html.is-loading .hero__bar { opacity: 0; }
   /* ⚠️ 上限原本是 4.2rem(67.2px)—— 1344px 以上就被夾住,
      螢幕再寬大標都一樣大,所以在 1920 上只佔螢幕寬的 20%,看起來很空。
      放寬到 5.25rem(84px);1344px 以下完全不受影響。 */
-  font-size: clamp(2.1rem, 5.0vw, 5.25rem);
+  /* ⚠️ 上限再放寬一次:5.25rem(84px)在 2560 的螢幕上只佔寬度的 13%,
+     首屏最大的字卻比 Contact 的「Let's connect」還小。
+     7rem(112px)之後它才真的是這一屏的主角。 */
+  font-size: clamp(2.1rem, 5.6vw, 7rem);
   letter-spacing: -0.03em;
   line-height: 1.02;
-  color: var(--ink-dsp);
+  color: var(--ink-blue);
 }
+
+/* 大標的引線標註:指的是這行字自己的規格,跟章節大標同一套 SVG 引線 */
+.hb2-note {
+  display: none;
+  margin: var(--s4) 0 0;
+  padding-left: 128px;
+  background:
+    url("data:image/svg+xml,%3Csvg xmlns='http://www.w3.org/2000/svg' width='116' height='22'%3E%3Crect x='0.5' y='11.5' width='7' height='7' fill='none' stroke='%231F4A78'/%3E%3Cpath d='M8 15 H44 L66 4 H116' fill='none' stroke='%23B6C7DC'/%3E%3C/svg%3E")
+    left center / 116px 22px no-repeat;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate);
+  white-space: nowrap;
+}
+@media (min-width: 1024px) { .hb2-note { display: block; } }
 
 /* 第二行退成石灰 —— 一句話裡有主有次,眼睛才有落點。
    全部同一個濃度會變成一塊字牆。 */
 .hb2-word__dim { color: var(--stone); }
 
-/* 狀態列:頁面中下 */
-.hb2-status {
+/* ══ 底部儀器列 ══
+   ⚠️ 狀態列原本在正中下、讀數在右下,兩條各自漂著。
+   併成同一條線,底部才讀得出是「一個面板」而不是散落的小字。 */
+/* ⚠️ 底部有三樣東西都貼底:身分塊、儀器列、取景框的下緣角標。
+   一開始三個都用 bottom 各自定位 → 全部疊在一起
+   (實測儀器列 1005–1040、身分塊 953–1040、右下角框也在同一區)。
+   由下往上排成三層,間距寫死才不會再撞:
+     角框   bottom 64(.hud 的 inset)
+     儀器列 bottom 98  = 64 + 角框 18 + 16
+     身分塊 bottom 158 = 98 + 儀器列高 ~36 + 24 */
+.hb2-bar {
   position: absolute;
-  left: 50%;
-  bottom: var(--s5);
-  transform: translateX(-50%);
+  left: var(--gutter);
+  right: var(--gutter);
+  bottom: 98px;
   z-index: 1;
+  display: flex;
+  align-items: baseline;
+  justify-content: space-between;
+  gap: var(--s4);
+  padding-top: var(--s3);
+  border-top: 1px solid var(--hair);
+}
+.hb2-status {
   margin: 0;
   white-space: nowrap;
   color: var(--ink);
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
 }
 
 .hb2-meta {
   position: absolute;
   left: var(--gutter);
-  bottom: var(--s5);
+  bottom: 158px;
   z-index: 1;
   display: grid;
   gap: var(--s2);
@@ -1480,7 +1523,15 @@ html.is-loading .hero__bar { opacity: 0; }
   letter-spacing: 0.06em;
   color: var(--stone);
 }
-.hb2-meta__lead { color: var(--ink); }      /* 跟 OPEN TO WORK 同色 */
+/* ⚠️ 原本名字與說明都是 10.5px 等寬,同一個份量 —— 誰都不是重點。 */
+.hb2-meta__lead {
+  font-family: var(--sans);
+  font-size: 15px;
+  font-weight: 500;
+  letter-spacing: 0.01em;
+  color: var(--ink);
+}
+.hb2-meta__body { margin: 0; }
 
 
 /* ═══════════ 導覽列 ═══════════ */
@@ -2077,9 +2128,13 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     padding: var(--s6) var(--gutter) var(--s5);
     gap: var(--s4);
   }
+  /* ⚠️ 新增的區塊一定要加進這份名單。
+     .hb2-bar(儀器列)是後來才有的,沒加進來就仍然是 absolute,
+     直接壓在 .hb2-meta 上面(375px 實測兩者都落在 754–772)。 */
   .hb2-head,
   .hb2-meta,
-  .hb2-status {
+  .hb2-status,
+  .hb2-bar {
     position: static;
     inset: auto;
     transform: none;
@@ -2087,6 +2142,9 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
     white-space: normal;
   }
   .hb2-meta { margin-top: auto; }   /* 這一行就是「把下面兩塊推到底」 */
+  /* ⚠️ 改成 static 之後 .hb2-bar 會被縮成內容寬又置中(375px 實測 95–280)。
+     它是一整條列,要撐滿並貼左。 */
+  .hb2-bar { align-self: stretch; justify-content: flex-start; }
 }
 
 
@@ -2523,15 +2581,11 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .hud__tag--tl { left: 30px; }
 .hud__tag--tr { right: 30px; }
 
-/* 讀數列:右下角。
-   ⚠️ 一開始放置中下,結果跟 .hb2-status 完全疊在一起
-   (實測兩個都在 x 1280、bottom 1400)—— hero-b 是絕對定位排版,
-   加東西之前要先看清楚別人佔了哪裡。
-   右下本來就空著,而且儀器的讀數本來就該在角落。 */
+/* 讀數列:交給 .hb2-bar 的 flex 排到右端。
+   ⚠️ 曾經自己絕對定位在右下,結果先跟 .hb2-status 疊在一起、
+   後來又跟取景框的角打架。同一列的東西就該由同一個 flex 管。 */
 .hero__read {
-  position: absolute;
-  right: 84px;
-  bottom: calc(var(--s6) + 14px);
+  margin: 0;
   display: flex;
   gap: var(--s4);
   font-family: var(--mono);
@@ -2547,6 +2601,9 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 @media (max-width: 640px) {
   .hud { display: none; }
   .hero__read { display: none; }
+  /* 手機只剩狀態列一項,不需要那條線與兩端對齊;
+     也沒有取景框,所以貼回原本的高度 */
+  .hb2-bar { border-top: 0; padding-top: 0; justify-content: flex-start; }
 }
 
 
