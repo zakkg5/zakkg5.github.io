@@ -150,15 +150,25 @@
   text-transform: uppercase;
   color: var(--ember);
 }
+/* 跟首頁的章節標題同一套:窄體大寫、拉開字距(見 style.css .section__title)。
+   ⚠️ 中文那一段不能跟著窄化 —— 中文沒有字寬軸,PingFang 會被瀏覽器
+   用演算法硬壓成假窄體,筆畫會糊掉。所以只有拉丁字走窄體。 */
 .ch__title {
-  font-size: clamp(1.5rem, 2.8vw, 2.1rem);
+  font-size: clamp(1.5rem, 3.2vw, 2.6rem);
   color: var(--ink-dsp);
   font-weight: 500;
-  font-stretch: 112.5%;
-  font-variation-settings: 'wdth' 112, 'wght' 500;
-  letter-spacing: -0.01em;
-  line-height: 1.1;
+  font-stretch: 70%;
+  font-variation-settings: 'wdth' 70, 'wght' 500;
+  text-transform: uppercase;
+  letter-spacing: 0.055em;
+  line-height: 1;
   white-space: nowrap;
+}
+.ch__title .zh {
+  font-stretch: 100%;
+  font-variation-settings: normal;
+  text-transform: none;
+  letter-spacing: 0.02em;
 }
 .ch__title .zh {
   font-family: var(--han);
