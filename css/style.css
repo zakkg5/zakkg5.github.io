@@ -2544,3 +2544,154 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .hud { display: none; }
   .hero__read { display: none; }
 }
+
+
+/* ═══════════ 膠囊按鈕 ═══════════
+   參考 fuch.ai:細外框 + 等寬小字 + 前面一個小標記。
+   ⚠️ 不做實心底色的按鈕 —— 這個站沒有任何實心色塊,
+   突然出現一顆填滿的按鈕會變成整頁最重的東西。
+   外框 + 一個會亮的方點,已經足夠說「這可以按」。 */
+
+.chips {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--s3);
+  list-style: none;
+  margin: 0;
+  padding: 0;
+}
+.chip {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.7em;
+  padding: 10px 18px;
+  border: 1px solid var(--hair);
+  border-radius: 999px;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.12em;
+  text-transform: uppercase;
+  color: var(--stone);
+  transition:
+    color var(--t-quick) var(--ease),
+    border-color var(--t-quick) var(--ease);
+}
+/* 方點,不是圓點 —— 跟引線的節點同一個形狀,是同一套語言 */
+.chip__mark {
+  width: 6px;
+  height: 6px;
+  border: 1px solid currentColor;
+  flex-shrink: 0;
+  transition: background var(--t-quick) var(--ease);
+}
+.chip:hover,
+.chip:focus-visible {
+  color: var(--slate);
+  border-color: var(--slate);
+}
+.chip:hover .chip__mark,
+.chip:focus-visible .chip__mark { background: currentColor; }
+
+
+/* ═══════════ 04 CONNECT ═══════════
+   自己一個骨架:狀態列 → 巨大標題 → 膠囊按鈕 → 跑馬燈。
+   跟前面三區刻意不同 —— 三區共用同一個模板正是 Zakk 說的「很單調」。 */
+
+.connect { border-bottom: 0; }
+
+/* ⚠️ 排版下在 .connect__inner,不是 .connect ——
+   .connect 會被翻頁系統變成 2160px 高的「幀」,看得到的是裡面那張
+   position:fixed 的 sheet。flex 下在外層等於沒下。 */
+.connect__inner {
+  position: relative;
+  min-height: calc(100svh - 160px);
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: var(--s5);
+  padding-block: var(--s6) var(--s5);
+}
+/* 標題自己佔住中段,上面是狀態列、下面是按鈕與跑馬燈 */
+.connect__title { margin-block: auto; }
+
+/* 側邊直排:整站唯一一處直排字,標示這一區的位置 */
+/* ⚠️ 直排字要放到內容欄**外面**的 gutter 裡。
+   left:0 是內容欄的左緣(56px),會壓在大標上。 */
+.connect__side {
+  position: absolute;
+  left: -40px;
+  top: 50%;
+  transform: translateY(-50%);
+  writing-mode: vertical-rl;
+  font-family: var(--mono);
+  font-size: 10px;
+  font-weight: 500;
+  letter-spacing: 0.32em;
+  color: var(--blue-line);
+}
+
+.connect__status {
+  display: inline-flex;
+  align-items: center;
+  gap: 0.8em;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.14em;
+  text-transform: uppercase;
+  color: var(--slate);
+  font-variant-numeric: tabular-nums;
+}
+.connect__sep { color: var(--hair); }
+
+/* 整站最大的字。首屏那句是「我是誰」,這句是「來找我」——
+   結尾比開頭更大,才收得住。 */
+.connect__title {
+  font-size: clamp(3rem, 11vw, 13rem);
+  color: var(--ink-blue);
+  font-weight: 500;
+  font-stretch: 125%;
+  font-variation-settings: 'wdth' 125, 'wght' 500;
+  letter-spacing: -0.035em;
+  line-height: 0.9;
+}
+
+/* 跑馬燈:滿版出血,跟照片帶同一招 */
+.connect__mq {
+  width: var(--vw, 100vw);
+  margin-inline: calc(50% - var(--vw, 100vw) / 2);
+  overflow: hidden;
+  border-top: 1px solid var(--hair);
+  border-bottom: 1px solid var(--hair);
+  padding-block: var(--s3);
+}
+.connect__mq-track {
+  display: flex;
+  align-items: center;
+  gap: var(--s4);
+  width: max-content;
+  font-family: var(--mono);
+  font-size: 11px;
+  font-weight: 500;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--stone);
+  animation: connect-mq 38s linear infinite;
+}
+.connect__mq-track i { color: var(--slate); font-style: normal; }
+/* 內容重複三份,所以推一份的寬度(33.333%)就能無縫接回去 */
+@keyframes connect-mq {
+  from { transform: translateX(0); }
+  to   { transform: translateX(-33.333%); }
+}
+@media (prefers-reduced-motion: reduce) {
+  .connect__mq-track { animation: none; }
+}
+
+@media (max-width: 640px) {
+  .connect { min-height: auto; padding-block: var(--s7) var(--s6); }
+  .connect__side { display: none; }
+  .connect .hud { display: none; }
+  .connect__title { font-size: clamp(2.5rem, 15vw, 4rem); }
+}

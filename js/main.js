@@ -1463,7 +1463,8 @@
       roEls = {
         pts:   document.querySelector('[data-read="pts"]'),
         rot:   document.querySelector('[data-read="rot"]'),
-        clock: document.querySelector('[data-read="clock"]')
+        clock: document.querySelector('[data-read="clock"]'),
+        clock2: document.querySelector('[data-read="clock2"]')   // CONNECT 那一區的時鐘
       };
       if (!roEls.pts) { roEls = false; return; }
     }
@@ -1476,9 +1477,11 @@
     roEls.rot.textContent = 'ROT ' + deg.toFixed(1) + '°';
     /* 台北時間:用 Asia/Taipei 明確指定,不靠使用者的時區
        —— 這一行講的是 Zakk 在哪,不是看的人在哪。 */
-    roEls.clock.textContent = new Date().toLocaleTimeString('en-GB', {
+    var tpe = new Date().toLocaleTimeString('en-GB', {
       timeZone: 'Asia/Taipei', hour12: false
     }) + ' TPE';
+    roEls.clock.textContent = tpe;
+    if (roEls.clock2) roEls.clock2.textContent = tpe;
   }
 
   /* ── 手機:碎片每兩偵才畫一次(30fps)──
