@@ -2712,3 +2712,128 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .connect__title { font-size: clamp(2rem, 11vw, 2.75rem); }
   .connect__inner { gap: var(--s3); }
 }
+
+
+/* ═══════════ 自訂游標:準星 ═══════════
+   儀器介面裡,游標不是「一支箭頭」,是**取景/量測的準星**。
+   平常是一個空心方框 + 中心點;碰到可以按的東西就放大、中心點填滿、
+   旁邊跳出一行等寬小字說明會發生什麼事 —— 跟引線標籤同一套語言。
+
+   ⚠️ 只在**有滑鼠**的裝置接管游標(pointer: fine)。
+   觸控裝置沒有游標,藏掉系統游標等於什麼都沒有;
+   而且 hover 在觸控上是「點下去才觸發」,體驗會壞掉。 */
+
+.cursor { display: none; }
+
+@media (pointer: fine) {
+  html.cursor-on,
+  html.cursor-on * { cursor: none; }
+
+  .cursor {
+    display: block;
+    position: fixed;
+    left: 0;
+    top: 0;
+    z-index: 9999;
+    pointer-events: none;
+    /* 位移由 JS 寫進 --cx/--cy —— 用 translate3d 走合成層,不碰版面 */
+    transform: translate3d(var(--cx, -100px), var(--cy, -100px), 0);
+    will-change: transform;
+  }
+
+  /* 方框:跟引線的節點、膠囊按鈕的方點同一個形狀 */
+  .cursor__box {
+    position: absolute;
+    left: -9px;
+    top: -9px;
+    width: 18px;
+    height: 18px;
+    border: 1px solid var(--slate);
+    transition:
+      width var(--t-quick) var(--ease),
+      height var(--t-quick) var(--ease),
+      left var(--t-quick) var(--ease),
+      top var(--t-quick) var(--ease),
+      border-color var(--t-quick) var(--ease);
+  }
+  .cursor__dot {
+    position: absolute;
+    left: -1.5px;
+    top: -1.5px;
+    width: 3px;
+    height: 3px;
+    background: var(--slate);
+    transition: transform var(--t-quick) var(--ease);
+  }
+  /* 標籤:碰到可按的東西才出現,說明會發生什麼事 */
+  .cursor__tag {
+    position: absolute;
+    left: 22px;
+    top: -6px;
+    font-family: var(--mono);
+    font-size: 9px;
+    font-weight: 500;
+    letter-spacing: 0.16em;
+    text-transform: uppercase;
+    color: var(--slate);
+    white-space: nowrap;
+    opacity: 0;
+    transform: translateX(-4px);
+    transition:
+      opacity var(--t-quick) var(--ease),
+      transform var(--t-quick) var(--ease);
+  }
+
+  /* 鎖定:碰到連結、按鈕、作品列 */
+  .cursor.is-live .cursor__box {
+    left: -17px; top: -17px; width: 34px; height: 34px;
+  }
+  .cursor.is-live .cursor__dot { transform: scale(2.4); }
+  .cursor.is-live .cursor__tag { opacity: 1; transform: none; }
+
+  /* 按下去:縮一下,給一個實體感 */
+  .cursor.is-down .cursor__box { left: -7px; top: -7px; width: 14px; height: 14px; }
+}
+
+/* 關掉動畫時不做延遲追隨(JS 會讀這個),游標仍然可用 */
+@media (prefers-reduced-motion: reduce) {
+  .cursor__box, .cursor__dot, .cursor__tag { transition: none; }
+}
+
+
+/* ═══════════ 線與字的 hover ═══════════
+   Zakk:「我希望所有線跟字碰到滑鼠都會有 ux 互動」。
+
+   ⚠️ 不是「加一堆特效」—— 每一種元素的反應要說出它自己的事:
+     可點的列  → 底線變成製圖藍、左緣長出一個方形節點(= 被選取)
+     資料列    → 只有底線亮起(= 被讀取,但不能點)
+   有反應和沒反應本身就在傳達「這個能不能按」。 */
+
+/* 作品列:可點 —— 節點 + 藍線 */
+.works__row { position: relative; }
+.works__line { position: relative; }
+.works__line::after {
+  content: "";
+  position: absolute;
+  left: -14px;
+  top: 50%;
+  width: 6px;
+  height: 6px;
+  margin-top: -3px;
+  border: 1px solid var(--slate);
+  opacity: 0;
+  transform: scale(0.4);
+  transition:
+    opacity var(--t-quick) var(--ease),
+    transform var(--t-quick) var(--ease);
+}
+.works__row:hover .works__line::after,
+.works__line:focus-visible::after { opacity: 1; transform: none; }
+
+/* 資料列(經歷、規格):不能點,所以只有線亮,沒有節點 */
+.xp__row,
+.facts__row {
+  transition: border-color var(--t-quick) var(--ease);
+}
+.xp__row:hover { border-top-color: var(--slate); }
+.facts__row:hover { border-bottom-color: var(--slate); }

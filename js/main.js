@@ -2762,3 +2762,86 @@ window.__fragSprites = (function () {
     });
   });
 }());
+
+
+/* ═══════════════════════════════════════════════════════
+   自訂游標:準星
+   平常是空心方框 + 中心點;碰到可按的東西就放大、並跳出一行說明。
+
+   ⚠️ 只在有滑鼠的裝置啟用(pointer: fine)。觸控裝置沒有游標,
+   藏掉系統游標等於什麼都沒有。
+   ⚠️ 也不接管 prefers-reduced-motion —— 延遲追隨對前庭敏感的人不舒服,
+   而系統游標本來就是最穩的那個。
+   ═══════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+
+  if (!window.matchMedia('(pointer: fine)').matches) return;
+  if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
+
+  var root = document.documentElement;
+  var el = document.createElement('div');
+  el.className = 'cursor';
+  el.setAttribute('aria-hidden', 'true');
+  el.innerHTML =
+    '<i class="cursor__box"></i><i class="cursor__dot"></i><span class="cursor__tag"></span>';
+  document.body.appendChild(el);
+  var tagEl = el.querySelector('.cursor__tag');
+  root.classList.add('cursor-on');
+
+  /* 目標位置與實際位置分開 —— 中間插值,游標才有重量。
+     完全跟手是「一個貼在滑鼠上的圖案」,慢一點才像儀器在追蹤。 */
+  var tx = -100, ty = -100, cx = -100, cy = -100, raf = null;
+
+  function loop() {
+    cx += (tx - cx) * 0.28;
+    cy += (ty - cy) * 0.28;
+    el.style.setProperty('--cx', cx.toFixed(1) + 'px');
+    el.style.setProperty('--cy', cy.toFixed(1) + 'px');
+    /* 距離夠近就停,不要空轉一整個 rAF 迴圈 */
+    if (Math.abs(tx - cx) < 0.1 && Math.abs(ty - cy) < 0.1) { raf = null; return; }
+    raf = requestAnimationFrame(loop);
+  }
+
+  document.addEventListener('mousemove', function (e) {
+    tx = e.clientX; ty = e.clientY;
+    if (!raf) raf = requestAnimationFrame(loop);
+  }, { passive: true });
+
+  /* 離開視窗就把游標移走,免得它卡在邊緣 */
+  document.addEventListener('mouseleave', function () {
+    tx = -100; ty = -100;
+    if (!raf) raf = requestAnimationFrame(loop);
+  }, { passive: true });
+
+  document.addEventListener('mousedown', function () { el.classList.add('is-down'); }, { passive: true });
+  document.addEventListener('mouseup',   function () { el.classList.remove('is-down'); }, { passive: true });
+
+  /* 碰到可互動的東西 → 鎖定 + 說明。
+     ⚠️ 說明的文字要講「會發生什麼事」,不是重複那個元素的名字。
+     data-cursor 可以個別指定;沒指定就用連結本身的性質推。 */
+  function labelFor(a) {
+    if (a.dataset.cursor) return a.dataset.cursor;
+    var href = a.getAttribute('href') || '';
+    if (a.hasAttribute('download')) return 'Download';
+    if (href.indexOf('mailto:') === 0) return 'Write';
+    if (a.target === '_blank') return 'Open ↗';
+    if (href.indexOf('#') === 0) return 'Jump';
+    return 'View';
+  }
+
+  document.addEventListener('mouseover', function (e) {
+    var a = e.target.closest && e.target.closest('a, button, [data-cursor]');
+    if (!a) return;
+    tagEl.textContent = labelFor(a);
+    el.classList.add('is-live');
+  }, { passive: true });
+
+  document.addEventListener('mouseout', function (e) {
+    var a = e.target.closest && e.target.closest('a, button, [data-cursor]');
+    if (!a) return;
+    /* 移到同一個連結的子元素上不算離開 */
+    if (e.relatedTarget && a.contains(e.relatedTarget)) return;
+    el.classList.remove('is-live');
+  }, { passive: true });
+}());
