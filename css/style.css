@@ -3086,3 +3086,100 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .hud__corner { width: 12px; height: 12px; }
   .hud__tag { display: none; }        /* 375px 放不下兩行標籤 */
 }
+
+
+/* ═══════════ 面板:一小塊「視窗」 ═══════════
+   Zakk:「這裡可以設計引線還有標註的感覺,加上第二三張視窗的感覺」
+
+   這是整站第一個有「盒子」的元件 —— 之前所有東西都是線與留白。
+   會破例是因為它在儀器介面裡有意義:面板是**被框起來的一組讀數**,
+   跟散在紙上的文字是兩種東西。
+
+   ⚠️ 但不能做成實心卡片:那會變成整頁最重的色塊,
+   跟旁邊透明的碎片、細線完全不同世界。
+   所以是半透明 + 背景模糊 + 細框 —— 看得出是一層玻璃,不是一張紙。 */
+
+.panel {
+  position: relative;
+  padding: 16px 18px 18px;
+  border: 1px solid var(--hair);
+  border-radius: 12px;
+  background: rgba(244, 246, 247, 0.55);
+  -webkit-backdrop-filter: blur(8px);
+  backdrop-filter: blur(8px);
+  transition: border-color var(--t-quick) var(--ease);
+}
+.panel:hover { border-color: var(--blue-line); }
+
+/* 四角的小角標:跟首屏的取景框同一個記號,只是縮小版。
+   用一個偽元素畫四個角(四層 background),不加四個 DOM。 */
+.panel::before {
+  content: "";
+  position: absolute;
+  inset: 6px;
+  pointer-events: none;
+  background:
+    linear-gradient(var(--blue-line), var(--blue-line)) left top / 8px 1px no-repeat,
+    linear-gradient(var(--blue-line), var(--blue-line)) left top / 1px 8px no-repeat,
+    linear-gradient(var(--blue-line), var(--blue-line)) right bottom / 8px 1px no-repeat,
+    linear-gradient(var(--blue-line), var(--blue-line)) right bottom / 1px 8px no-repeat;
+}
+
+/* 面板的標籤:等寬小字 + 一段引線,跟大標的標註同一套語言 */
+.panel__label {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+  margin: 0 0 10px;
+  font-family: var(--mono);
+  font-size: 9px;
+  font-weight: 500;
+  letter-spacing: 0.18em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+/* 標籤後面那條引線:填滿剩下的寬度 */
+.panel__label::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--blue-line);
+}
+.panel__label i {
+  flex: none;
+  width: 5px;
+  height: 5px;
+  border: 1px solid currentColor;
+  font-style: normal;
+}
+
+@media (max-width: 720px) {
+  .panel { padding: 13px 14px 15px; border-radius: 10px; }
+}
+
+/* 只給讀螢幕軟體看的標題。
+   ⚠️ 不能用 display:none —— 那會讓讀螢幕軟體也讀不到。
+   面板的視覺標籤是 <p>,沒有語意層級,所以 <h3> 要留著。 */
+.visually-hidden {
+  position: absolute;
+  width: 1px; height: 1px;
+  margin: -1px; padding: 0;
+  overflow: hidden;
+  clip: rect(0 0 0 0);
+  clip-path: inset(50%);
+  white-space: nowrap;
+}
+
+/* 面板化之後要調的間距 */
+/* ⚠️ .panel 帶了 position: relative,而它排在樣式表最後面 ——
+   會蓋掉 .hb2-meta 的 position: absolute(實測身分塊從 y 838 跳到 336)。
+   同權重時後面的贏,所以這裡要用 .hb2-meta.panel(0,2,0)明確搶回來。 */
+.hb2-meta.panel {
+  position: absolute;
+  max-width: 46ch;
+}
+.about__intro.panel { margin-top: var(--s4); }
+.about__block.panel + .about__block.panel { margin-top: var(--s4); }
+.about__block.panel .xp { margin-top: 0; }
+.about__block.panel .xp__row:first-child { border-top: 0; padding-top: 0; }
+.about__block.panel .about__list:first-of-type { margin-top: 0; }

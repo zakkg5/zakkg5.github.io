@@ -34,7 +34,7 @@
   <link rel="preload" href="assets/3d/dragon.webp" as="image" type="image/webp">
 
   <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1,瀏覽器才會抓新的 -->
-  <link rel="stylesheet" href="css/style.css?v=142">
+  <link rel="stylesheet" href="css/style.css?v=144">
 </head>
 
 <body>
@@ -150,7 +150,8 @@
     <!-- 左下角:身分。⚠️ 原本兩行都是 10.5px 的等寬小字擠在一起,
          名字跟說明同一個份量 —— 誰都不是重點。
          名字提到 15px、說明維持小字,才有層級。 -->
-    <div class="hb2-meta">
+    <div class="hb2-meta panel">
+      <p class="panel__label"><i aria-hidden="true"></i>Operator</p>
       <p class="hb2-meta__lead">Zakk <span lang="zh-Hant">曾莛翔</span></p>
       <p class="hb2-meta__body">Product and spatial designer.<br>Now delivering digital work with AI tools.</p>
     </div>
@@ -320,7 +321,8 @@
             <span class="about__opening-zh" lang="zh-Hant">把複雜的事,變清楚。</span>
           </p>
 
-          <div class="about__intro reveal" style="--delay: 80ms">
+          <div class="about__intro panel reveal" style="--delay: 80ms">
+            <p class="panel__label"><i aria-hidden="true"></i>Profile</p>
             <p>A designer who works across space, product, and screen,
                and has worked through the messy part between: understanding people,
                untangling problems, and turning them into something that works.</p>
@@ -340,8 +342,9 @@
                用原生元件不寫 JS —— 鍵盤、讀螢幕軟體、沒有 JS 的環境都能展開。 -->
           <!-- 自動展開,不用點(Zakk:「不要讓人點了才看到」)。
                為了塞進一幀,職務描述各縮到一行。 -->
-          <div class="about__block reveal" style="--delay: 120ms">
-            <h3 class="about__label">Experience</h3>
+          <div class="about__block panel reveal" style="--delay: 120ms">
+            <p class="panel__label"><i aria-hidden="true"></i>Experience</p>
+            <h3 class="about__label visually-hidden">Experience</h3>
             <ul class="xp">
               <li class="xp__row">
                 <div class="xp__main">
@@ -368,8 +371,9 @@
           </div>
 
           <!-- 兩塊合成一塊:一幀裡不需要兩個小標題各佔一行 -->
-          <div class="about__block reveal" style="--delay: 160ms">
-            <h3 class="about__label">Tools &amp; strengths</h3>
+          <div class="about__block panel reveal" style="--delay: 160ms">
+            <p class="panel__label"><i aria-hidden="true"></i>Tools &amp; strengths</p>
+            <h3 class="about__label visually-hidden">Tools &amp; strengths</h3>
             <p class="about__list">AutoCAD &middot; SketchUp &middot; Rhino &middot; KeyShot &middot; Illustrator</p>
             <p class="about__list">English (TOEIC 720) &middot; New Zealand &middot; Cross-role communication</p>
           </div>
