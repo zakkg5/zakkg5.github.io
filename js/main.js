@@ -2186,7 +2186,8 @@ window.__fragSprites = (function () {
        所以方向轉回來、切口回到右邊(anchor right),空格改由 wFrac 控制。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
               drop: [[0.00, 0.60, 0.44, 1.00]], flip: true, tilt: -12,
-              anchor: 'right', wFrac: 0.86, cy: 0.42, dens: 1.25 },
+              anchor: 'right', wFrac: 0.86, cy: 0.42, dens: 1.25,
+              tag: 'WING', tagSub: 'FROM “DRAGON SKULL”' },
     /* 腳掌:⚠️ 原本整條腿(含髖)一起放,看起來只是一根斜的骨頭
        (Zakk:「about 那頁的碎片看不太出來是腳了」)。
        改成只留小腿到腳趾、不鏡射(腳掌在左邊,朝空白處),
@@ -2202,7 +2203,8 @@ window.__fragSprites = (function () {
               /* 往左靠一點:2560 寬時內容右緣 1220、腳左緣 1792,
                  中間空了 572px(Zakk:「這兩個中間有點太空了」)。
                  腳的切口在上緣,左右可以自由移動 —— 翅膀不行(切口在右邊,要出右界)。 */
-              padL: 0.20, topOut: 0.16, wFrac: 0.82, dens: 1.05 },
+              padL: 0.20, topOut: 0.16, wFrac: 0.82, dens: 1.05,
+              tag: 'CLAW', tagSub: 'FROM “DRAGON SKULL”' },
     /* 尾巴:⚠️ 兩次錯誤都記著 ——
        ① 整個 C 型放進去 = 一段脊椎的彎,又寬又粗(「他尾巴不可能那麼寬」)
        ② 改細之後我把它推到更右邊,但他要的是更左(「我是指從左邊一點的地方,
@@ -2215,12 +2217,14 @@ window.__fragSprites = (function () {
        → 根從上界出去(Zakk 圈的位置),往右生長,整條壓在 y 320 以上。
        ⚠️ 不鏡射:原圖的尾巴本來就是「根在左上、尖在右下」,正好是他要的方向。 */
     photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00],
-              padL: 0.16, topOut: 0.20, wFrac: 0.58, dens: 0.80, alpha: 0.68 }
+              padL: 0.16, topOut: 0.20, wFrac: 0.58, dens: 0.80, alpha: 0.68,
+              tag: 'CAUDAL', tagSub: 'FROM “DRAGON SKULL”' }
   };
 
 
   /* 滑鼠扭曲 —— 跟首屏同一套。演變過程寫在首屏那一段:
      推開 → 洞;半徑重映射(透鏡)→ 還是洞;現在是**扭轉**,面積不變,不會少碎片。 */
+  var BLUE = '#1F4A78';  // 製圖藍,跟 CSS 的 --slate 同一個值
   var LENS_R = 110;      // 影響半徑
   var TWIST = 0.34;      // 旋轉,給散開一個方向感
   var SCAT_R = 26;       // 往外推
@@ -2548,6 +2552,9 @@ window.__fragSprites = (function () {
       pye += (pym - pye) * 0.22;
     }
 
+    // 碎片實際畫到哪裡 —— 標註的引線要釘在這個範圍上,不能用方框推算
+    var bbL = 1e9, bbR = -1e9, bbT = 1e9, bbB = -1e9;
+
     for (var i = 0; i < pts.length; i++) {
       var p = pts[i];
       var dx = (p.u - 0.5) * boxW;
@@ -2600,8 +2607,62 @@ window.__fragSprites = (function () {
       var d2 = p.sz * scale * mag;
       ctx.globalAlpha = p.a * vis * edge * segA * nc;
       ctx.drawImage(p.sp[p.si], px - d2 / 2, py - d2 / 2, d2, d2);
+
+      if (px < bbL) bbL = px;
+      if (px > bbR) bbR = px;
+      if (py < bbT) bbT = py;
+      if (py > bbB) bbB = py;
     }
     ctx.globalAlpha = 1;
+    callout(sg, vis, bbL, bbT, bbR, bbB);
+  }
+
+  /* ══ 標註:引線 + 方形節點 + 小面板 ══
+     這一塊是整個風格層的簽名。它讓碎片**被說明** ——
+     碎片因此不再是「一個粒子特效」,而是「一張技術圖上被標註的東西」,
+     跟旁邊那些平面圖、立面圖變成同一件事(Zakk:「粒子跟印在紙上沒什麼相關」)。
+
+     ⚠️ 畫在**同一張 canvas** 上,不用 DOM ——
+     碎片的位置每幀都在動(擺動、換頁位移、滑鼠散開),
+     用 DOM 疊上去一定會脫鉤。同一張畫布就永遠對得準。 */
+  function callout(sg, vis, l, tp, r, b) {
+    if (!sg.tag || l > r) return;
+    var a = vis * 0.9;
+    if (a <= 0.02) return;
+
+    /* ⚠️ 面板不能放在骨頭左邊:骨頭常常一路貼到欄位左緣,
+       面板會落進左緣那 90px 的遮罩裡直接消失(實測 lx=12)。
+       放**下方** —— 三段的骨頭下面都有空間,而且圖說本來就在圖的下面。 */
+    var nx = l + (r - l) * 0.34;         // 節點釘在骨頭下半部
+    var ny = b - (b - tp) * 0.10;
+    var lx = 104;                        // 面板固定貼欄位左緣(避開遮罩)
+    var ly = Math.min(H - 40, b + 74);
+
+    ctx.save();
+    ctx.globalAlpha = a;
+    ctx.strokeStyle = BLUE;
+    ctx.fillStyle = BLUE;
+    ctx.lineWidth = 1;
+
+    // 引線:從節點斜下來,再走一小段水平接到標籤 —— 製圖引線的畫法
+    ctx.beginPath();
+    ctx.moveTo(nx, ny);
+    ctx.lineTo(lx + 74, ly - 26);
+    ctx.lineTo(lx, ly - 26);
+    ctx.stroke();
+
+    // 方形節點(空心,中間留白 —— 實心會變成一個突兀的點)
+    ctx.strokeRect(nx - 3.5, ny - 3.5, 7, 7);
+
+    // 標籤
+    ctx.textBaseline = 'alphabetic';
+    ctx.font = '600 11px "JetBrains Mono", ui-monospace, monospace';
+    ctx.fillText(sg.tag, lx, ly - 10);
+
+    ctx.globalAlpha = a * 0.6;
+    ctx.font = '400 9.5px "JetBrains Mono", ui-monospace, monospace';
+    ctx.fillText(sg.tagSub, lx, ly + 6);
+    ctx.restore();
   }
 
   function frame() {

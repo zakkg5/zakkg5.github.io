@@ -2304,15 +2304,20 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    但不再是「數字」,就不會跟清單打架。 */
 .section__num { display: none; }
 
+/* 🔴 標記從「一段短線」改成**十字規線**(印刷版上對位用的那個十字)。
+   短線是裝飾:它沒有說任何事。十字規線是印刷品上真的存在的東西 ——
+   它的工作就是「這裡是版的定位點」,拿來標章節開頭剛好同義。
+   兩色:橫線用餘燼橘(套印的第二塊版)、直線用製圖藍,交叉點就是兩塊版對準的地方。 */
 .section__head::before {
   content: "";
   flex: none;
-  width: 28px;
-  height: 2px;
-  background: var(--ember);
-  /* 跟大標的基線對齊,而不是跟整個 flex 置中 —— 置中會浮在半空 */
+  width: 22px;
+  height: 22px;
   align-self: baseline;
-  transform: translateY(-0.42em);
+  transform: translateY(-0.28em);
+  background:
+    linear-gradient(var(--ember), var(--ember)) center / 22px 1.5px no-repeat,
+    linear-gradient(var(--slate), var(--slate)) center / 1.5px 22px no-repeat;
 }
 
 
@@ -2334,19 +2339,36 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .dragon-side {
   position: fixed;
   top: 0;
-  left: 1150px;                /* Zakk:「不用那麼省版面」—— 往左讓出更多空間 */
+  /* 🔴 對齊內容的 70%:這一欄就是骨頭的地盤,不再跟內容重疊。
+     原本 left:1150px 是硬編的,在 2560 的螢幕上它從內容中間就開始了。 */
+  left: 70vw;
   /* ⚠️ canvas 是 replaced element:只給 left + right 的話,
      寬度會取「點陣尺寸」而不是兩邊的距離(實測算出 2200px,整個蓋到字上)。
      必須明確給 width。 */
-  width: calc(100vw - 1150px);
+  width: 30vw;
   height: 100svh;
+
+  /* 這一欄是一張製圖紙:淡藍格線,每 64px 一格。
+     canvas 本身透明,所以背景透得出來。
+     左緣用遮罩化開,不要在內容旁邊切出一條硬邊。 */
+  /* ⚠️ 格線要比 --blue-line 更淡:那個變數是給「看得見的標註線」用的,
+     整片鋪成網格會太吵。這裡直接用 10% 的製圖藍。 */
+  background-image:
+    repeating-linear-gradient(to right,  rgba(31, 74, 120, 0.10) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(to bottom, rgba(31, 74, 120, 0.10) 0 1px, transparent 1px 64px);
+  -webkit-mask-image: linear-gradient(to right, transparent 0, #000 90px);
+  mask-image: linear-gradient(to right, transparent 0, #000 90px);
   z-index: 0;                  /* 跟 .fragments 同層,墊在 #main(z-index 1)後面 */
   pointer-events: none;
   display: none;               /* 預設不存在 */
 }
 
-/* 1720 以下右邊沒有足夠空位,放了就會擠到字 */
-@media (min-width: 1720px) {
+/* ⚠️ 門檻從 1720 降到 1441。
+   1720 那個數字是「內容寬度固定 1240」時代量出來的 —— 那時右邊剩多少
+   完全看螢幕多寬,窄一點就會擠到字。現在版面保證右邊永遠留 30%,
+   而 1441 正是「內容改成 70%」那條規則生效的寬度,兩者對齊。
+   (1441–1719 之間原本是:內容 70%、右邊 30% 完全空白,什麼都沒有。) */
+@media (min-width: 1441px) {
   .dragon-side { display: block; }
 }
 
