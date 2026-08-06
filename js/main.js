@@ -32,6 +32,15 @@
   var target = window.pageYOffset || 0;
   var running = false;
   var EASE = 0.09;          // 每幀走剩餘距離的 9%
+  /* 🔴 吸附時走得更慢(4%)。
+     Zakk:「太敏感就跳頁,看不太到換頁的特效」。
+     一幀的動畫是靠捲動推的 —— 用一般速度吸附等於把整段過場快轉過去,
+     人只會看到「啪」一下換頁。慢下來,描繪與淡出才播得完。
+
+     ⚠️ 0.04 太慢:走完一整幀(2160px)要約 3.5 秒,使用者會覺得頁面卡住。
+     0.055 大約 2.4 秒 —— 比一般的 0.09(1.5 秒)明顯慢,但不到「等很久」。 */
+  var EASE_SNAP = 0.055;
+  var snapping = false;
 
   function maxY() {
     return Math.max(0, root.scrollHeight - window.innerHeight);
@@ -43,9 +52,10 @@
     if (Math.abs(d) < 0.4) {
       window.scrollTo(0, target);
       running = false;
+      snapping = false;
       return;
     }
-    window.scrollTo(0, cur + d * EASE);
+    window.scrollTo(0, cur + d * (snapping ? EASE_SNAP : EASE));
     requestAnimationFrame(loop);
   }
 
@@ -63,6 +73,7 @@
        「滑鼠在照片上滾 → 照片捲了、頁面也跟著跳到下一幀」。 */
     if (e.defaultPrevented) return;
     e.preventDefault();
+    snapping = false;          // 使用者一動就回到正常速度,不要拖拖拉拉
     target += e.deltaY;
     if (target < 0) target = 0;
     var m = maxY();
@@ -119,7 +130,7 @@
      ⚠️ 只在**使用者停手**時做,不在滾動中途插手 —— 中途改目標會變成
      「網頁在跟我搶方向盤」。160ms 是「手指離開滾輪」的判斷值,
      太短會在連續滾動的間隙誤觸發。 */
-  var SNAP_IDLE = 160;      // 停手多久之後才吸附
+  var SNAP_IDLE = 260;      // 停手多久之後才吸附(160 太短,連續滾動的間隙會誤判)
   var snapTimer = null;
 
   function holdY(fr) {
@@ -167,12 +178,14 @@
     var pitch = holds.length > 1 ? (holds[1] - holds[0]) : window.innerHeight;
     var moved = target - restY;
 
-    /* ⚠️ 門檻只要 22%,不是 50%。
-       一幀相隔 2160px,用「過半才算」的話,滑了 900px 還是會被拉回原地
-       —— 使用者會覺得網頁在跟他作對。往哪個方向動、動得夠明顯,
-       就往那個方向走一幀。 */
+    /* 門檻:要滑過一幀的 40% 才算「他想去下一頁」。
+       ⚠️ 這個值調過兩次:
+         50% 太嚴 —— 一幀 2160px,滑了 900px 還是被拉回原地,像在跟人作對。
+         22% 太鬆 —— 輕輕一撥就跳頁,而且過場被快轉掉
+                     (Zakk:「太敏感就跳頁,看不太到換頁的特效」)。
+       40% 是「明確要換頁」與「只是想微調位置」之間的界線。 */
     var idx = from;
-    if (Math.abs(moved) > pitch * 0.22) idx = from + (moved > 0 ? 1 : -1);
+    if (Math.abs(moved) > pitch * 0.40) idx = from + (moved > 0 ? 1 : -1);
     if (idx < 0) idx = 0;
     if (idx > holds.length - 1) idx = holds.length - 1;
 
@@ -182,6 +195,7 @@
     restY = holds[idx];
     if (Math.abs(restY - target) < 2) return;
     target = restY;
+    snapping = true;
     kick();
   }
 
