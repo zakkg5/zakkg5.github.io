@@ -1583,13 +1583,17 @@ html.is-loading .hero__bar { opacity: 0; }
 @keyframes mqScroll { to { transform: translateX(calc(var(--mq-shift, -50%) * -1)); } }
 
 .mq { flex: none; margin: 0; }
+/* 🔴 照片帶放大、Contact 縮小(Zakk:「photo 的比例跟 contact 要相反,
+   contact 太大」)。實測改之前:照片帶 450px(佔一幀 31%)、
+   Contact 316px(22%)—— 一個放照片的區,收尾的字塊卻快跟照片一樣重。
+   照片 34vh → 46vh,Contact 那一塊同步收掉(見 .connect__inner)。 */
 .mq img {
   display: block;
-  height: clamp(200px, 34vh, 380px);
+  height: clamp(240px, 46vh, 560px);
   width: auto;
   transition: filter var(--t-base) var(--ease);
 }
-.mq--tall img { height: clamp(240px, 40vh, 450px); }
+.mq--tall img { height: clamp(280px, 53vh, 640px); }
 .mq:hover img { filter: saturate(1.1) contrast(1.03); }
 
 
@@ -2619,9 +2623,9 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   display: flex;
   flex-direction: column;
   align-items: flex-start;
-  gap: var(--s4);
-  margin-top: clamp(48px, 7vh, 96px);
-  padding-top: var(--s5);
+  gap: var(--s3);
+  margin-top: clamp(28px, 3.5vh, 52px);
+  padding-top: var(--s4);
   border-top: 1px solid rgba(100, 110, 117, 0.16);
 }
 
@@ -2657,10 +2661,11 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 /* 整站最大的字。首屏那句是「我是誰」,這句是「來找我」——
    結尾比開頭更大,才收得住。 */
-/* ⚠️ 接在文字流裡就不能用獨立一區時的 13rem —— 那會把照片帶壓成配角。
-   收到 6rem:仍然是這一幀最大的字,但不搶走整區的主體。 */
+/* ⚠️ 這個字級調過三次,把理由記著:
+   13rem(獨立一區)→ 6rem(併回文字流)→ 3.4rem(照片要當主角)。
+   這一幀的主體是照片,收尾的字塊只要「收得住」就好,不必最大。 */
 .connect__title {
-  font-size: clamp(2.25rem, 5.6vw, 6rem);
+  font-size: clamp(1.75rem, 3.2vw, 3.4rem);
   color: var(--ink-blue);
   font-weight: 500;
   font-stretch: 125%;
@@ -2671,13 +2676,13 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 /* 跑馬燈:滿版出血,跟照片帶同一招 */
 .connect__mq {
-  margin-top: var(--s3);
+  margin-top: var(--s2);
   width: var(--vw, 100vw);
   margin-inline: calc(50% - var(--vw, 100vw) / 2);
   overflow: hidden;
   border-top: 1px solid var(--hair);
   border-bottom: 1px solid var(--hair);
-  padding-block: var(--s3);
+  padding-block: 10px;
 }
 .connect__mq-track {
   display: flex;
