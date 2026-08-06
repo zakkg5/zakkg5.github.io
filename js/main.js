@@ -2079,16 +2079,35 @@ window.__fragSprites = (function () {
 
     /* 量出一個完整循環的距離:第一張 → 複製後的第一張。
        這才是「內容一份 + 一個 gap」的真實寬度,-50% 會差一個 gap。 */
+    /* 🔴 量到新的循環距離時要**重啟動畫**,不能只改變數。
+       Zakk:「照片輪迴有時候會斷掉,卡卡的」——
+       CSS 動畫的終點是 translateX(-var(--mq-shift));跑到一半才改那個值,
+       瀏覽器會用新的終點重算目前的位置 → 畫面直接跳一段。
+       圖片是陸續載完的,所以這個值本來就會變好幾次,一定會被看到。 */
+    var lastShift = 0;
     var measureShift = function () {
       var kids = track.children;
       if (kids.length <= firstCount) return;
       var d = kids[firstCount].offsetLeft - kids[0].offsetLeft;
-      if (d > 0) track.style.setProperty('--mq-shift', d + 'px');
+      if (d <= 0 || Math.abs(d - lastShift) < 1) return;
+      lastShift = d;
+      track.style.setProperty('--mq-shift', d + 'px');
+      /* 重啟:拿掉動畫 → 強制重排 → 再掛回去。
+         不重排的話瀏覽器會把兩次設定合併,等於沒重啟。 */
+      track.style.animation = 'none';
+      void track.offsetWidth;
+      track.style.animation = '';
     };
     measureShift();
     window.addEventListener('load', measureShift);
     window.addEventListener('resize', measureShift);
-    setTimeout(measureShift, 1800);        // 圖片載完尺寸才穩
+    /* 每一張圖各自載完都量一次 —— 比固定等 1800ms 準,
+       慢的網路上 1800ms 根本還沒載完。 */
+    [].forEach.call(track.querySelectorAll('img'), function (im) {
+      if (im.complete) return;
+      im.addEventListener('load', measureShift, { once: true });
+    });
+    setTimeout(measureShift, 1800);
   }
 
   /* 滑鼠在照片帶上時,可以用滾輪左右捲(自動播放此時是暫停的)。
@@ -2125,7 +2144,11 @@ window.__fragSprites = (function () {
      原本是一區一條短線、滑過才伸出名字 —— 那要「先發現它、再滑上去」
      才知道是導覽,而右上角的導覽列做的是同一件事,兩個功能重複
      (Zakk:「右上角就可以不用了,兩個功能一樣」)。
-     改成一直看得到名字的按鈕,右上角那組就拿掉。 */
+     改成一直看得到名字的按鈕,右上角那組就拿掉。
+     ⚠️ 位置從「右側中間、直排」改成「上方置中、橫排」——
+     直排時容器是一個很高的圓角矩形,裡面那顆膠囊跟容器的弧線對不上,
+     看起來像「線跑出按鈕」(Zakk 原話)。橫排就沒有這個問題,
+     而且 topbar 已經拿掉,上緣正好空著。 */
   var items = [
     ['hero-b', 'Intro'], ['works', 'Works'], ['about', 'About'],
     ['photos', 'Photos'], ['contact', 'Contact']
@@ -2427,7 +2450,11 @@ window.__fragSprites = (function () {
        → 根從上界出去(Zakk 圈的位置),往右生長,整條壓在 y 320 以上。
        ⚠️ 不鏡射:原圖的尾巴本來就是「根在左上、尖在右下」,正好是他要的方向。 */
     photos: { src: 'bones-tail.webp', crop: [0.18, 0.42, 0.92, 1.00],
-              padL: 0.16, topOut: 0.20, wFrac: 0.58, dens: 0.50, alpha: 0.60,
+              /* 尾巴加長但不能壓到照片(Zakk 兩個要求同時成立):
+                 wFrac 0.58 → 1.05  橫向拉長(它是橫的,長度看寬度)
+                 topOut 0.20 → 0.42 整塊往上抬,把多出來的長度藏到畫面上緣外
+               ⚠️ 只放大不抬高的話,實測尾巴底緣 378 會壓在照片上緣 344 上。 */
+              padL: 0.10, topOut: 0.54, wFrac: 1.05, dens: 0.50, alpha: 0.60,
               tag: 'CAUDAL', tagSub: 'FROM “DRAGON SKULL”' }
   };
 
@@ -3097,4 +3124,11 @@ window.__fragSprites = (function () {
     requestAnimationFrame(watch);
   }
   requestAnimationFrame(watch);
+
+  /* 大標滑過也重跑一次 —— 跟換頁同一個語彙,
+     讓人知道「這個字是被讀出來的,不是印上去的」。 */
+  document.addEventListener('mouseover', function (e) {
+    var h = e.target.closest && e.target.closest('.section__title, .hb2-word, .connect__title');
+    if (h) scramble(h);
+  }, { passive: true });
 }());

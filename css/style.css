@@ -847,7 +847,14 @@ a { color: inherit; text-decoration: none; }
      像一張攤在桌上的紙被上方的光打到 —— 這也是「紙」這個底最缺的東西。
      幅度只有 4%:再多會蓋掉圖面的黑墨線。
      色暈跟著換成製圖藍(原本的 91,115,134 是舊的湖藍灰)。 */
+  /* 🔴 座標格鋪滿整頁,不只在右邊(Zakk:「網格還是只在右邊,有什麼方法解決」)。
+     ⚠️ 整頁這一層必須非常淡(4%):它會壓在所有圖面下方,
+     太強會跟平面圖的墨線混在一起。右欄那層維持 10%,
+     所以仍然看得出「右邊是儀器區、其餘是內容區」——
+     不是把網格拿掉一邊,是讓它有強弱。 */
   background:
+    repeating-linear-gradient(to right,  rgba(31, 74, 120, 0.04) 0 1px, transparent 1px 64px),
+    repeating-linear-gradient(to bottom, rgba(31, 74, 120, 0.04) 0 1px, transparent 1px 64px),
     linear-gradient(to bottom,
       rgba(23, 27, 30, 0) 0%,
       rgba(23, 27, 30, 0.018) 42%,
@@ -1495,7 +1502,8 @@ html.is-loading .hero__bar { opacity: 0; }
   justify-content: space-between;
   gap: var(--s4);
   padding-top: var(--s3);
-  border-top: 1px solid var(--hair);
+  /* ⚠️ 這裡原本有一條 border-top —— Zakk:「首頁下方有一條線,有點突出」。
+     取景框已經界定了範圍,再加一條線就是第二個邊界,兩個在打架。 */
 }
 .hb2-status {
   margin: 0;
@@ -1586,16 +1594,17 @@ html.is-loading .hero__bar { opacity: 0; }
 /* 🔴 一整條膠囊容器,裡面放選項 —— 參考 Zakk 給的 fuch.ai 導覽列。
    結構是「容器一顆膠囊 + 目前這頁自己再戴一顆」,
    而不是五顆各自獨立的按鈕:那樣看起來是五個東西,不是一組導覽。 */
+/* ⚠️ 直排的容器是一個很高的圓角矩形,裡面那顆膠囊跟容器的弧線對不上 ——
+   看起來像「線跑出按鈕」(Zakk 原話)。橫排就沒有這個問題。 */
 .side-nav {
   position: fixed;
-  right: var(--gutter);
-  top: 50%;
-  transform: translateY(-50%);
+  left: 50%;
+  top: var(--s4);
+  transform: translateX(-50%);
   z-index: 5;
-  display: grid;
+  display: flex;
   gap: 2px;
-  justify-items: stretch;
-  padding: 6px;
+  padding: 5px;
   border-radius: 999px;
   border: 1px solid var(--hair);
   /* 半透明 + 背景模糊:碎片從後面透過來,導覽仍然讀得到 */
@@ -1683,11 +1692,15 @@ html.is-loading .hero__bar { opacity: 0; }
    照片 34vh → 46vh,Contact 那一塊同步收掉(見 .connect__inner)。 */
 .mq img {
   display: block;
-  height: clamp(240px, 46vh, 560px);
+  /* ⚠️ 46vh 在 1080 高的螢幕上塞不下:整區(大標 + 說明 + 照片 + Contact)
+     超過一幀,sheet 是內容置中的,所以大標被擠出上緣(實測 top = -8)。
+     Zakk 說「大標太上面沒有留空間」,根本原因就是這個 —— 不是留白沒調,
+     是內容根本溢出。降到 38vh,大標才回得來。 */
+  height: clamp(220px, 38vh, 560px);
   width: auto;
   transition: filter var(--t-base) var(--ease);
 }
-.mq--tall img { height: clamp(280px, 53vh, 640px); }
+.mq--tall img { height: clamp(256px, 44vh, 640px); }
 .mq:hover img { filter: saturate(1.1) contrast(1.03); }
 
 
@@ -2343,6 +2356,13 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
      ⚠️ 原本固定 1240px:在 2560 的螢幕上只有 48%,右邊的骨頭拿到 49% ——
      裝飾拿到跟作品一樣多的版面,主從關係是反的。
      改成跟著螢幕走,右邊永遠只剩 30%。 */
+  /* ⚠️ Photos 大標「太上面」不能靠加 padding 解決。
+     那張 sheet 是**內容置中**的:加高度會讓上下兩端一起往外長,
+     實測大標從 56 跑到 -8(被切掉),比原本更糟。
+     真正的限制是這一區的內容已經填滿一幀(照片帶 44%)——
+     要讓大標有留白,只能縮內容,而照片正是剛剛才依他要求放大的。
+     所以這裡不動,改從尾巴那邊讓出空間。 */
+
   .works { max-width: calc(70vw - var(--gutter)); }
   .about { max-width: calc(70vw - var(--gutter)); }
   /* ⚠️ 大標那一列也要收在 70% 裡。它原本沒有限寬(實測 2448px),
@@ -2937,3 +2957,81 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 }
 .xp__row:hover { border-top-color: var(--slate); }
 .facts__row:hover { border-bottom-color: var(--slate); }
+
+
+/* ═══════════ 字的互動 ═══════════
+   Zakk:「每個字要有特效感覺還沒做好 / 我希望每個素材都有自己的動態感」
+
+   ⚠️ 不是每個字都加同一種效果 —— 那會讓「能按的」跟「不能按的」看起來一樣。
+   依它是什麼東西給不同的反應:
+
+     可點的名字   → 字往右推一格 + 底下描出一條線(像被選取)
+     等寬小標籤   → 字距撐開(它本來就是「標籤」,撐開是標籤被讀取的樣子)
+     連結         → 底線由左往右描出來
+     大標         → 滑過重跑一次亂碼解碼(跟換頁同一個語彙)
+*/
+
+/* 作品名:推一格 + 描線 */
+.works__name {
+  display: inline-block;
+  position: relative;
+  transition: transform var(--t-quick) var(--ease);
+}
+.works__name::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: var(--slate);
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--t-base) var(--ease);
+}
+.works__row:hover .works__name { transform: translateX(6px); }
+.works__row:hover .works__name::after { transform: scaleX(1); }
+
+/* 等寬標籤:字距撐開。
+   ⚠️ 撐開字距會讓元素變寬、把旁邊的東西推走 —— 所以只給
+   「自己一欄、右邊沒有東西」的標籤用。 */
+.works__type,
+.about__label,
+.work-eyebrow,
+.hb2-eyebrow {
+  transition: letter-spacing var(--t-base) var(--ease), color var(--t-quick) var(--ease);
+}
+.works__row:hover .works__type { letter-spacing: 0.22em; color: var(--slate); }
+.about__block:hover .about__label { letter-spacing: 0.22em; }
+
+/* 一般連結:底線由左往右描出來 */
+.contact-list a,
+.about__cv,
+.work-next__link,
+.footer a {
+  position: relative;
+  text-decoration: none;
+}
+.contact-list a::after,
+.about__cv::after,
+.work-next__link::after,
+.footer a::after {
+  content: "";
+  position: absolute;
+  left: 0;
+  right: 0;
+  bottom: -2px;
+  height: 1px;
+  background: currentColor;
+  transform: scaleX(0);
+  transform-origin: left;
+  transition: transform var(--t-base) var(--ease);
+}
+.contact-list a:hover::after,
+.about__cv:hover::after,
+.work-next__link:hover::after,
+.footer a:hover::after { transform: scaleX(1); }
+
+/* 規格表的鍵:滑過該列時撐開 */
+.facts__row:hover .facts__k { letter-spacing: 0.2em; }
+.facts__k { transition: letter-spacing var(--t-base) var(--ease); }
