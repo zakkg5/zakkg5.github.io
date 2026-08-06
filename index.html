@@ -34,7 +34,7 @@
   <link rel="preload" href="assets/3d/dragon.webp" as="image" type="image/webp">
 
   <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1,瀏覽器才會抓新的 -->
-  <link rel="stylesheet" href="css/style.css?v=123">
+  <link rel="stylesheet" href="css/style.css?v=125">
 </head>
 
 <body>
@@ -407,77 +407,44 @@
         </div>
       </div>
     
-      <!-- Contact 併進 Photos(Zakk:「photo 也沒有很滿,合併就好」)。
-           內容回到最初的簡版:一句話 + 三個連結。
-           兩欄版把整幀撐滿了,但那是為了填空而長出來的內容,不是真的需要。 -->
-      <div class="contact-inline reveal" style="--delay: 140ms">
-        <h2 class="contact-inline__title">Contact</h2>
-        <ul class="contact-list">
-          <li><a href="mailto:zakk0000g5@gmail.com">Email</a></li>
-          <li><a href="https://instagram.com/zakktseng" target="_blank" rel="noopener">Instagram</a></li>
-          <li><a href="https://github.com/zakkg5" target="_blank" rel="noopener">GitHub</a></li>
+      <!-- ══════════ Contact ══════════
+           Contact 併進 Photos(Zakk:「photo 也沒有很滿,合併就好」)。
+           ⚠️ 我一度把它拆成獨立的第四區 —— Zakk:「還是把整個 Let's connect
+           放到原本的地方,不是新的一頁」。四區變五區只是多一次翻頁,
+           收尾的話留在最後一幀的末尾才收得住。
+
+           骨架:狀態列(時鐘會走) → 巨大的一句話 → 膠囊按鈕 → 滿版跑馬燈。 -->
+      <div class="connect__inner reveal" style="--delay: 140ms">
+
+        <p class="connect__status">
+          <span class="status__dot" aria-hidden="true"></span>
+          Available now
+          <span class="connect__sep" aria-hidden="true">&middot;</span>
+          <span data-read="clock2">--:--:-- TPE</span>
+        </p>
+
+        <h2 class="connect__title">Let&rsquo;s connect</h2>
+
+        <ul class="chips chips--sm">
+          <li><a class="chip" href="mailto:zakk0000g5@gmail.com">
+            <i class="chip__mark" aria-hidden="true"></i>Email</a></li>
+          <li><a class="chip" href="https://instagram.com/zakktseng" target="_blank" rel="noopener">
+            <i class="chip__mark" aria-hidden="true"></i>Instagram</a></li>
+          <li><a class="chip" href="https://github.com/zakkg5" target="_blank" rel="noopener">
+            <i class="chip__mark" aria-hidden="true"></i>GitHub</a></li>
+          <li><a class="chip" href="assets/cv/zakk-tseng-cv.pdf" download>
+            <i class="chip__mark" aria-hidden="true"></i>Download CV</a></li>
         </ul>
-      </div>
-    </section>
 
-    <!-- ══════════ 04 CONTACT ══════════
-         最後一區自己一個版面,不跟前面三區共用模板
-         (Zakk:「現在那三頁都一樣模板的感覺…可以試試都用不同的版面去排」)。
-
-         這一區的骨架是「連線待命中的終端機」:
-           上   狀態列 —— 綠點 + 開放接案 + 台北時間(會走)
-           中   巨大的一句話,整站唯一比首屏還大的字
-           下   膠囊按鈕(Email / Instagram / GitHub)
-           底   跑馬燈,把同一句話重複推過去
-         四角一樣有取景框,跟首屏是同一個介面。 -->
-    <section class="section connect" id="connect" aria-label="Contact">
-      <div class="hud" aria-hidden="true">
-        <i class="hud__corner hud__corner--tl"></i>
-        <i class="hud__corner hud__corner--tr"></i>
-        <i class="hud__corner hud__corner--bl"></i>
-        <i class="hud__corner hud__corner--br"></i>
-      </div>
-
-      <!-- ⚠️ 內容一定要包一層 .connect__inner。
-           .connect 本身會被翻頁系統變成「幀」(2160px 高),
-           真正看得到的是它裡面那張 position:fixed 的 sheet ——
-           flex 排版下在 .connect 上完全沒作用(實測 min-height 1267px 但內容
-           全擠在頂端)。要排版就得排在被搬進 sheet 的那一層。 -->
-      <div class="connect__inner">
-
-      <!-- 側邊直排:這一區在整站的位置。用 04 是因為它真的是第四區 -->
-      <p class="connect__side" aria-hidden="true">04 / CONNECT</p>
-
-      <p class="connect__status">
-        <span class="status__dot" aria-hidden="true"></span>
-        Available now
-        <span class="connect__sep" aria-hidden="true">&middot;</span>
-        <span data-read="clock2">--:--:-- TPE</span>
-      </p>
-
-      <h2 class="connect__title reveal">Let&rsquo;s connect</h2>
-
-      <ul class="chips reveal" style="--delay: 120ms">
-        <li><a class="chip" href="mailto:zakk0000g5@gmail.com">
-          <i class="chip__mark" aria-hidden="true"></i>Email</a></li>
-        <li><a class="chip" href="https://instagram.com/zakktseng" target="_blank" rel="noopener">
-          <i class="chip__mark" aria-hidden="true"></i>Instagram</a></li>
-        <li><a class="chip" href="https://github.com/zakkg5" target="_blank" rel="noopener">
-          <i class="chip__mark" aria-hidden="true"></i>GitHub</a></li>
-        <li><a class="chip" href="assets/cv/zakk-tseng-cv.pdf" download>
-          <i class="chip__mark" aria-hidden="true"></i>Download CV</a></li>
-      </ul>
-
-      <!-- 跑馬燈:內容重複三次,才夠長到可以無縫接回去 -->
-      <div class="connect__mq" aria-hidden="true">
-        <div class="connect__mq-track">
-          <span>Open to work</span><i>&loz;</i><span>Product &middot; Spatial &middot; Screen</span><i>&loz;</i><span>Taiwan &rarr; Worldwide</span><i>&loz;</i>
-          <span>Open to work</span><i>&loz;</i><span>Product &middot; Spatial &middot; Screen</span><i>&loz;</i><span>Taiwan &rarr; Worldwide</span><i>&loz;</i>
-          <span>Open to work</span><i>&loz;</i><span>Product &middot; Spatial &middot; Screen</span><i>&loz;</i><span>Taiwan &rarr; Worldwide</span><i>&loz;</i>
+        <!-- 跑馬燈:內容重複三次,才夠長到可以無縫接回去 -->
+        <div class="connect__mq" aria-hidden="true">
+          <div class="connect__mq-track">
+            <span>Open to work</span><i>&loz;</i><span>Product &middot; Spatial &middot; Screen</span><i>&loz;</i><span>Taiwan &rarr; Worldwide</span><i>&loz;</i>
+            <span>Open to work</span><i>&loz;</i><span>Product &middot; Spatial &middot; Screen</span><i>&loz;</i><span>Taiwan &rarr; Worldwide</span><i>&loz;</i>
+            <span>Open to work</span><i>&loz;</i><span>Product &middot; Spatial &middot; Screen</span><i>&loz;</i><span>Taiwan &rarr; Worldwide</span><i>&loz;</i>
+          </div>
         </div>
       </div>
-
-      </div><!-- /connect__inner -->
     </section>
 
   </main>

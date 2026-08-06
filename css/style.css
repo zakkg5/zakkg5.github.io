@@ -2560,6 +2560,18 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   margin: 0;
   padding: 0;
 }
+/* --sm:放在文字流裡的小尺寸(原本 contact 那一列)。
+   Zakk:「把這些縮小放到原本的 contact 那邊」——
+   獨立一區時可以大顆,但接在一行小標後面就必須跟那行字同一個量級,
+   不然按鈕會變成那一段的主角。 */
+.chips--sm { gap: var(--s2); }
+.chips--sm .chip {
+  padding: 6px 13px;
+  font-size: 10px;
+  gap: 0.6em;
+}
+.chips--sm .chip__mark { width: 5px; height: 5px; }
+
 .chip {
   display: inline-flex;
   align-items: center;
@@ -2598,22 +2610,20 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    自己一個骨架:狀態列 → 巨大標題 → 膠囊按鈕 → 跑馬燈。
    跟前面三區刻意不同 —— 三區共用同一個模板正是 Zakk 說的「很單調」。 */
 
-.connect { border-bottom: 0; }
-
-/* ⚠️ 排版下在 .connect__inner,不是 .connect ——
-   .connect 會被翻頁系統變成 2160px 高的「幀」,看得到的是裡面那張
-   position:fixed 的 sheet。flex 下在外層等於沒下。 */
+/* ⚠️ 這一段接在 Photos 的末尾,不是獨立的一區。
+   我一度把它拆成第四區 —— 那只是多一次翻頁,收尾的話留在最後一幀
+   的末尾才收得住(Zakk:「還是把整個 Let's connect 放到原本的地方」)。
+   所以不再撐滿一個視窗高,改成順著文字流往下排。 */
 .connect__inner {
   position: relative;
-  min-height: calc(100svh - 160px);
   display: flex;
   flex-direction: column;
-  justify-content: space-between;
-  gap: var(--s5);
-  padding-block: var(--s6) var(--s5);
+  align-items: flex-start;
+  gap: var(--s4);
+  margin-top: clamp(48px, 7vh, 96px);
+  padding-top: var(--s5);
+  border-top: 1px solid rgba(100, 110, 117, 0.16);
 }
-/* 標題自己佔住中段,上面是狀態列、下面是按鈕與跑馬燈 */
-.connect__title { margin-block: auto; }
 
 /* 側邊直排:整站唯一一處直排字,標示這一區的位置 */
 /* ⚠️ 直排字要放到內容欄**外面**的 gutter 裡。
@@ -2647,8 +2657,10 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 /* 整站最大的字。首屏那句是「我是誰」,這句是「來找我」——
    結尾比開頭更大,才收得住。 */
+/* ⚠️ 接在文字流裡就不能用獨立一區時的 13rem —— 那會把照片帶壓成配角。
+   收到 6rem:仍然是這一幀最大的字,但不搶走整區的主體。 */
 .connect__title {
-  font-size: clamp(3rem, 11vw, 13rem);
+  font-size: clamp(2.25rem, 5.6vw, 6rem);
   color: var(--ink-blue);
   font-weight: 500;
   font-stretch: 125%;
@@ -2659,6 +2671,7 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 /* 跑馬燈:滿版出血,跟照片帶同一招 */
 .connect__mq {
+  margin-top: var(--s3);
   width: var(--vw, 100vw);
   margin-inline: calc(50% - var(--vw, 100vw) / 2);
   overflow: hidden;
@@ -2690,8 +2703,7 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 }
 
 @media (max-width: 640px) {
-  .connect { min-height: auto; padding-block: var(--s7) var(--s6); }
   .connect__side { display: none; }
-  .connect .hud { display: none; }
-  .connect__title { font-size: clamp(2.5rem, 15vw, 4rem); }
+  .connect__title { font-size: clamp(2rem, 11vw, 2.75rem); }
+  .connect__inner { gap: var(--s3); }
 }
