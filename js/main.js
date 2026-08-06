@@ -3105,6 +3105,24 @@ window.__fragSprites = (function () {
   /* 綁在「這一幀變成主角」的那一刻。
      幀系統把能見度掛在 window.__frameVis,所以直接看它從低變高的瞬間 ——
      不用另外接一套進場偵測,兩邊也不會對不準。 */
+  /* ⚠️ 手機沒有幀系統 → window.__frameVis 不存在 → 上面那條路整個不會跑。
+     手機改用 IntersectionObserver:區塊進入視野時解碼一次。
+     (桌機不用它 —— 幀系統的能見度才是「這一幀正在演出」的正確定義,
+     IntersectionObserver 只知道「有沒有進畫面」。) */
+  if (!window.matchMedia('(min-width: 721px)').matches && 'IntersectionObserver' in window) {
+    var io = new IntersectionObserver(function (es) {
+      es.forEach(function (en) {
+        if (!en.isIntersecting) return;
+        var h = en.target.querySelector('.section__title, .hb2-word');
+        if (h) scramble(h);
+      });
+    }, { threshold: 0.35 });
+    ['hero-b', 'works', 'about', 'photos'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el) io.observe(el);
+    });
+  }
+
   var was = {};
   function watch() {
     var fv = window.__frameVis;

@@ -3035,3 +3035,50 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 /* 規格表的鍵:滑過該列時撐開 */
 .facts__row:hover .facts__k { letter-spacing: 0.2em; }
 .facts__k { transition: letter-spacing var(--t-base) var(--ease); }
+
+
+/* ═══════════ 手機:接上桌機的介面語言 ═══════════
+   Zakk:「可以讓手機也更新嗎,這版本很完美」
+
+   ⚠️ 不是把桌機的東西原封不動搬過來。手機少了三個前提:
+     ① 沒有 hover —— 「滑過才出現」的東西在這裡等於不存在
+     ② 沒有幀系統 —— 換頁特效的觸發點(window.__frameVis)不存在
+     ③ 寬度只有 375 —— 桌機的引線、讀數列會把版面撐爆
+   所以是「同一套語言、不同的說法」。 */
+
+@media (max-width: 720px) {
+  /* 導覽改成跟桌機同一顆膠囊。原本是三個裸字,跟新的介面對不上。 */
+  .topbar .nav {
+    display: flex;
+    gap: 2px;
+    padding: 4px;
+    border: 1px solid var(--hair);
+    border-radius: 999px;
+    background: rgba(244, 246, 247, 0.72);
+    -webkit-backdrop-filter: blur(10px);
+    backdrop-filter: blur(10px);
+  }
+  .topbar .nav a {
+    padding: 6px 11px;
+    border: 1px solid transparent;
+    border-radius: 999px;
+    transition: border-color var(--t-quick) var(--ease), color var(--t-quick) var(--ease);
+  }
+  /* 目前這一區:戴上自己的膠囊,跟桌機的 .side-nav a.is-here 同一個做法 */
+  .topbar .nav a.is-active { border-color: var(--ink); color: var(--ink); }
+}
+
+@media (max-width: 640px) {
+  /* 讀數留下時鐘就好。
+     ⚠️ PTS / ROT 在手機沒有意義:碎片引擎在手機是簡化過的,
+     報一個跟畫面對不上的數字比不報還糟。時鐘是真的。 */
+  .hero__read { display: flex; }
+  .hero__read [data-read="pts"],
+  .hero__read [data-read="rot"] { display: none; }
+
+  /* 取景框留著,但縮小、往內收 —— 它是「這是一個視窗」的訊號,
+     手機同樣需要,只是不能佔掉版面。 */
+  .hud { display: block; inset: 60px 12px 12px; }
+  .hud__corner { width: 12px; height: 12px; }
+  .hud__tag { display: none; }        /* 375px 放不下兩行標籤 */
+}
