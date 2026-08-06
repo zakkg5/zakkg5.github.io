@@ -1530,10 +1530,14 @@ html.is-loading .hero__bar { opacity: 0; }
   letter-spacing: 0.06em;
   color: var(--stone);
 }
-/* ⚠️ 原本名字與說明都是 10.5px 等寬,同一個份量 —— 誰都不是重點。 */
+/* ⚠️ 原本名字與說明都是 10.5px 等寬,同一個份量 —— 誰都不是重點。
+   ⚠️ 但也不能太大:這裡是左下角的身分註記,不是標題。
+   15px 在手機上跟大標搶份量(Zakk:「有點太大」),收到 13px。
+   姓氏也拿掉 —— 左下角是「這是誰的站」的註記,一個名字就夠,
+   完整姓名在 About 那一區有。 */
 .hb2-meta__lead {
   font-family: var(--sans);
-  font-size: 15px;
+  font-size: 13px;
   font-weight: 500;
   letter-spacing: 0.01em;
   color: var(--ink);
