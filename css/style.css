@@ -3307,3 +3307,47 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    讓它以「快照」的身分出現,而不是假裝成攝影作品。 */
 .how__fig--snap { max-width: 62%; }
 .how__fig--snap img { aspect-ratio: 3 / 4; }
+
+
+/* ═══════════ 現場筆記 ═══════════
+   一張規格表。⚠️ 用 <dl> 不是 <table> —— 它是「名稱 → 數值」的成對資料,
+   不是二維表格;讀螢幕軟體讀 dl 才會念成一組一組。 */
+
+.notes {
+  margin: var(--s3) 0 0;
+  border-top: 1px solid var(--hair);
+}
+/* ⚠️ 左右兩欄在四欄版面裡放不下:欄寬只剩約 285px,
+   「30–45 公分(辦公椅 35–45)」會被折成三行(實測)。
+   改成上下堆疊 —— 名稱在上、數值在下,窄欄也讀得順。 */
+.notes__row {
+  display: block;
+  padding: 8px 0;
+  border-bottom: 1px solid var(--hair);
+  transition: border-color var(--t-quick) var(--ease);
+}
+.notes__row:hover { border-bottom-color: var(--slate); }
+.notes dt {
+  margin: 0;
+  font-family: var(--han);
+  font-size: 0.74rem;
+  letter-spacing: 0.04em;
+  color: var(--stone);
+}
+.notes dd {
+  margin: 2px 0 0;
+  font-family: var(--mono);
+  font-size: 0.78rem;
+  color: var(--ink);
+  font-variant-numeric: tabular-nums;
+}
+/* 施工順序不是尺寸,用藍墨標出來 —— 它是這張表裡唯一的「流程」 */
+.notes__row--seq dd { color: var(--slate); }
+
+/* 四塊之後 3 欄會落單一個,改成 2 欄 */
+@media (min-width: 901px) {
+  .how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+@media (min-width: 1441px) {
+  .how { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+}
