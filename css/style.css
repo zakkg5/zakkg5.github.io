@@ -2196,8 +2196,14 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   /* ⚠️ 新增的區塊一定要加進這份名單。
      .hb2-bar(儀器列)是後來才有的,沒加進來就仍然是 absolute,
      直接壓在 .hb2-meta 上面(375px 實測兩者都落在 754–772)。 */
+  /* ⚠️ 選擇器要寫成 .hb2-meta.panel(0,2,0)——
+     .panel 那邊有一條 .hb2-meta.panel { position: absolute },
+     權重比這裡的 .hb2-meta(0,1,0)高,在媒體查詢裡也一樣贏。
+     結果手機上身分面板變成絕對定位、**整片蓋在大標上**
+     (實測面板 116–263、大標 157–225,完全重疊,看起來像大標不見了)。 */
   .hb2-head,
   .hb2-meta,
+  .hb2-meta.panel,
   .hb2-status,
   .hb2-bar {
     position: static;
@@ -2209,7 +2215,14 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .hb2-meta { margin-top: auto; }   /* 這一行就是「把下面兩塊推到底」 */
   /* ⚠️ 改成 static 之後 .hb2-bar 會被縮成內容寬又置中(375px 實測 95–280)。
      它是一整條列,要撐滿並貼左。 */
-  .hb2-bar { align-self: stretch; justify-content: flex-start; }
+  /* 375px 並排放不下:狀態列會被擠到右邊、時鐘卡在左邊(實測狀態從 x108 才開始)。
+     改成上下兩行。 */
+  .hb2-bar {
+    align-self: stretch;
+    flex-direction: column;
+    align-items: flex-start;
+    gap: 4px;
+  }
 }
 
 
@@ -3178,11 +3191,17 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 /* 面板化之後要調的間距 */
 /* ⚠️ .panel 帶了 position: relative,而它排在樣式表最後面 ——
    會蓋掉 .hb2-meta 的 position: absolute(實測身分塊從 y 838 跳到 336)。
-   同權重時後面的贏,所以這裡要用 .hb2-meta.panel(0,2,0)明確搶回來。 */
-.hb2-meta.panel {
-  position: absolute;
-  max-width: 46ch;
+   同權重時後面的贏,所以要用 .hb2-meta.panel(0,2,0)搶回來。
+
+   ⚠️ 但這條**只能給桌機**。手機那邊有一條把首屏區塊改成 position: static
+   的規則,權重同樣是 0,2,0 —— 而**媒體查詢不加權重**,所以寫在後面的這條
+   照樣贏,結果手機上身分面板變成絕對定位、整片蓋在大標上
+   (實測面板 116–263、大標 157–225,看起來像大標不見了)。
+   包進 min-width 才是對的解法,不是去跟手機那條比權重。 */
+@media (min-width: 721px) {
+  .hb2-meta.panel { position: absolute; }
 }
+.hb2-meta.panel { max-width: 46ch; }
 .about__intro.panel { margin-top: var(--s4); }
 .about__block.panel + .about__block.panel { margin-top: var(--s4); }
 .about__block.panel .xp { margin-top: 0; }
@@ -3283,3 +3302,8 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 @media (max-width: 900px) {
   .how { grid-template-columns: 1fr; gap: var(--s3); }
 }
+
+/* 現場快照:解析度低的手機照片。做小、不做滿版 ——
+   讓它以「快照」的身分出現,而不是假裝成攝影作品。 */
+.how__fig--snap { max-width: 62%; }
+.how__fig--snap img { aspect-ratio: 3 / 4; }

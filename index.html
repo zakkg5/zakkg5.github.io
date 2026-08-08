@@ -34,7 +34,7 @@
   <link rel="preload" href="assets/3d/dragon.webp" as="image" type="image/webp">
 
   <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1,瀏覽器才會抓新的 -->
-  <link rel="stylesheet" href="css/style.css?v=152">
+  <link rel="stylesheet" href="css/style.css?v=155">
 </head>
 
 <body>
@@ -447,12 +447,15 @@
             I am most pleased with.</p>
           <p class="how__zh" lang="zh-Hant">老闆叫我自己裝通風機。我自己量尺寸、接電線、鎖螺絲,
             把窗戶開口挖大讓它裝得進去。它會轉 —— 那是我到現在最有成就感的一件事。</p>
-          <!-- ⚠️ 這裡要換成通風機那張(Zakk 手上拿螺絲起子在接線的那張)。
-               目前先用同一次實習的接線照頂著 —— 圖跟文字要對得上,
-               原檔一到就換掉。 -->
-          <figure class="how__fig">
-            <img src="assets/process/site-wiring.webp" alt="工地現場:在木作骨架上配線"
-                 loading="lazy" width="1200" height="1600">
+          <!-- ⚠️ 這張的原檔只有 320x693 —— 是手機截圖再壓縮過的,不是原始照片。
+               已裁掉狀態列與黑邊、放大兩倍(640x1116)。
+               再放大只會把 JPEG 的壓縮雜訊一起放大,更糟。
+               所以這一格刻意做小、不做滿版 —— 讓它以「現場快照」的身分出現,
+               而不是假裝成一張攝影作品。Zakk 若找得到原始檔案就換掉。 -->
+          <figure class="how__fig how__fig--snap">
+            <img src="assets/process/vent-fan.webp?v=2"
+                 alt="實習現場:手持螺絲起子,把電線接到通風機的端子座上"
+                 loading="lazy" width="640" height="1116">
           </figure>
         </article>
 
