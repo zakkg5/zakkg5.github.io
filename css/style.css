@@ -3208,9 +3208,74 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .is-flat .reveal { opacity: 1; transform: none; filter: none; }
 .is-flat .section__title { clip-path: none; }
 
+/* ⚠️ 平舖模式沒有 .frame__sheet,而 gutter 是由 sheet 提供的 ——
+   不補的話截圖裡內容會貼齊畫面最左邊(實測 left = 0)。 */
+.is-flat #main > .section { padding-inline: var(--gutter); }
+
 /* ?shot:只留一個區塊,給逐區截圖用 */
 .is-shot .topbar,
 .is-shot .side-nav { display: none; }
 .is-shot .hero-b,
 .is-shot #main > .section { min-height: 1000px; }
 .is-shot-nofrag .fragments { display: none; }
+
+
+/* ═══════════ How I work(About 的第二頁) ═══════════
+   三段並排的面板,每一段是「情境 → 我做了什麼」。
+   ⚠️ 這一區的重點是**證據**,不是形容詞 ——
+   所以每一段都配一張真的工作圖,而不是圖示。 */
+
+.how {
+  display: grid;
+  grid-template-columns: repeat(3, minmax(0, 1fr));
+  gap: var(--s4);
+  margin-top: var(--s5);
+  align-items: start;
+}
+
+.how__item { display: flex; flex-direction: column; }
+
+/* 開場句:一段話講完那件事,不是標題 */
+.how__lead {
+  margin: 0 0 var(--s2);
+  font-size: clamp(1rem, 1.25vw, 1.2rem);
+  font-weight: 500;
+  line-height: 1.35;
+  color: var(--ink);
+}
+.how__body {
+  margin: 0;
+  font-size: 0.92rem;
+  line-height: 1.6;
+  color: var(--stone);
+}
+.how__zh {
+  margin: var(--s2) 0 0;
+  font-family: var(--han);
+  font-size: 0.84rem;
+  line-height: 1.8;
+  color: var(--stone);
+}
+
+/* 圖:貼在面板底部,四角切齊面板的圓角 */
+.how__fig {
+  margin: var(--s3) 0 0;
+  overflow: hidden;
+  border-radius: 6px;
+  border: 1px solid var(--hair);
+}
+.how__fig img {
+  display: block;
+  width: 100%;
+  height: auto;
+  transition: transform var(--t-base) var(--ease);
+}
+.how__item:hover .how__fig img { transform: scale(1.02); }
+
+@media (min-width: 1441px) {
+  .how { max-width: calc(70vw - var(--gutter)); }
+}
+
+@media (max-width: 900px) {
+  .how { grid-template-columns: 1fr; gap: var(--s3); }
+}
