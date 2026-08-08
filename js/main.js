@@ -1,4 +1,37 @@
 /* ═══════════════════════════════════════════════════════
+   ?flat —— 平舖模式(給截圖用,不是給使用者的)
+
+   這個站是捲動驅動的:每一區被釘住、內容是 position: fixed,
+   所以「截整頁」只會拍到第一屏。要產出 Behance 用的全覽圖,
+   得先把翻頁系統關掉,讓四個區塊像一般文件一樣由上往下排。
+
+   ⚠️ 它只影響版面系統,不影響內容與碎片 ——
+   截出來的仍然是真的網站,不是另外做一張假圖。
+   ═══════════════════════════════════════════════════════ */
+window.__FLAT = location.search.indexOf('flat') > -1;
+/* ?shot=<區塊 id> —— 一次只顯示一個區塊,給逐區截圖用。
+   ⚠️ 用 #hash 在無頭瀏覽器裡不可靠(實測 about / photos 拍出來是空白):
+   頁面還沒排版完就截圖了,錨點跳轉根本還沒發生。
+   直接把其他區塊藏起來,就不需要捲動。 */
+window.__SHOT = (location.search.match(/shot=([\w-]+)/) || [])[1] || '';
+if (window.__SHOT) window.__FLAT = true;
+if (window.__FLAT) document.documentElement.classList.add('is-flat');
+if (window.__SHOT) {
+  document.documentElement.classList.add('is-shot');
+  /* ⚠️ 碎片走廊(.fragments)是整站共用、跟著捲動變形的一張畫布。
+     單區截圖時它停在「捲動 0」的狀態,也就是那顆完整的頭骨 ——
+     會直接疊在 Works / About / Photos 的內容上(實測)。
+     只有首屏需要它,其餘三區要關掉。 */
+  if (window.__SHOT !== 'hero-b') document.documentElement.classList.add('is-shot-nofrag');
+  document.addEventListener('DOMContentLoaded', function () {
+    ['hero-b', 'works', 'about', 'photos'].forEach(function (id) {
+      var el = document.getElementById(id);
+      if (el && id !== window.__SHOT) el.style.display = 'none';
+    });
+  });
+}
+
+/* ═══════════════════════════════════════════════════════
    1. P07 滾動揭示
    2. 導覽列「你在這裡」標示
    兩者都用 IntersectionObserver(瀏覽器內建的「進入畫面偵測器」),
@@ -22,6 +55,7 @@
    ═══════════════════════════════════════════════════════ */
 (function () {
   'use strict';
+  if (window.__FLAT) return;          // 平舖模式:不做 pin,讓區塊正常排
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
   if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
 
@@ -153,6 +187,7 @@
   var restY = -1;
 
   function snap() {
+    if (window.__FLAT) return;
     var frames = document.querySelectorAll('.frame');
     if (!frames.length) return;
     var m = maxY();
@@ -241,6 +276,7 @@
    ═══════════════════════════════════════════════════════ */
 (function () {
   'use strict';
+  if (window.__FLAT) return;          // 平舖模式:不建幀,讓區塊由上往下正常排
   if (window.matchMedia('(prefers-reduced-motion: reduce)').matches) return;
 
   /* 🔴 手機不建幀系統 —— 這套在小螢幕上不成立,而且是三個症狀的同一個病根:

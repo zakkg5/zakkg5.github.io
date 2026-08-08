@@ -8,3 +8,6 @@ _dev/
 Thumbs.db
 .DS_Store
 *.log
+
+# Behance 全覽圖的中間產物(每次重跑都會重新產生,不進版控)
+_dev/board/

@@ -3188,3 +3188,29 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 .about__block.panel .xp { margin-top: 0; }
 .about__block.panel .xp__row:first-child { border-top: 0; padding-top: 0; }
 .about__block.panel .about__list:first-of-type { margin-top: 0; }
+
+
+/* ═══════════ ?flat:平舖模式(截圖用) ═══════════
+   翻頁系統沒有建立,所以區塊要自己回到「一屏一段」的正常排版。
+   ⚠️ 這裡不是另做一套版面 —— 只是把「被釘住」時才需要的高度與定位還原。 */
+
+/* ⚠️ 高度用**固定值**,不能用 100svh。
+   截圖是把視窗開成 1600x4600 再一次拍完整頁 ——
+   用 svh 的話每一區都會變成 4600 高,首屏一個人就吃掉整張圖(實測)。 */
+.is-flat .hero-b,
+.is-flat #main > .section {
+  min-height: 1000px;
+  height: auto;
+  padding-block: var(--s7);
+}
+.is-flat .preloader { display: none; }
+/* 平舖時每一區都完整顯示,不需要進場動畫的初始狀態 */
+.is-flat .reveal { opacity: 1; transform: none; filter: none; }
+.is-flat .section__title { clip-path: none; }
+
+/* ?shot:只留一個區塊,給逐區截圖用 */
+.is-shot .topbar,
+.is-shot .side-nav { display: none; }
+.is-shot .hero-b,
+.is-shot #main > .section { min-height: 1000px; }
+.is-shot-nofrag .fragments { display: none; }
