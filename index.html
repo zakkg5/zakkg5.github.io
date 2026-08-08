@@ -34,7 +34,7 @@
   <link rel="preload" href="assets/3d/dragon.webp" as="image" type="image/webp">
 
   <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1,瀏覽器才會抓新的 -->
-  <link rel="stylesheet" href="css/style.css?v=144">
+  <link rel="stylesheet" href="css/style.css?v=145">
 </head>
 
 <body>
@@ -144,7 +144,7 @@
       <!-- 引線標註:指的是這行字**自己**的規格。
            這是真的 —— 它真的是 Archivo 把字寬軸拉到 125 排出來的。
            標註在講畫面上看得到的東西,不是編出來的參數。 -->
-      <p class="hb2-note" aria-hidden="true">Archivo &middot; wdth 125</p>
+      <p class="hb2-note lead-note" aria-hidden="true">Archivo &middot; wdth 125</p>
     </div>
 
     <!-- 左下角:身分。⚠️ 原本兩行都是 10.5px 的等寬小字擠在一起,
@@ -321,6 +321,10 @@
             <span class="about__opening-zh" lang="zh-Hant">把複雜的事,變清楚。</span>
           </p>
 
+          <!-- 引線標註:寫的是他實際做的三件事,跟首屏的小標籤同一組
+               (Zakk:「這裡也可以用引線標註的感覺」)。 -->
+          <p class="about__note lead-note reveal" aria-hidden="true" style="--delay: 60ms">UI / UX &middot; Product &middot; Spatial</p>
+
           <div class="about__intro panel reveal" style="--delay: 80ms">
             <p class="panel__label"><i aria-hidden="true"></i>Profile</p>
             <p>A designer who works across space, product, and screen,
@@ -469,6 +473,6 @@
     <p>&copy; 2026</p>
   </footer>
 
-  <script src="js/main.js?v=202"></script>
+  <script src="js/main.js?v=203"></script>
 </body>
 </html>

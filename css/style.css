@@ -1459,9 +1459,11 @@ html.is-loading .hero__bar { opacity: 0; }
   color: var(--ink-blue);
 }
 
-/* 大標的引線標註:指的是這行字自己的規格,跟章節大標同一套 SVG 引線 */
-.hb2-note {
-  display: none;
+/* ══ 引線標註(共用) ══
+   方形節點 → 斜線 → 水平段 → 標籤,跟章節大標、骨頭標註同一套。
+   ⚠️ 這個 SVG 原本各處各寫一份 —— 抽成 .lead-note,
+   之後要改線的顏色或形狀只要改一個地方。 */
+.lead-note {
   margin: var(--s4) 0 0;
   padding-left: 128px;
   background:
@@ -1475,7 +1477,10 @@ html.is-loading .hero__bar { opacity: 0; }
   color: var(--slate);
   white-space: nowrap;
 }
-@media (min-width: 1024px) { .hb2-note { display: block; } }
+/* 窄螢幕放不下 128px 的引線 —— 收掉,不要讓它把版面撐爆 */
+@media (max-width: 1023px) { .lead-note { display: none; } }
+
+.hb2-note { /* 首屏大標的那一條,樣式全部來自 .lead-note */ }
 
 /* 第二行退成石灰 —— 一句話裡有主有次,眼睛才有落點。
    全部同一個濃度會變成一塊字牆。 */
