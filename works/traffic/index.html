@@ -1,0 +1,375 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>New Era Traffic System — Zakk</title>
+  <meta name="description" content="A modular traffic signal with a dynamic display, built to be installed, serviced and replaced by one person. Graduation project, 2025.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <link rel="preload" href="../../assets/3d/dragon.webp" as="image" type="image/webp">
+
+  <link rel="stylesheet" href="../../css/style.css?v=157">
+  <link rel="stylesheet" href="../../css/work.css?v=48">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="page-atmos" aria-hidden="true"></div>
+  <canvas class="fragments" aria-hidden="true"></canvas>
+  <canvas class="dragon-side" aria-hidden="true"></canvas>
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════ -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">2025 &middot; Product &middot; Graduation project</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">New Era Traffic System
+        <span class="work-title-zh" lang="zh-Hant">新型態交通號誌</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        A traffic signal with a dynamic display and a link to an emergency centre
+        &mdash; which makes it expensive, and awkward to service on a live road.
+        My part was the signal itself: how to build it so one crew can put it up,
+        open it and swap a part without closing the junction.
+        <span class="work-lede-zh" lang="zh-Hant">一支有動態螢幕、能連線應變中心的號誌 ——
+          那代表成本高,而且壞了不好修。我負責的是號誌本體:
+          怎麼讓它裝得上去、打得開、換得掉,而不用把路口封起來。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Type</dt>
+          <dd class="facts__v">Product design &middot; Graduation project</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Year</dt>
+          <dd class="facts__v">2025</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Team</dt>
+          <dd class="facts__v">Three students &amp; one advisor &mdash;
+            <span class="zh" lang="zh-Hant">我負責號誌本體</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Shown at</dt>
+          <dd class="facts__v">Young Designers&rsquo; Exhibition &middot; Youth Design Festival</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Submitted to</dt>
+          <dd class="facts__v">iF Design Student Award &middot; Red Dot Design Concept</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Live site</dt>
+          <dd class="facts__v"><a href="https://cyd2025.framer.website" target="_blank" rel="noopener">cyd2025.framer.website &nearr;</a></dd>
+        </div>
+      </dl>
+    </section>
+
+    <figure class="plate plate--render plate--opening reveal">
+      <img src="../../assets/works/traffic/v1-render.webp"
+           alt="新型態交通號誌的產品渲染圖:黑色立柱,橫桿上是分成四塊的顯示面板"
+           width="1600" height="1034">
+    </figure>
+
+
+    <!-- ══════════ 01 起點 ══════════ -->
+    <section class="ch" id="start">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Start <span class="zh" lang="zh-Hant">起點</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        The brief added a dynamic screen and a bluetooth link to an emergency
+        centre. Both push the cost up, and both have to survive weather. So the
+        first thing I drew was not the shape &mdash; it was a lift mechanism and a
+        set of modules, so the expensive parts could be carried up, clipped in and
+        taken down again without rebuilding the pole.
+        <span class="zh" lang="zh-Hant">功能上要有動態螢幕、要藍芽連線應變中心,
+          成本一定會高,而且都得防水。所以我第一個畫的不是造型,
+          是升降系統和模組 —— 讓貴的零件可以吊上去、扣上、再拆下來,
+          不必動到整根柱子。安裝、拆卸、修繕都會更快。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/traffic/sketch-01.webp" loading="lazy"
+               alt="早期草圖:號誌立柱與可升降橫桿,綠色箭頭標示升降方向"
+               width="1600" height="1113">
+        </figure>
+        <figure class="plate plate--drawing plate--half reveal">
+          <img src="../../assets/works/traffic/sketch-02.webp" loading="lazy"
+               alt="造型發想:數種柱體剖面與燈號配置的比較"
+               width="1024" height="712">
+        </figure>
+
+        <figure class="plate plate--drawing plate--third reveal">
+          <img src="../../assets/works/traffic/sketch-03.webp" loading="lazy"
+               alt="模組拆解草圖:柱體、燈條與連接件" width="1024" height="712">
+        </figure>
+        <figure class="plate plate--drawing plate--third reveal">
+          <img src="../../assets/works/traffic/sketch-04.webp" loading="lazy"
+               alt="模組拆解草圖:橫桿與面板的組裝方式" width="1024" height="712">
+        </figure>
+        <figure class="plate plate--drawing plate--third reveal">
+          <img src="../../assets/works/traffic/sketch-05.webp" loading="lazy"
+               alt="模組拆解草圖:整支號誌的零件配置" width="1024" height="712">
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 02 第一版 ══════════ -->
+    <section class="ch" id="v1">
+      <div class="ch__head reveal">
+        <span class="ch__num">02</span>
+        <h2 class="ch__title">First build <span class="zh" lang="zh-Hant">第一版</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        The panel splits into four pieces &mdash; two on each face &mdash; with a
+        three-colour bar along the top. Four small parts instead of one large one:
+        cheaper to make, and a damaged section can be swapped on its own.
+        <span class="zh" lang="zh-Hant">面板分成四塊組合,正反各兩塊,
+          上方放三色燈條。四塊小的取代一塊大的 —— 製作便宜,
+          壞掉也只要換壞掉的那一塊。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/v1-product.webp" loading="lazy"
+               alt="第一版產品照:面板分成四塊,上方為三色燈條"
+               width="1170" height="1596">
+          <figcaption class="plate__cap" lang="zh-Hant">第一版:面板四塊、上方三色燈條</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/modeling.webp" loading="lazy"
+               alt="建模中的螢幕畫面:號誌的 3D 模型與燈號配置"
+               width="900" height="1600">
+          <figcaption class="plate__cap" lang="zh-Hant">建模中</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/traffic/review.webp" loading="lazy"
+               alt="第一次評分:組員在展板前向老師說明"
+               width="900" height="1600">
+          <figcaption class="plate__cap" lang="zh-Hant">第一次評分,也是第一版的狀態</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 03 應變中心 ══════════ -->
+    <section class="ch" id="centre">
+      <div class="ch__head reveal">
+        <span class="ch__num">03</span>
+        <h2 class="ch__title">Centre <span class="zh" lang="zh-Hant">應變中心</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        The signal reports to a building. The three of us and our advisor kept
+        trading the parts we each owned &mdash; you draw yours, I say what breaks
+        when it meets mine, we both change something.
+        <span class="zh" lang="zh-Hant">號誌要回報給一棟建築。
+          我們三個組員和指導教授會互相討論各自負責的項目 ——
+          你畫你的,我講它接到我這邊會出什麼問題,兩邊都改。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/centre-render.webp" loading="lazy"
+               alt="應變中心建築渲染:綠色曲面量體" width="564" height="846">
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/centre-model.webp" loading="lazy"
+               alt="應變中心的實體模型放在配置圖上" width="1170" height="806">
+          <figcaption class="plate__cap" lang="zh-Hant">實體模型</figcaption>
+        </figure>
+
+        <figure class="plate plate--drawing plate--inset reveal">
+          <img src="../../assets/works/traffic/centre-plan.webp" loading="lazy"
+               alt="配置圖:道路、量體與動線的線稿" width="1024" height="712">
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 04 第二版 ══════════ -->
+    <section class="ch" id="v2">
+      <div class="ch__head reveal">
+        <span class="ch__num">04</span>
+        <h2 class="ch__title">Second pass <span class="zh" lang="zh-Hant">第二版</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        Then I turned the three-colour bar into a screen as well. A signal that can
+        only say stop and go can only say stop and go; a screen can say roadworks,
+        crash, ambulance coming. I also put manual controls and an electronic lock
+        on the pole so a technician can open it on site, and merged a street lamp
+        into the body &mdash; a black pole at night is hard to see, which is a
+        strange problem for a traffic signal to have.
+        <span class="zh" lang="zh-Hant">後來我把上方的燈條也改成動態螢幕。
+          只有紅黃綠就只能講停和走;有螢幕就能顯示路障、車禍、救護車。
+          柱體上加了手動控制按鈕與電子鎖,師傅到現場打得開;
+          也把路燈結合進去 —— 黑色的柱子在夜裡不好看見,
+          那對一支號誌來說是很奇怪的問題。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--drawing plate--third reveal">
+          <img src="../../assets/works/traffic/sketch-v2a.webp" loading="lazy"
+               alt="第二版草圖:上方燈條改為動態螢幕" width="1024" height="712">
+        </figure>
+        <figure class="plate plate--drawing plate--third reveal">
+          <img src="../../assets/works/traffic/sketch-v2b.webp" loading="lazy"
+               alt="第二版草圖:柱體上的手動控制與電子鎖位置" width="1024" height="712">
+        </figure>
+        <figure class="plate plate--drawing plate--third reveal">
+          <img src="../../assets/works/traffic/sketch-v2c.webp" loading="lazy"
+               alt="第二版草圖:結合路燈之後的整體比例" width="1024" height="712">
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 05 視覺 ══════════ -->
+    <section class="ch" id="visual">
+      <div class="ch__head reveal">
+        <span class="ch__num">05</span>
+        <h2 class="ch__title">Colour <span class="zh" lang="zh-Hant">視覺</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        We started with the white and orange of the high speed rail, because it
+        looked calm. Then we changed it to red, yellow and green &mdash; the three
+        colours everyone already reads without being taught. The subject was
+        already the answer.
+        <span class="zh" lang="zh-Hant">主視覺一開始用高鐵的白橘,因為看起來乾淨。
+          後來改成紅黃綠 —— 那三個顏色不用教,每個人都讀得懂。
+          題目本身就是答案。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/visual-bars.webp" loading="lazy"
+               alt="燈號的顯示規劃:綠色箭頭與燈條的變化" width="1024" height="712">
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/board.webp" loading="lazy"
+               alt="參賽用的圖面:號誌與應變中心的整體說明" width="1600" height="739">
+          <figcaption class="plate__cap" lang="zh-Hant">送件用的圖面</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 06 做出來 ══════════ -->
+    <section class="ch" id="make">
+      <div class="ch__head reveal">
+        <span class="ch__num">06</span>
+        <h2 class="ch__title">Making it <span class="zh" lang="zh-Hant">做出來</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        Printed by a shop in China a senior recommended; two weeks in transit. What
+        arrived was rough. I spent about a week sanding it by hand at a paint shop
+        near school, handed it to the guy there to spray, then sanded it again
+        after. The render took an afternoon. This took a month.
+        <span class="zh" lang="zh-Hant">找學長推薦的大陸 3D 列印公司做,
+          寄過來花了兩週。拿到是粗的。我在學校附近的噴漆工廠用手打磨大約一週,
+          再給工廠的大哥噴漆,噴完繼續打磨才完成。
+          渲染圖畫一個下午,這個花了一個月。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/paintshop.webp" loading="lazy"
+               alt="噴漆工廠:打磨噴漆後的號誌燈罩放在工作檯上"
+               width="900" height="1600">
+          <figcaption class="plate__cap" lang="zh-Hant">噴漆工廠,打磨後</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/studio.webp" loading="lazy"
+               alt="棚拍現場:實體號誌立在白色背景紙上,兩側是柔光箱"
+               width="826" height="1600">
+          <figcaption class="plate__cap" lang="zh-Hant">棚拍:實體模型</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 07 展覽 ══════════ -->
+    <section class="ch" id="expo">
+      <div class="ch__head reveal">
+        <span class="ch__num">07</span>
+        <h2 class="ch__title">Shown <span class="zh" lang="zh-Hant">展覽</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/expo-booth.webp" loading="lazy"
+               alt="新一代設計展攤位:實體號誌與展板" width="1200" height="1600">
+          <figcaption class="plate__cap" lang="zh-Hant">新一代設計展</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/expo-team.webp" loading="lazy"
+               alt="三位組員在攤位前與作品合照" width="1108" height="1477">
+          <figcaption class="plate__cap" lang="zh-Hant">組員與作品</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/expo-group.webp" loading="lazy"
+               alt="青春設計節:學生與教授們的大合照" width="1600" height="900">
+          <figcaption class="plate__cap" lang="zh-Hant">青春設計節</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/traffic/expo-poster.webp" loading="lazy"
+               alt="與新一代設計展主視覺的合照" width="1200" height="1600">
+        </figure>
+      </div>
+    </section>
+
+
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=206"></script>
+</body>
+</html>
