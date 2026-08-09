@@ -3302,15 +3302,33 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    主圖底下一排小圖。⚠️ 它們是**佐證**,不是第二張主圖 ——
    所以一律等高、無圖說、不搶主圖的份量。
    一排三張:再多會小到看不出內容,再少就撐不起「不只這一張」的意思。 */
-/* auto-fit 不寫死三張:有些格只有兩張佐證,寫死 3 欄會空一格出來,
-   看起來像少放了一張圖。 */
+/* 🔴 改成**橫向滑動**(Zakk:「如果框框中圖擠不下 看能不能用滾動式
+   可以滑到下一張看」)。這解決了一個真的限制:這一區在畫框裡,
+   高度不能超過一屏 —— 用格線排的話,多一張圖就多一分高度,很快就爆。
+   橫向滑就沒有這個問題:不管放幾張,高度永遠是一排。
+
+   一次露出三張,第四張刻意露出一小角 —— 那是「還有更多」的提示,
+   比放一個箭頭誠實,也不用多一個元件。 */
 .how__strip {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
-  grid-auto-flow: column;
+  display: flex;
   gap: 6px;
   margin-top: 6px;
+  overflow-x: auto;
+  overscroll-behavior-x: contain;      /* 滑到底不要把整頁一起帶走 */
+  scroll-snap-type: x proximity;
+  scrollbar-width: thin;
+  scrollbar-color: var(--blue-line) transparent;
+  padding-bottom: 6px;
 }
+.how__strip figure {
+  margin: 0;
+  flex: 0 0 31.5%;                     /* 三張多一點 → 第四張露一角 */
+  scroll-snap-align: start;
+}
+/* WebKit 的捲軸預設又粗又灰,跟這個站的細線語彙差太多 */
+.how__strip::-webkit-scrollbar { height: 3px; }
+.how__strip::-webkit-scrollbar-track { background: var(--hair); border-radius: 2px; }
+.how__strip::-webkit-scrollbar-thumb { background: var(--blue-line); border-radius: 2px; }
 .how__strip figure { margin: 0; }
 .how__strip img {
   display: block;
@@ -3330,12 +3348,14 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .how { max-width: calc(70vw - var(--gutter)); }
 }
 
-/* 🔴 一頁三格,而且一定要排成**一排**,不能折行。
+/* 🔴 一定要排成**一排**,不能折行。
    這一區在畫框裡(.frame__pin 是 overflow:hidden),折成兩排會高出視窗 ——
    實測四格折 2×2 時溢出 370px,第三、四格不是變醜,是直接看不到。
-   所以基礎就是 repeat(3),窄螢幕才降成一欄。 */
-
-
+   第一頁(畢製)四格,第二頁(去年的工作)三格,各自一排。 */
+@media (min-width: 1024px) {
+  #how  .how { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+  #how2 .how { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+}
 
 @media (max-width: 900px) {
   .how { grid-template-columns: 1fr; gap: var(--s3); }
@@ -3367,6 +3387,83 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   color: var(--stone);
   background: var(--paper);
   border-top: 1px solid var(--hair);
+}
+
+
+/* ═══════════ 放大檢視(Inspector) ═══════════
+   Zakk:「這樣才不會有些照片根本看不清楚 可以游標移到照片時 照片放大檢視」。
+
+   🔴 為什麼做成「取景框」而不是一般的燈箱:
+   整個站的語彙就是「一台正在檢視標本的儀器」(HUD、讀數、引線)。
+   把放大做成同一個取景框 —— 四角刻度 + 一行規格讀數 ——
+   它就不是外掛的彈窗,而是這台儀器本來就有的功能。
+
+   ⚠️ 只給 hover 精準指標的裝置。觸控裝置沒有 hover,
+      滑過去會變成「點一下才消失」的黏滯彈窗,比不做還糟 —— 由 JS 判斷。 */
+.inspector {
+  position: fixed;
+  inset: 0;
+  z-index: 90;
+  display: grid;
+  place-items: center;
+  padding: 4vh 4vw;
+  background: color-mix(in srgb, var(--paper) 82%, transparent);
+  backdrop-filter: blur(3px);
+  opacity: 0;
+  visibility: hidden;
+  transition: opacity var(--t-quick) var(--ease), visibility var(--t-quick);
+  pointer-events: none;               /* 它只是看的,不擋滑鼠 */
+}
+.inspector.is-on { opacity: 1; visibility: visible; }
+
+/* ⚠️ 尺寸刻意收斂(Zakk:「阿不用太大」)。
+   它的用途是「看清楚縮圖」,不是全螢幕燈箱 ——
+   佔滿畫面反而會蓋掉旁邊的文字,失去對照的意義。 */
+.inspector__frame {
+  position: relative;
+  max-width: min(560px, 52vw);
+  max-height: 62vh;
+  transform: scale(0.985);
+  transition: transform var(--t-base) var(--ease);
+}
+.inspector.is-on .inspector__frame { transform: scale(1); }
+
+.inspector__img {
+  display: block;
+  max-width: 100%;
+  max-height: 62vh;
+  width: auto; height: auto;
+  border: 1px solid var(--hair);
+  background: var(--paper);
+  box-shadow: 0 18px 48px -24px rgba(23, 27, 30, 0.45);
+}
+
+/* 四角刻度:跟首屏 HUD 同一套 */
+.inspector__frame i {
+  position: absolute;
+  width: 14px; height: 14px;
+  border: 1px solid var(--slate);
+  opacity: 0.65;
+}
+.inspector__frame i:nth-child(1) { top: -7px;    left: -7px;  border-right: 0; border-bottom: 0; }
+.inspector__frame i:nth-child(2) { top: -7px;    right: -7px; border-left: 0;  border-bottom: 0; }
+.inspector__frame i:nth-child(3) { bottom: -7px; left: -7px;  border-right: 0; border-top: 0; }
+.inspector__frame i:nth-child(4) { bottom: -7px; right: -7px; border-left: 0;  border-top: 0; }
+
+/* 讀數:寫這張圖真正的像素尺寸 —— 跟站上其他讀數一樣,是真的,不是裝飾 */
+.inspector__read {
+  position: absolute;
+  left: 0; bottom: -22px;
+  margin: 0;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.08em;
+  color: var(--stone);
+  white-space: nowrap;
+}
+
+@media (prefers-reduced-motion: reduce) {
+  .inspector, .inspector__frame { transition: none; }
 }
 
 

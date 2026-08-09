@@ -3191,3 +3191,82 @@ window.__fragSprites = (function () {
     if (h) scramble(h);
   }, { passive: true });
 }());
+
+
+/* ═══════════════════════════════════════════════════════
+   放大檢視(Inspector)
+   Zakk:「這樣才不會有些照片根本看不清楚 可以游標移到照片時 照片放大檢視」
+
+   🔴 為什麼滑鼠移開就關、不做關閉鈕:
+   它是「檢視」不是「開啟」。停留就看,移開就走,不需要一個要被收拾的狀態。
+   整層 pointer-events: none —— 它不擋滑鼠,所以移開一定關得掉,
+   不會出現「彈窗卡住、找不到 X」那種情況。
+
+   ⚠️ 只在有精準指標(滑鼠)時啟用。
+   觸控裝置沒有 hover,mouseover 會在點下去時觸發、而且不會有對應的 mouseout,
+   結果就是一個黏住不動的遮罩 —— 比不做還糟。
+   ⚠️ 也要求 hover: hover;`pointer: fine` 單獨看還會抓到某些手寫筆。
+   ═══════════════════════════════════════════════════════ */
+(function () {
+  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+
+  var box, imgEl, readEl, hideT;
+
+  function build() {
+    box = document.createElement('div');
+    box.className = 'inspector';
+    box.setAttribute('aria-hidden', 'true');
+    box.innerHTML =
+      '<div class="inspector__frame">' +
+        '<i></i><i></i><i></i><i></i>' +
+        '<img class="inspector__img" alt="">' +
+        '<p class="inspector__read"></p>' +
+      '</div>';
+    document.body.appendChild(box);
+    imgEl  = box.querySelector('.inspector__img');
+    readEl = box.querySelector('.inspector__read');
+  }
+
+  function show(img) {
+    if (!box) build();
+    clearTimeout(hideT);
+    /* 用 currentSrc 拿瀏覽器**實際**載入的那一檔(有 srcset 時才不會抓錯),
+       naturalWidth/Height 是原檔的真實像素 —— 讀數要是真的。 */
+    if (imgEl.src !== (img.currentSrc || img.src)) {
+      imgEl.src = img.currentSrc || img.src;
+      imgEl.alt = img.alt || '';
+    }
+    var w = img.naturalWidth, h = img.naturalHeight;
+    readEl.textContent = w && h ? w + ' × ' + h + ' PX' : '';
+    box.classList.add('is-on');
+  }
+
+  function hide() {
+    if (!box) return;
+    /* 一點延遲:縮圖之間有 6px 間隙,滑過去時會短暫離開任何一張圖,
+       沒有延遲的話整層會閃一下。 */
+    hideT = setTimeout(function () { box.classList.remove('is-on'); }, 90);
+  }
+
+  /* ⚠️ 只給 About 兩頁的**縮圖列**(Zakk:「只有about那邊的縮圖檢視」)。
+     主圖本來就夠大,不需要放大;作品內頁的 .plate 也是滿版的,
+     全部掛上去只會讓整個站到處跳出遮罩。 */
+  var SEL = '#how .how__strip figure, #how2 .how__strip figure';
+
+  document.addEventListener('mouseover', function (e) {
+    if (!e.target.closest) return;
+    var fig = e.target.closest(SEL);
+    if (!fig) { if (box && box.classList.contains('is-on')) hide(); return; }
+    var img = fig.querySelector('img');
+    if (img) show(img);
+  }, { passive: true });
+
+  /* 捲動時關掉 —— 畫面已經換了,還留著一張放大圖會很突兀 */
+  window.addEventListener('scroll', function () {
+    if (box && box.classList.contains('is-on')) box.classList.remove('is-on');
+  }, { passive: true });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape' && box) box.classList.remove('is-on');
+  });
+}());
