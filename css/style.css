@@ -3298,6 +3298,31 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 /* 上下疊的比較圖:固定 4/3 會把兩排裁掉一排,所以照原比例走 */
 .how__fig--tall img { aspect-ratio: auto; }
 
+/* ═══════════ 佐證縮圖列 ═══════════
+   主圖底下一排小圖。⚠️ 它們是**佐證**,不是第二張主圖 ——
+   所以一律等高、無圖說、不搶主圖的份量。
+   一排三張:再多會小到看不出內容,再少就撐不起「不只這一張」的意思。 */
+.how__strip {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 6px;
+  margin-top: 6px;
+}
+.how__strip figure { margin: 0; }
+.how__strip img {
+  display: block;
+  width: 100%;
+  aspect-ratio: 4 / 3;
+  object-fit: cover;
+  border-radius: 4px;
+  border: 1px solid var(--hair);
+  opacity: 0.82;
+  transition: opacity var(--t-quick) var(--ease),
+              border-color var(--t-quick) var(--ease);
+}
+/* 滑過整格才一起亮起來 —— 讓這排讀起來是「一組」,不是三張各自的圖 */
+.how__item:hover .how__strip img { opacity: 1; border-color: var(--blue-line); }
+
 @media (min-width: 1441px) {
   .how { max-width: calc(70vw - var(--gutter)); }
 }
