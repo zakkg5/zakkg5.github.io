@@ -3295,6 +3295,9 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 }
 .how__item:hover .how__fig img { transform: scale(1.02); }
 
+/* 上下疊的比較圖:固定 4/3 會把兩排裁掉一排,所以照原比例走 */
+.how__fig--tall img { aspect-ratio: auto; }
+
 @media (min-width: 1441px) {
   .how { max-width: calc(70vw - var(--gutter)); }
 }
@@ -3303,51 +3306,33 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .how { grid-template-columns: 1fr; gap: var(--s3); }
 }
 
-/* 現場快照:解析度低的手機照片。做小、不做滿版 ——
-   讓它以「快照」的身分出現,而不是假裝成攝影作品。 */
-.how__fig--snap { max-width: 62%; }
-.how__fig--snap img { aspect-ratio: 3 / 4; }
+/* ═══════════ 並排的兩張證據(Hands on 那一格) ═══════════
+   🔴 兩張並排是**論證的一部分**,不是排版變化:
+   同一件事在畢製和實習都發生過,才叫習慣。所以兩張要等寬、等高 ——
+   任何一張比較大,都會變成「一張主圖加一張附圖」,那個對照就沒了。
 
+   ⚠️ 通風機那張只有 640x1116(手機截圖再壓縮)。
+   並排之後每張約 130px 寬,反而剛好 —— 它不必再假裝成攝影作品。 */
+.how__pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: var(--s2);
+  margin-top: var(--s3);
+}
+.how__pair .how__fig { margin: 0; }
+.how__pair .how__fig img { aspect-ratio: 3 / 4; }
 
-/* ═══════════ 現場筆記 ═══════════
-   一張規格表。⚠️ 用 <dl> 不是 <table> —— 它是「名稱 → 數值」的成對資料,
-   不是二維表格;讀螢幕軟體讀 dl 才會念成一組一組。 */
-
-.notes {
-  margin: var(--s3) 0 0;
+/* 圖說要標出處 —— 沒標的話,讀者不知道兩張來自不同的地方,對照就不成立 */
+.how__cap {
+  margin: 0;
+  padding: 6px 8px 7px;
+  font-family: var(--mono);
+  font-size: 0.62rem;
+  letter-spacing: 0.06em;
+  color: var(--stone);
+  background: var(--paper);
   border-top: 1px solid var(--hair);
 }
-/* ⚠️ 左右兩欄在四欄版面裡放不下:欄寬只剩約 285px,
-   「30–45 公分(辦公椅 35–45)」會被折成三行(實測)。
-   改成上下堆疊 —— 名稱在上、數值在下,窄欄也讀得順。 */
-.notes__row {
-  display: block;
-  padding: 8px 0;
-  border-bottom: 1px solid var(--hair);
-  transition: border-color var(--t-quick) var(--ease);
-}
-.notes__row:hover { border-bottom-color: var(--slate); }
-.notes dt {
-  margin: 0;
-  font-family: var(--han);
-  font-size: 0.74rem;
-  letter-spacing: 0.04em;
-  color: var(--stone);
-}
-.notes dd {
-  margin: 2px 0 0;
-  font-family: var(--mono);
-  font-size: 0.78rem;
-  color: var(--ink);
-  font-variant-numeric: tabular-nums;
-}
-/* 施工順序不是尺寸,用藍墨標出來 —— 它是這張表裡唯一的「流程」 */
-.notes__row--seq dd { color: var(--slate); }
 
-/* 四塊之後 3 欄會落單一個,改成 2 欄 */
-@media (min-width: 901px) {
-  .how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
-}
-@media (min-width: 1441px) {
-  .how { grid-template-columns: repeat(4, minmax(0, 1fr)); }
+
 }
