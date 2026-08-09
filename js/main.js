@@ -3227,17 +3227,43 @@ window.__fragSprites = (function () {
     readEl = box.querySelector('.inspector__read');
   }
 
-  function show(img) {
+  /* 把放大圖擺在**那張縮圖的位置**上,不是畫面正中央。
+     Zakk:「放大的意思是圖會在游標那邊變大,不是突然出現整個圖片佔滿中間螢幕」。
+
+     做法:以縮圖的中心為錨點,再夾回視窗內(留 12px 邊界)——
+     夾邊是必要的,靠邊的縮圖若不夾,放大圖會有一半在畫面外。 */
+  var PAD = 12;
+  function place(fig) {
+    var r = fig.getBoundingClientRect();
+    var b = box.firstChild.getBoundingClientRect();   // .inspector__frame
+    var w = b.width || 320, h = b.height || 240;
+    var x = r.left + r.width / 2 - w / 2;
+    var y = r.top  + r.height / 2 - h / 2;
+    x = Math.max(PAD, Math.min(x, window.innerWidth  - w - PAD));
+    y = Math.max(PAD, Math.min(y, window.innerHeight - h - PAD));
+    box.style.transform = 'translate3d(' + Math.round(x) + 'px,' + Math.round(y) + 'px,0)';
+  }
+
+  function show(fig, img) {
     if (!box) build();
     clearTimeout(hideT);
     /* 用 currentSrc 拿瀏覽器**實際**載入的那一檔(有 srcset 時才不會抓錯),
        naturalWidth/Height 是原檔的真實像素 —— 讀數要是真的。 */
-    if (imgEl.src !== (img.currentSrc || img.src)) {
-      imgEl.src = img.currentSrc || img.src;
+    var src = img.currentSrc || img.src;
+    var changed = imgEl.getAttribute('src') !== src;
+    if (changed) {
+      imgEl.src = src;
       imgEl.alt = img.alt || '';
     }
     var w = img.naturalWidth, h = img.naturalHeight;
     readEl.textContent = w && h ? w + ' × ' + h + ' PX' : '';
+
+    /* ⚠️ 換圖之後要等它有尺寸才量得到框 —— 沒等的話第一次會定位到 0,0。
+       已經在快取裡的話 decode() 幾乎是同步完成的,不會看到跳動。 */
+    if (changed && imgEl.decode) {
+      imgEl.decode().then(function () { place(fig); }).catch(function () { place(fig); });
+    }
+    place(fig);
     box.classList.add('is-on');
   }
 
@@ -3258,7 +3284,7 @@ window.__fragSprites = (function () {
     var fig = e.target.closest(SEL);
     if (!fig) { if (box && box.classList.contains('is-on')) hide(); return; }
     var img = fig.querySelector('img');
-    if (img) show(img);
+    if (img) show(fig, img);
   }, { passive: true });
 
   /* 捲動時關掉 —— 畫面已經換了,還留著一張放大圖會很突兀 */
