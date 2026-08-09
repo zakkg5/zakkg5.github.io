@@ -3302,9 +3302,12 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    主圖底下一排小圖。⚠️ 它們是**佐證**,不是第二張主圖 ——
    所以一律等高、無圖說、不搶主圖的份量。
    一排三張:再多會小到看不出內容,再少就撐不起「不只這一張」的意思。 */
+/* auto-fit 不寫死三張:有些格只有兩張佐證,寫死 3 欄會空一格出來,
+   看起來像少放了一張圖。 */
 .how__strip {
   display: grid;
-  grid-template-columns: repeat(3, 1fr);
+  grid-template-columns: repeat(auto-fit, minmax(0, 1fr));
+  grid-auto-flow: column;
   gap: 6px;
   margin-top: 6px;
 }
@@ -3326,6 +3329,13 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 @media (min-width: 1441px) {
   .how { max-width: calc(70vw - var(--gutter)); }
 }
+
+/* 🔴 一頁三格,而且一定要排成**一排**,不能折行。
+   這一區在畫框裡(.frame__pin 是 overflow:hidden),折成兩排會高出視窗 ——
+   實測四格折 2×2 時溢出 370px,第三、四格不是變醜,是直接看不到。
+   所以基礎就是 repeat(3),窄螢幕才降成一欄。 */
+
+
 
 @media (max-width: 900px) {
   .how { grid-template-columns: 1fr; gap: var(--s3); }
@@ -3357,6 +3367,39 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   color: var(--stone);
   background: var(--paper);
   border-top: 1px solid var(--hair);
+}
+
+
+/* 1024–1440:欄變窄、視窗又矮(常見 1280x800),照原樣會高出畫框 ——
+   實測溢出 112px,也就是第四格的圖整排看不到。這一段把高度收回來。
+
+   ⚠️ .how__fig--tall(兩排比較圖)一定要排除在外。
+      我原本以為 `.how__fig--tall img` 權重較高會自動勝出 —— 錯了,
+      它跟 `.how__fig img` 同樣是 (0,1,1),媒體查詢又寫在後面,所以是它輸。
+      被壓成 3:2 的話兩個選項會被裁掉一個,那一格的論點就沒了。 */
+@media (min-width: 1024px) and (max-width: 1440px) {
+  .how__fig:not(.how__fig--tall) img { aspect-ratio: 3 / 2; }
+  .how__strip img { aspect-ratio: 16 / 9; }   /* 縮圖本來就只是佐證,壓扁不影響辨識 */
+
+  .how { margin-top: var(--s3); }
+  .section__head { margin-bottom: var(--s3); }
+  .how__body { font-size: 0.86rem; line-height: 1.55; }
+  .how__zh   { font-size: 0.79rem; line-height: 1.7; }
+
+  /* 並排的兩張(手 / 通風機)是這一區最高的元素:
+     3:4 直幅 × 兩欄,在窄欄裡就長到 199px。改成正方形省 49px。
+     ⚠️ 這裡只能改比例,不能只改其中一張的大小 ——
+        兩張一旦不等大,對照就變成「主圖 + 附圖」,那一格的論點就沒了。 */
+  .how__pair .how__fig img { aspect-ratio: 1 / 1; }
+  .how__item.panel { padding: 14px 16px 16px; }
+  .how__pair  { margin-top: var(--s2); }
+  .how__strip { margin-top: 4px; gap: 4px; }
+  .how__cap   { padding: 4px 7px 5px; }
+
+  /* ⚠️ 這裡本來還有一段把大標從 56px 縮到 38px、內距砍半的規則,
+     是為了把四格硬塞進一屏。後來改成拆兩頁(#how / #how2),
+     一頁只放三格就有空間了 —— 那段全部拿掉,大標維持跟其他區一樣大。
+     為了排版縮字是本末倒置:版面該配合內容,不是內容配合版面。 */
 }
 
 

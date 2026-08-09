@@ -34,7 +34,7 @@
   <link rel="preload" href="assets/3d/dragon.webp" as="image" type="image/webp">
 
   <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1,瀏覽器才會抓新的 -->
-  <link rel="stylesheet" href="css/style.css?v=159">
+  <link rel="stylesheet" href="css/style.css?v=161">
 </head>
 
 <body>
@@ -333,7 +333,13 @@
             <p>A designer who works across space, product, and screen,
                and has worked through the messy part between: understanding people,
                untangling problems, and turning them into something that works.</p>
-            <p lang="zh-Hant" class="about__intro-zh">空間、產品、數位都做過,也處理過中間最麻煩的部分:理解需求、拆解問題,把它變成真正能用的東西。</p>
+            <!-- ⚠️ 這句原本是照英文直翻的,Zakk 說讀起來很奇怪。
+                 改寫時的取捨(他自己指定的):
+                   ·「理解需求、拆解問題,把它變成真正能用的東西」留著 —— 他要這一段
+                   · 其餘用他作品集 PDF 裡的自述用詞(場域活化 / 產品構思 /
+                     建模渲染 / 重團隊合作與組員間的溝通 / 熱愛接觸新事物,學習新軟體)
+                   · 寫白一點、不要壓縮 —— 他嫌原本「太精簡」 -->
+            <p lang="zh-Hant" class="about__intro-zh">場域活化、產品構思、建模渲染都做過,現在也做數位。中間最麻煩的那一段我也接 —— 理解需求、拆解問題,把它變成真正能用的東西。我重團隊合作與組員間的溝通,也習慣一直去接觸新事物、學新的軟體。</p>
           </div>
 
           <p class="about__cta reveal" style="--delay: 240ms">
@@ -390,48 +396,37 @@
       </div>
     </section>
 
-    <!-- ══════════ 02b HOW I WORK ══════════
+    <!-- ══════════ 02b HOW I WORK(1/2)· 畢業製作 ══════════
          About 的第二頁(Zakk:「我想把這些放在 about,加一個第二頁」)。
 
-         🔴 為什麼加這一頁:朋友 Kiwi 看過之後說
-         「Can you show more of teamwork, communication and problem solving skills?」
-         —— 他點到的是真的缺口:這個站到現在只有「結果」(完成的渲染圖、
-         完成的圖面),沒有「過程」。看的人知道他做得出來,但不知道
-         他跟誰合作、卡在哪、怎麼解掉。而助理職缺看的正是這些。
+         🔴 為什麼是兩頁:原本四格硬塞一屏,1280x800 會被畫框切掉 19px。
+         Zakk:「可以再加一頁八 才不會那麼擠」。一頁三格就有呼吸空間,
+         而且分類乾淨 —— 這一頁全是畢製,下一頁全是去年的正職工作。
 
-         ⚠️ 三段的內容全部來自履歷上真的有的事實(客戶簡報 / 材料索引系統 /
-         現場丈量),沒有一句是為了填版面編的。
-         圖用的是佐佐木賢實習的作品 —— 那批圖早就轉好放在 assets/works/sasaki/,
-         但被標成「暫不上站」擱著,其實它正是「真實職場工作」最直接的證據。 -->
+         🔴 三格是他自己指定的分類:
+              問題與解決 / 分工合作與團體討論 / 手做(單獨一格)
+         ⚠️ 中文一律用他自己打的原話(_source/process/zakk-說明.md),
+            只補標點、不改字。先寫英文再翻的版本他說「讀起來很奇怪」。 -->
     <section class="section" id="how">
-      <div class="section__head reveal" data-note="2025 · PROJECT + INTERNSHIP">
+      <div class="section__head reveal" data-note="2025 · GRADUATION PROJECT">
         <span class="section__num">02</span>
         <h2 class="section__title">How I work</h2>
       </div>
 
-      <!-- ⚠️ 改版原因:原本四格**全部來自佐佐木實習**,而且是
-           「溝通 / 解決問題 / 動手做」這種美德清單 —— 那種結構任何人都能填,
-           填了也證明不了什麼。改成三個**有證據的主張**,證據來自畢製
-           (Zakk 自己口述的過程,見 _source/process/zakk-說明.md),
-           佐佐木只留通風機那一張(Zakk 指定)。
-           每一格的順序是:主張 → 那件事實際怎麼發生 → 照片。 -->
       <div class="how reveal" style="--delay: 100ms">
 
         <article class="how__item panel">
-          <p class="panel__label"><i aria-hidden="true"></i>Before the shape</p>
+          <p class="panel__label"><i aria-hidden="true"></i>Problems &amp; fixes</p>
           <p class="how__lead">The first thing I drew was not the shape.</p>
-          <p class="how__body">The signal had to carry a dynamic screen and a link to an
-            emergency centre. Both are expensive, and both have to survive weather. So I
-            started with a lift mechanism and a set of modules &mdash; the costly parts get
-            carried up, clipped in, and taken down again without rebuilding the pole. The
-            display ended up as four small panels rather than one large one, so a damaged
-            section can be swapped on its own.</p>
-          <!-- ⚠️ 中文用 Zakk 自己打的原話(_source/process/zakk-說明.md),
-               只補標點、不改字 —— 先寫英文再翻的版本他說「讀起來很奇怪」,他是對的。 -->
+          <p class="how__body">A dynamic screen and a link to an emergency centre both cost
+            money and both have to survive weather &mdash; so I started with a lift mechanism
+            and a set of modules, and split the display into four pieces. Later problem: a
+            black pole is hard to see at night. We merged it with the streetlight.</p>
           <p class="how__zh" lang="zh-Hant">紅綠燈會有動態螢幕、藍芽連線應變中心的功能,
             成本一定會高,也考慮防水材質。於是製作升降系統配合模組組裝,
             去減少成本、加速安裝與拆卸,修繕也會更快。
-            面板分成四塊組合,正反各兩塊,上方放置三色燈條。</p>
+            面板分成四塊組合,正反各兩塊,上方放置三色燈條。
+            還結合路燈,避免黑色在夜晚不易看見的問題。</p>
           <figure class="how__fig">
             <img src="assets/works/traffic/sketch-01.webp"
                  alt="早期草圖:號誌立柱與可升降橫桿,綠色箭頭標示升降方向"
@@ -448,57 +443,48 @@
           </div>
         </article>
 
+        <!-- 🔴 主圖用參賽板(Zakk:「你沒有放35那張圖 他是第一版的重點」)。
+             它是三個人一起送出去的東西,板上印著三位組員的名字 ——
+             講分工合作,沒有比一張共同署名的成果板更直接的證據。 -->
         <article class="how__item panel">
-          <p class="panel__label"><i aria-hidden="true"></i>Second pass</p>
-          <p class="how__lead">Everything on it changed at least once.</p>
-          <p class="how__body">Three of us plus an advisor, each responsible for a piece and
-            all of us editing each other&rsquo;s. Between versions the light bar became a second
-            screen, so the signal can show a roadblock, a crash, an ambulance. The pole gained
-            manual buttons and an electronic lock for whoever has to service it. And it merged
-            with the streetlight, because a black pole is hard to see at night.</p>
-          <p class="how__zh" lang="zh-Hant">組員三人與指導教授互相討論整體負責的項目,
-            互相給予想法並更改。上方燈條也改成動態螢幕,增加設計感與更多的燈號變換,
-            這樣號誌還能顯示路障、車禍、救護車等功能。
-            柱體上增加手動控制的按鈕與電子鎖,方便修繕。
-            還結合路燈,避免黑色在夜晚不易看見的問題。</p>
-          <!-- 🔴 同一個接合處的兩個選項,上下疊(原圖裁掉共同的柱體 ——
-               整張放進 300px 欄寬會縮成 300x69,三張全糊,試過了)。
-               ⚠️ 本來要放三張,但 v2a 與 v2b 的標註都是「上下分開」,
-               幾乎同一張;放三張會讓人以為試了三次,實際只有兩個選項。
-               證據不要講得比實際大。 -->
+          <p class="panel__label"><i aria-hidden="true"></i>Working together</p>
+          <p class="how__lead">Each of us owned a piece, and edited each other&rsquo;s.</p>
+          <p class="how__body">Three students and one advisor. I had the signal itself;
+            the emergency centre was someone else&rsquo;s. We reviewed each other&rsquo;s
+            parts and changed them. This board is the version we entered for iF and Red Dot
+            &mdash; all three names on it.</p>
+          <p class="how__zh" lang="zh-Hant">配合紅綠燈的應變中心外型設計。
+            組員三人與指導教授互相討論整體負責的項目,互相給予想法並更改。
+            因為時間因素,以這一版去參加紅點與 iF ——
+            這張是參賽的圖片檔,整體在訴說計畫的運作與產品的功能。</p>
           <figure class="how__fig how__fig--tall">
-            <img src="assets/works/traffic/v2-variants.webp"
-                 alt="第二版接合處的兩個選項:上為「上下分開」,下為「上下連在一起,中間挖洞」"
-                 loading="lazy" width="900" height="494">
-            <figcaption class="how__cap" lang="zh-Hant">同一個接合處 &middot; 兩種做法</figcaption>
+            <img src="assets/works/traffic/board.webp"
+                 alt="參賽用的成果板:設計概念、運作原理、燈號變換流程,下方列出三位組員姓名"
+                 loading="lazy" width="1600" height="1090">
+            <figcaption class="how__cap" lang="zh-Hant">參賽板 &middot; 三個人的名字都在上面</figcaption>
           </figure>
-          <!-- 佐證:改之前是什麼樣子、被評的那一次、組員負責的應變中心 ——
-               三張合起來才看得出「改」是誰跟誰之間發生的 -->
+          <!-- 佐證:組員負責的應變中心(外型 / 模型 / 平面),以及第一次評分 -->
           <div class="how__strip">
-            <!-- ⚠️ 這裡本來放 v1-product.webp,它是直幅的深色產品照 ——
-                 裁成 4:3 之後取到中間那段,畫面幾乎全黑,看不出是什麼。
-                 換成橫幅的渲染圖,裁切幾乎不損失內容。 -->
-            <figure><img src="assets/works/traffic/v1-render.webp" loading="lazy"
-                    alt="第一版渲染圖:黑色立柱,橫桿上是分成四塊的顯示面板"
-                    width="1600" height="1034"></figure>
-            <figure><img src="assets/works/traffic/review.webp" loading="lazy"
-                    alt="第一次評分:作品與評圖現場" width="1200" height="1600"></figure>
+            <figure><img src="assets/works/traffic/centre-render.webp" loading="lazy"
+                    alt="應變中心的外型渲染" width="1600" height="900"></figure>
             <figure><img src="assets/works/traffic/centre-plan.webp" loading="lazy"
                     alt="應變中心的平面配置圖" width="1600" height="900"></figure>
+            <figure><img src="assets/works/traffic/review.webp" loading="lazy"
+                    alt="第一次評分:組員在展板前向老師說明" width="900" height="1600"></figure>
           </div>
         </article>
 
-        <!-- 🔴 這一格是整個 How I work 的重點,兩張照片是刻意的:
-             同一件事在兩個完全不同的場合都發生過(畢製磨模型、實習裝通風機),
-             才證明那是習慣,不是碰巧。所以圖說要標出處 —— 標了才成立。 -->
+        <!-- 🔴 Zakk:「手做還是可以單獨拿出來」。兩張照片是刻意的:
+             同一件事在畢製和實習都發生過,才證明那是習慣,不是碰巧。
+             所以圖說一定要標出處 —— 不標的話對照就不成立。
+             兩張也必須等大,一大一小就變成「主圖 + 附圖」,對照沒了。 -->
         <article class="how__item panel">
           <p class="panel__label"><i aria-hidden="true"></i>Hands on</p>
           <p class="how__lead">I finish things myself.</p>
-          <p class="how__body">The printed parts arrived with the layer lines still on them.
-            I spent about a week sanding by hand at a paint shop near school, handed it over
-            to be sprayed, then sanded it again after. On an internship the boss told me to
-            install a ventilation fan &mdash; so I measured it, wired it, drove the screws, and
-            cut the window opening wider to make it fit. It runs.</p>
+          <p class="how__body">The printed parts arrived rough, layer lines still on them.
+            About a week sanding by hand at a paint shop near school, then again after
+            spraying. On an internship I was told to fit a ventilation fan &mdash; I measured
+            it, wired it, drove the screws, and cut the opening wider to make it fit. It runs.</p>
           <p class="how__zh" lang="zh-Hant">新型號誌是找大陸一家學長推薦的 3D 列印公司,
             寄過來耗時兩週。拿到成品後自己在學校附近的噴漆工廠用手打磨大約一週,
             再給工廠的大哥噴漆,噴完繼續打磨才完成。
@@ -511,9 +497,8 @@
                    loading="lazy" width="900" height="1600">
               <figcaption class="how__cap" lang="zh-Hant">畢製 &middot; 磨完一週的手</figcaption>
             </figure>
-            <!-- ⚠️ 通風機這張的原檔只有 320x693 —— 手機截圖再壓縮過的,不是原始照片。
-                 已裁掉狀態列與黑邊、放大兩倍。再放大只會把 JPEG 雜訊一起放大。
-                 放在這裡剛好:並排的兩張都做小,它就不必假裝成攝影作品。 -->
+            <!-- ⚠️ 通風機這張的原檔只有 320x693 —— 手機截圖再壓縮過的。
+                 並排都做小,它就不必假裝成攝影作品。 -->
             <figure class="how__fig">
               <img src="assets/process/vent-fan.webp?v=2"
                    alt="實習現場:手持螺絲起子,把電線接到通風機的端子座上"
@@ -521,7 +506,7 @@
               <figcaption class="how__cap" lang="zh-Hant">實習 &middot; 自己裝的通風機</figcaption>
             </figure>
           </div>
-          <!-- 佐證:磨之前長什麼樣。沒有這三張,「磨了一週」只是一句話 -->
+          <!-- 佐證:磨之前長什麼樣。沒有這幾張,「磨了一週」只是一句話 -->
           <div class="how__strip">
             <figure><img src="assets/works/traffic/print-raw-a.webp" loading="lazy"
                     alt="剛收到的列印件,表面看得到一條條列印層紋" width="900" height="1600"></figure>
@@ -533,7 +518,101 @@
         </article>
 
       </div>
+    </section>
 
+    <!-- ══════════ 02c HOW I WORK(2/2)· 去年的工作 ══════════
+         🔴 一森室內設計(2025)是**正職「設計助理」**,不是實習;
+         佐佐木(2023)才是實習。兩家不同公司,絕對不要混。
+         Zakk:「我去年是去一森室內設計 當正職 設計助理,
+         我給的照片除了通風機全部都是設計助理做的」——
+         把正職講成實習是履歷上的事實錯誤,不是措辭問題。
+
+         這一頁排在畢製後面,讀起來是:
+         「這是我能做到的完整度」→「而且我已經在真實案場做過了」。 -->
+    <section class="section" id="how2">
+      <div class="section__head reveal" data-note="2025 · DESIGN ASSISTANT">
+        <span class="section__num">02</span>
+        <h2 class="section__title">On site</h2>
+      </div>
+
+      <div class="how reveal" style="--delay: 100ms">
+
+        <article class="how__item panel">
+          <p class="panel__label"><i aria-hidden="true"></i>Drawings</p>
+          <p class="how__lead">My first whole case, drawn end to end.</p>
+          <p class="how__body">A three-storey townhouse. The TV unit kept changing until it
+            ended up floating off the floor against a curved wall; the fridge cabinet was
+            rebuilt to the size the client asked for. A drawing only works if the sizes match
+            what you can actually buy.</p>
+          <p class="how__zh" lang="zh-Hant">去年在室內設計公司畫的立面圖。
+            第一次開始畫整個案子的圖面到施作與安排工種,是個三層樓的透天裝潢。
+            當時一直更改電視下系統櫃的設計與尺寸,之後櫃子做了浮空的設計,
+            搭配左邊曲面的電視牆;客戶要求冰箱尺寸,在對應冰箱櫃的寬度去做調整。</p>
+          <figure class="how__fig">
+            <img src="assets/works/ensen/elev-tv.webp"
+                 alt="二樓客廳電視櫃與餐廳的立面圖,標了各段尺寸"
+                 loading="lazy" width="1108" height="1373">
+          </figure>
+          <div class="how__strip">
+            <figure><img src="assets/works/ensen/elev-fridge.webp" loading="lazy"
+                    alt="立面圖局部:冰箱櫃各段寬度的尺寸標註" width="1200" height="1600"></figure>
+            <figure><img src="assets/works/ensen/render-living.webp" loading="lazy"
+                    alt="這個案子一樓的客廳渲染圖" width="1600" height="900"></figure>
+          </div>
+        </article>
+
+        <article class="how__item panel">
+          <p class="panel__label"><i aria-hidden="true"></i>On site</p>
+          <p class="how__lead">Then I followed the drawings onto site.</p>
+          <p class="how__body">Same case, from paper through to build &mdash; including
+            scheduling which trade came in when. It is the part of the job you cannot learn
+            from a drawing: what is buildable, what has to move, and who needs to know.</p>
+          <p class="how__zh" lang="zh-Hant">第一次開始畫整個案子的圖面到施作與安排工種。
+            當時假日睡覺都會被師父打電話叫醒。</p>
+          <figure class="how__fig">
+            <img src="assets/works/ensen/site-b.webp"
+                 alt="施工現場:師傅在梯子上組木作骨架"
+                 loading="lazy" width="1200" height="1600">
+          </figure>
+          <div class="how__strip">
+            <figure><img src="assets/works/ensen/site-a.webp" loading="lazy"
+                    alt="樓梯扶手施工中" width="1200" height="1600"></figure>
+            <figure><img src="assets/works/ensen/site-c.webp" loading="lazy"
+                    alt="完成的木作牆面" width="1200" height="1600"></figure>
+            <figure><img src="assets/works/ensen/site-d.webp" loading="lazy"
+                    alt="天花板骨架施工中" width="1200" height="1600"></figure>
+          </div>
+        </article>
+
+        <!-- 🔴 這一格的證據最特別:照片上的字是 Zakk 自己標的。
+             那不是作品照,是工作紀錄 —— 他標好之後發給業主和各師傅,
+             讓不在現場的人也知道進度到哪。溝通能力不用形容詞講,這就是。 -->
+        <article class="how__item panel">
+          <p class="panel__label"><i aria-hidden="true"></i>Keeping people posted</p>
+          <p class="how__lead">The same photo has to work for two people.</p>
+          <p class="how__body">I labelled the site-progress photos and sent them out &mdash;
+            to the owner, who is not there, and to each trade, who needs to know what the
+            last one left behind. The words on these are mine.</p>
+          <p class="how__zh" lang="zh-Hant">要聯絡給業主與各師傅的案場進度照。
+            照片上的標註是我自己寫的 ——
+            業主不在現場,師傅要知道上一個工種做到哪。</p>
+          <div class="how__pair">
+            <figure class="how__fig">
+              <img src="assets/works/ensen/progress-a.webp"
+                   alt="案場進度照,照片上標註「4f 客廳冷氣銅管排水配置」"
+                   loading="lazy" width="1108" height="1477">
+              <figcaption class="how__cap" lang="zh-Hant">4f 客廳</figcaption>
+            </figure>
+            <figure class="how__fig">
+              <img src="assets/works/ensen/progress-b.webp"
+                   alt="案場進度照,照片上標註「1f 主臥冷氣銅管、排水配」"
+                   loading="lazy" width="1108" height="1477">
+              <figcaption class="how__cap" lang="zh-Hant">1f 主臥</figcaption>
+            </figure>
+          </div>
+        </article>
+
+      </div>
     </section>
 
     <!-- ══════════ 03 PHOTOS ══════════
@@ -622,6 +701,6 @@
     <p>&copy; 2026</p>
   </footer>
 
-  <script src="js/main.js?v=207"></script>
+  <script src="js/main.js?v=208"></script>
 </body>
 </html>

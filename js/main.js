@@ -23,11 +23,14 @@ if (window.__SHOT) {
      會直接疊在 Works / About / Photos 的內容上(實測)。
      只有首屏需要它,其餘三區要關掉。 */
   if (window.__SHOT !== 'hero-b') document.documentElement.classList.add('is-shot-nofrag');
+  /* ⚠️ 這份清單原本寫死成 ['hero-b','works','about','photos'] ——
+     後來新增的 #how / #how2 不在裡面,所以永遠不會被隱藏:
+     `?shot=how2` 截出來的其實是 #how(兩張圖一模一樣,查了半天)。
+     改成直接從 DOM 找,以後新增區塊不必再回來改這裡。 */
   document.addEventListener('DOMContentLoaded', function () {
-    ['hero-b', 'works', 'about', 'photos'].forEach(function (id) {
-      var el = document.getElementById(id);
-      if (el && id !== window.__SHOT) el.style.display = 'none';
-    });
+    var all = document.querySelectorAll('.hero-b, main .section');
+    for (var i = 0; i < all.length; i++)
+      if (all[i].id !== window.__SHOT) all[i].style.display = 'none';
   });
 }
 
