@@ -3346,6 +3346,20 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 @media (min-width: 1441px) {
   .how { max-width: calc(70vw - var(--gutter)); }
+
+  /* 🔴 全站「內容佔 70%」的留白,是**為了讓右邊的龍骨粒子有地方待**。
+     但 SEGS 只設定了 works / about / photos —— 這兩頁沒有骨頭,
+     那 30% 就真的是一片空的(2560 寬時右邊空了 768px,Zakk 回報)。
+     留白的理由不成立時就不該留 —— 這兩頁放寬到 88vw。
+     ⚠️ 標題那一列也要一起放寬,不然大標的右側註記會跟面板的右緣對不齊。 */
+  #how  .how, #how2 .how,
+  #how  .section__head, #how2 .section__head { max-width: calc(88vw - var(--gutter)); }
+
+  /* ⚠️ 放寬之後第二頁只有三格,欄寬會來到 716px —— 一行快 95 個字,太長了。
+     所以只限制**文字**的寬度,圖片照樣吃滿整欄:
+     多出來的寬度就變成更大的圖,正好是他要的「看得更清楚」。 */
+  #how .how__lead,  #how .how__body,  #how .how__zh,
+  #how2 .how__lead, #how2 .how__body, #how2 .how__zh { max-width: 30rem; }
 }
 
 /* 🔴 一定要排成**一排**,不能折行。
