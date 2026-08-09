@@ -3296,3 +3296,43 @@ window.__fragSprites = (function () {
     if (e.key === 'Escape' && box) box.classList.remove('is-on');
   });
 }());
+
+
+/* ═══════════════════════════════════════════════════════
+   縮圖列:滑鼠在上面時,滾輪改成左右捲
+   Zakk:「然後滾輪可以去滾動下方的照片」
+
+   ⚠️ 這個站的滾輪是被接管的(§ 平滑捲動 / 換頁),
+   所以縮圖列預設完全不吃滾輪 —— 一定要自己攔。
+   攔的方式照既有的照片帶那一套:監聽在**元素上**、preventDefault,
+   全域那支看到 e.defaultPrevented 就會讓開。
+
+   🔴 捲到底就把滾輪還給頁面(不 preventDefault)——
+   不然滑鼠停在縮圖上會整個卡住,換不了頁,那比不能左右捲更糟。
+   ═══════════════════════════════════════════════════════ */
+(function () {
+  var strips = document.querySelectorAll('.how__strip');
+  if (!strips.length) return;
+
+  for (var i = 0; i < strips.length; i++) {
+    strips[i].addEventListener('wheel', function (e) {
+      if (e.ctrlKey) return;                       // 縮放手勢不要攔
+
+      /* 直向滾輪也要能捲 —— 大部分滑鼠只有直向滾輪,
+         只吃 deltaX 的話等於這個功能不存在。 */
+      var d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+      if (e.deltaMode === 1) d *= 16;              // 有些滑鼠回報的是「行」不是像素
+
+      var max = this.scrollWidth - this.clientWidth;
+      if (max <= 1) return;                        // 沒東西可捲,讓頁面捲
+
+      /* 到頭 / 到尾就交還給頁面。留 1px 容差:
+         scrollLeft 在縮放或非整數欄寬時不會剛好等於 max。 */
+      if ((d < 0 && this.scrollLeft <= 0) ||
+          (d > 0 && this.scrollLeft >= max - 1)) return;
+
+      e.preventDefault();
+      this.scrollLeft += d;
+    }, { passive: false });
+  }
+}());
