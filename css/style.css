@@ -3254,13 +3254,31 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 
 .how__item { display: flex; flex-direction: column; }
 
-/* 開場句:一段話講完那件事,不是標題 */
+/* 大標:短詞,不是句子。
+   🔴 原本每格有兩層標題 —— 9px 的藍色小標(PROBLEMS & FIXES)
+   加一句 19px 的長句(The first thing I drew was not the shape.)。
+   Zakk:「大標可以改成藍色字的內容嗎 比較簡短易懂」,他是對的:
+   掃過去時眼睛讀到的是那句長的,但那句是**論點**不是**標題** ——
+   要整句讀完才知道這格在講什麼。
+   現在大標直接用那個短詞,長句子收進內文當第一句(內容一個字都沒丟),
+   小藍標拿掉,不然兩層說同一件事。
+   ⚠️ 小標原本帶著一條往右延伸的引線(.panel__label::after),
+      那是這個站的面板長相。標拿掉了,引線要接到大標上,不然面板會少一層。 */
 .how__lead {
+  display: flex;
+  align-items: center;
+  gap: 12px;
   margin: 0 0 var(--s2);
   font-size: clamp(1rem, 1.25vw, 1.2rem);
   font-weight: 500;
   line-height: 1.35;
   color: var(--ink);
+}
+.how__lead::after {
+  content: "";
+  flex: 1;
+  height: 1px;
+  background: var(--blue-line);
 }
 .how__body {
   margin: 0;
