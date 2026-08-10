@@ -2190,9 +2190,18 @@ window.__fragSprites = (function () {
      直排時容器是一個很高的圓角矩形,裡面那顆膠囊跟容器的弧線對不上,
      看起來像「線跑出按鈕」(Zakk 原話)。橫排就沒有這個問題,
      而且 topbar 已經拿掉,上緣正好空著。 */
+  /* 第三個欄位 = 這顆按鈕「認領」哪幾個區塊。
+     🔴 About 有三頁(#about / #how / #how2),但導覽只有一顆 About。
+     沒有這個對應的話,標記邏輯是「找離視窗中央最近的**清單內**區塊」——
+     捲到 How I work 時清單裡最近的是 Photos,結果人在 On site、
+     上面卻亮著 PHOTOS(Zakk 回報)。
+     ⚠️ 以後再加 About 的第四頁,記得也加進這個陣列。 */
   var items = [
-    ['hero-b', 'Intro'], ['works', 'Works'], ['about', 'About'],
-    ['photos', 'Photos'], ['contact', 'Contact']
+    ['hero-b', 'Intro',   ['hero-b']],
+    ['works',  'Works',   ['works']],
+    ['about',  'About',   ['about', 'how', 'how2']],
+    ['photos', 'Photos',  ['photos']],
+    ['contact', 'Contact', ['contact']]
   ].filter(function (it) { return document.getElementById(it[0]); });
   if (!items.length) return;
 
@@ -2228,15 +2237,40 @@ window.__fragSprites = (function () {
   });
   document.body.appendChild(side);
 
-  /* 標出目前在哪一區:取最接近視窗中央的那一區 */
+  /* 標出目前在哪一區。
+
+     🔴 原本是用 getBoundingClientRect 找「離視窗中央最近的區塊」——
+     那在這個站是錯的:每個 .frame 都是 150svh 的外殼,真正看得到的內容
+     是釘在裡面的那一屏。用外殼的中心去比,算出來的跟畫面上看到的差一整頁
+     (實測:人在 Photos,亮的是 Works)。
+
+     幀系統本來就算好了每一幀的能見度並掛在 window.__frameVis —— 直接用它。
+     ⚠️ 手機沒有幀系統(§ 幀系統在 <=720px 直接 return),__frameVis 不存在,
+        那時區塊是正常的 block,矩形量得準,退回原本的做法。 */
   var ticking = false;
   function mark() {
-    var mid = window.innerHeight / 2, best = 0, bestD = Infinity;
-    items.forEach(function (it, i) {
-      var r = document.getElementById(it[0]).getBoundingClientRect();
-      var d = Math.abs(r.top + r.height / 2 - mid);
-      if (d < bestD) { bestD = d; best = i; }
-    });
+    var fv = window.__frameVis, best = 0;
+
+    if (fv) {
+      var bestV = -1;
+      items.forEach(function (it, i) {
+        (it[2] || [it[0]]).forEach(function (id) {
+          var v = fv[id];
+          if (v != null && v > bestV) { bestV = v; best = i; }
+        });
+      });
+    } else {
+      var mid = window.innerHeight / 2, bestD = Infinity;
+      items.forEach(function (it, i) {
+        (it[2] || [it[0]]).forEach(function (id) {
+          var el = document.getElementById(id);
+          if (!el) return;
+          var r = el.getBoundingClientRect();
+          var d = Math.abs(r.top + r.height / 2 - mid);
+          if (d < bestD) { bestD = d; best = i; }
+        });
+      });
+    }
     links.forEach(function (a, i) { a.classList.toggle('is-here', i === best); });
     ticking = false;
   }
