@@ -297,11 +297,29 @@ if (window.__SHOT) {
      `.section` 在沒有 .frame 的時候是 min-height: 0 的一般 block,
      不會留下大洞 —— 頁面就變成正常捲動的文件,全部看得到。
 
-     ⚠️ 寬度與指標**兩個條件都要**:
-       - `pointer: coarse` 抓真的觸控裝置
-       - `max-width: 720px` 抓「視窗很窄的桌機」—— 那時 CSS 也已經改成直向堆疊,
-         內容一樣會超出一屏(720px 就是全站既有的手機斷點) */
-  if (window.matchMedia('(max-width: 720px), (pointer: coarse)').matches) return;
+     🔴 門檻從 720px 提高到「1360 寬 × 860 高」(2026-08-11)。
+     原本只擋手機,但**一般筆電也塞不下**——實測(還沒修 About 兩欄之前):
+         1440x900   About 溢出 126px、Photos 26px
+         1280x800   About 溢出 188px、How 27px、Photos 30px
+         1024x768   About 溢出 221px、How 71px、Photos 30px
+     溢出的部分被 overflow:hidden 直接切掉,而且沒有捲軸,
+     使用者不知道下面還有東西(Zakk:「螢幕太小內容會擠在一起」)。
+     修了 About 之後 1440x900 過關,1280x800 仍然差 20~30px ——
+     那不是再收一次間距就能解決的,是**視窗真的不夠高**。
+
+     所以:畫框只在夠大的螢幕上跑,其餘一律回到正常捲動的頁面。
+     這樣不會有任何內容被裁掉,小視窗也讀得完。
+
+     ⚠️ `pointer: coarse` 要留著:iPad 橫放有 1180 寬,尺寸過得了關,
+        但它沒有滑鼠 —— 釘住 + 慣性滑動的體感在觸控上是壞的(見上面那段)。 */
+  if (window.matchMedia(
+        '(max-width: 1359px), (max-height: 859px), (pointer: coarse)').matches) {
+    /* 手機(<=720)本來就有自己的直向排版,不需要這個類別;
+       721 以上的中等視窗才需要補回「本來由 .frame__sheet 提供」的東西。 */
+    if (!window.matchMedia('(max-width: 720px)').matches)
+      document.documentElement.classList.add('is-scroll');
+    return;
+  }
 
   var secs = [].slice.call(document.querySelectorAll('.hero-b, main .section'));
   if (!secs.length) return;
@@ -907,11 +925,23 @@ if (window.__SHOT) {
      ⚠️ **點數不要跟著砍太兇。** 先試 1600,頭骨立刻變得稀稀落落 ——
      Zakk 在 §60 已經連續兩次嫌粒子太少了,省效能不能拿這個換。
      DPR 那 44% 是**看不出來**的省,優先用它;點數只收三分之一。 */
-  var SMALL = window.matchMedia('(max-width: 720px), (pointer: coarse)').matches;
-  /* 手機:點數比桌機少很多,但每一顆**畫得比較大**(見 SIZE_K)。
+  /* 🔴 平板要獨立判斷,不能跟手機共用一個 SMALL。
+     原本是 `(max-width: 720px), (pointer: coarse)` 一個布林值決定一切 ——
+     但 iPad 是 **coarse 指標、螢幕卻很大**,所以它吃到了為手機寫的
+     SIZE_K 2.0,碎片被畫成兩倍大(Zakk:「ipad 看首頁的碎片竟然變大了」)。
+     放大是為了補償手機「點少 + 螢幕小」,iPad 兩個前提都不成立。
+
+     所以拆成兩個軸:
+       PHONE  真的窄 → 點少、粒子放大(原本的理由成立)
+       TABLET 觸控但螢幕不小 → 點數與大小都取中間值 */
+  var PHONE  = window.matchMedia('(max-width: 720px)').matches;
+  var COARSE = window.matchMedia('(pointer: coarse)').matches;
+  var TABLET = COARSE && !PHONE;
+  var SMALL  = PHONE || COARSE;     // 效能相關的判斷仍然用這個
+  /* 手機:點數比桌機少很多,但每一顆**畫得比較大**。
      少而大 > 多而小 —— 後者在手機上又糊又擠,而且畫的次數還比較多。 */
-  var NPTS = SMALL ? 1800 : 3600;
-  var SIZE_K = SMALL ? 2.0 : 1;     // 手機碎片放大,補回密度感,也回應「太小」
+  var NPTS   = PHONE ? 1800 : (TABLET ? 2600 : 3600);
+  var SIZE_K = PHONE ? 2.0  : (TABLET ? 1.15 : 1);
   var TRANS_MS = 900;          // 換區塊時過場動畫的固定時長
   var curSeg = 0, wantSeg = 0, fromSeg = 0, segT = 1;
                                // 每段都取樣成同樣點數 —— 數量一樣才能逐點插值

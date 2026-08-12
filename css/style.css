@@ -1051,6 +1051,36 @@ a { color: inherit; text-decoration: none; }
 
 /* ⚠️ <figure> 的瀏覽器預設是 margin: 1em 40px —— 左右各吃掉 40px。
    人像欄給了 300px,實際只畫出 220px,旁邊多一條空欄。 */
+/* Photos 在 900px 高的視窗溢出 26px(標題 60 + 說明 114 + 照片帶 396 +
+   Contact 211,再加上段落之間的間距,剛好超過一屏)。
+   從**間距**收,不動照片大小 —— 照片高度先前已經為了同樣的理由砍過一次
+   (46vh → 38vh),再砍下去照片就沒份量了。
+   ⚠️ 用 max-height 判斷,因為這是高度不夠,不是寬度不夠。 */
+@media (min-width: 721px) and (max-height: 960px) {
+  #photos .marquee { margin-top: 18px; }
+  #photos .connect__inner { margin-top: 14px; }
+  #photos .photos__note { margin-top: 14px; }
+}
+
+/* 🔴 About 拆兩欄的斷點從 1441 降到 1024。
+   原本只在 >=1441 才並排,1440 以下兩欄疊起來 →
+   About 的內容高度變成 1004px,而畫框只有一個視窗高 ——
+   1440x900 溢出 126px、1280x800 溢出 188px、1024x768 溢出 221px,
+   全部被 overflow:hidden 裁掉(Zakk:「螢幕太小內容會擠在一起」)。
+   ⚠️ 這是最常見的筆電尺寸,等於大部分人看到的 About 都是被切過的。
+   並排之後高度取兩欄的最大值(548)而不是相加(993),就塞得下了。 */
+@media (min-width: 1024px) {
+  .about__body {
+    display: grid;
+    grid-template-columns: minmax(0, 1fr) minmax(0, 1fr);
+    column-gap: var(--s5);
+    align-items: start;
+  }
+  .about__intro, .about__list { max-width: none; }
+}
+
+/* ⚠️ <figure> 的瀏覽器預設是 margin: 1em 40px —— 左右各吃掉 40px。
+   人像欄給了 300px,實際只畫出 220px,旁邊多一條空欄。 */
 .about__portrait { margin: 0; }
 .about__portrait img {
   width: 100%;
@@ -3230,6 +3260,24 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 /* ⚠️ 平舖模式沒有 .frame__sheet,而 gutter 是由 sheet 提供的 ——
    不補的話截圖裡內容會貼齊畫面最左邊(實測 left = 0)。 */
 .is-flat #main > .section { padding-inline: var(--gutter); }
+
+/* ═══════════ .is-scroll:中等視窗與平板的正常捲動模式 ═══════════
+   畫框(釘住 + 一屏一段)只在 >=1360x860 的滑鼠裝置上跑。
+   其餘的中等視窗與平板走這裡:一般的捲動頁面,不釘、不裁。
+
+   ⚠️ 跟 .is-flat 不一樣,不要混用:
+     .is-flat  是截圖模式 —— 固定 1000px 高、關掉載入動畫與進場動畫。
+     .is-scroll 是**給真的使用者看的**,進場動畫與載入動畫都要留著,
+                高度也交給內容自己決定。
+   ⚠️ 這裡只還原「本來由 .frame__sheet 負責」的兩件事:左右留白、上下呼吸。 */
+.is-scroll #main > .section {
+  min-height: auto;
+  padding-block: var(--s7);
+}
+/* 一區與一區之間給一條細線 —— 沒有了「翻頁」的斷點,
+   連續捲動時需要一個地方讓眼睛知道換段了。 */
+.is-scroll #main > .section + .section { border-top: 1px solid var(--hair); }
+.is-scroll .hero-b { min-height: 100svh; }
 
 /* ?shot:只留一個區塊,給逐區截圖用 */
 .is-shot .topbar,
