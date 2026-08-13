@@ -1,1 +1,55 @@
-<svg xmlns="http://www.w3.org/2000/svg" viewBox="150 100 320 580" width="320" height="580"><g fill="none" stroke="#171B1E" stroke-width="10" stroke-linejoin="round" stroke-linecap="round"><path d="M180,132 C190,198 200,238 212,260 C268,320 336,398 386,468 C430,500 438,552 400,580 C382,592 362,594 348,588 C344,610 336,626 320,634 C292,648 244,644 220,620 C210,610 204,598 204,584"/><path d="M328,606 C312,622 292,626 276,618"/></g></svg>
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="150 100 320 580" width="320" height="580">
+  <style>
+    #sniff, #breath, #wing {
+      transform-box: view-box;
+    }
+    #sniff {
+      transform-origin: 212px 260px;
+      animation: sniff 7.4s ease-in-out infinite;
+    }
+    #breath {
+      transform-origin: 300px 420px;
+      animation: breath 4.6s ease-in-out infinite;
+    }
+    #wing {
+      transform-origin: 320px 634px;
+      animation: flare 4.6s ease-in-out infinite;
+    }
+
+    /* 呼吸:整支鼻子微微上抬 */
+    @keyframes breath {
+      0%, 100% { transform: translateY(0) scaleY(1); }
+      45%      { transform: translateY(-6px) scaleY(1.012); }
+    }
+
+    /* 鼻翼隨吸氣張開,以鼻小柱為軸 */
+    @keyframes flare {
+      0%, 100% { transform: scale(1, 1); }
+      45%      { transform: scale(1.06, 1.07); }
+    }
+
+    /* 每 7.4 秒抽一下鼻子 */
+    @keyframes sniff {
+      0%, 84%, 100% { transform: rotate(0deg) translate(0, 0); }
+      86% { transform: rotate(-1.3deg) translate(-3px, -5px); }
+      88% { transform: rotate(0.7deg)  translate(2px, 2px); }
+      90% { transform: rotate(-0.9deg) translate(-2px, -3px); }
+      92% { transform: rotate(0deg)    translate(0, 0); }
+    }
+
+    @media (prefers-reduced-motion: reduce) {
+      #sniff, #breath, #wing { animation: none; }
+    }
+  </style>
+  <g id="sniff">
+    <g id="breath">
+      <g fill="none" stroke="#171B1E" stroke-width="10" stroke-linejoin="round" stroke-linecap="round">
+        <path d="M180,132 C190,198 200,238 212,260 C268,320 336,398 386,468 C430,500 438,552 400,580 C382,592 362,594 348,588 C344,610 336,626 320,634"/>
+        <g id="wing">
+          <path d="M320,634 C292,648 244,644 220,620 C210,610 204,598 204,584"/>
+          <path d="M328,606 C312,622 292,626 276,618"/>
+        </g>
+      </g>
+    </g>
+  </g>
+</svg>
