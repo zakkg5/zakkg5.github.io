@@ -2444,7 +2444,7 @@ window.__fragSprites = (function () {
      CSS 已經降到 1441(版面保證右邊留 30%),JS 還卡在 1720 的話,
      1441–1719 之間會出現「格線畫得出來、碎片一顆都沒有」——
      因為引擎在這裡就 return 了,連骨頭圖都不會下載。 */
-  if (!window.matchMedia('(min-width: 1441px)').matches) return;
+  if (!window.matchMedia('(min-width: 1200px)').matches) return;
 
   /* 碎片改成跟首屏一樣大(Zakk 指定)。首屏的算式是
      sz = gap*(0.3~0.7) 再 ×2.1,在 2000px 寬時約 7~17px ——
@@ -2853,7 +2853,11 @@ window.__fragSprites = (function () {
     /* 內容欄佔螢幕 70%(見 style.css 的 min-width:1441 那一段),
        骨頭只能用剩下的 30%。⚠️ 這個數字是硬編的 1296 改過來的 ——
        固定值在 2560 的螢幕上會讓骨頭拿到 49% 的版面。 */
-    var CONTENT_R = window.innerWidth * 0.70;
+    /* ⚠️ 這個比例必須跟 CSS 的內容欄寬**完全一致**,骨頭才會剛好待在空欄裡。
+       1200–1440 之間 CSS 給的是 78%(70% 在那個尺寸會把 About 擠爛),
+       1441 以上才是 70%。改其中一邊就要改另一邊。 */
+    var CONTENT_R = window.innerWidth *
+      (window.matchMedia('(min-width: 1441px)').matches ? 0.70 : 0.78);
     var freeW = Math.max(160, window.innerWidth - CONTENT_R);
     var canvasL = canvas.getBoundingClientRect().left;
 
