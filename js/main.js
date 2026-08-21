@@ -16,6 +16,8 @@ window.__FLAT = location.search.indexOf('flat') > -1;
 window.__SHOT = (location.search.match(/shot=([\w-]+)/) || [])[1] || '';
 if (window.__SHOT) window.__FLAT = true;
 if (window.__FLAT) document.documentElement.classList.add('is-flat');
+
+
 if (window.__SHOT) {
   document.documentElement.classList.add('is-shot');
   /* ⚠️ 碎片走廊(.fragments)是整站共用、跟著捲動變形的一張畫布。
