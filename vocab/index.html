@@ -1,0 +1,1032 @@
+<!DOCTYPE html>
+<html lang="zh-Hant">
+<head>
+<meta charset="utf-8">
+<meta name="color-scheme" content="light only">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<title>單字本</title>
+<meta name="description" content="多益與職場英文的翻卡單字本">
+<link rel="manifest" href="./manifest.json">
+<meta name="theme-color" content="#F2F3ED">
+<meta name="apple-mobile-web-app-capable" content="yes">
+<meta name="mobile-web-app-capable" content="yes">
+<meta name="apple-mobile-web-app-status-bar-style" content="default">
+<meta name="apple-mobile-web-app-title" content="單字本">
+<link rel="apple-touch-icon" href="./apple-touch-icon.png">
+<link rel="icon" href="./icon-192.png" type="image/png" sizes="192x192">
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link href="https://fonts.googleapis.com/css2?family=Fraunces:opsz,wght@9..144,600;9..144,700&family=Archivo:wght@500;600;700&family=JetBrains+Mono:wght@500;700&family=Noto+Sans+TC:wght@500;700&display=swap" rel="stylesheet">
+<style>
+  :root{
+    --paper:#F2F3ED;
+    --card:#FCFCF8;
+    --ink:#0D0F0C;
+    --ink-60:rgba(13,15,12,.88);
+    --ink-35:rgba(13,15,12,.68);
+    --rule:#A8AB9E;
+    --marker:#F2E85C;
+    --blue:#1B3372;
+    --warn:#9A2B2B;
+    --rail:34px;
+    --serif:"Fraunces",Georgia,serif;
+    --sans:"Archivo","Noto Sans TC",system-ui,sans-serif;
+    --mono:"JetBrains Mono",ui-monospace,Menlo,monospace;
+    --tc:"Noto Sans TC","PingFang TC",system-ui,sans-serif;
+  }
+  *{box-sizing:border-box}
+  :root{color-scheme:light only}
+  html,body{margin:0;padding:0}
+  html{background:#F2F3ED !important}
+  body::before{
+    content:"";position:fixed;inset:-10vh -10vw;background:#F2F3ED;z-index:-1;
+  }
+  body{
+    background:#F2F3ED !important;color:var(--ink) !important;
+    font-family:var(--sans);
+    font-weight:500;
+    padding-left:var(--rail);
+    min-height:100vh;
+  }
+  button{font-family:inherit;color:inherit;cursor:pointer;-webkit-text-fill-color:currentColor}
+  h1,p,span,div,label,summary,b{-webkit-text-fill-color:currentColor}
+  :focus-visible{outline:2px solid var(--blue);outline-offset:2px}
+
+  /* ---------- A–Z rail ---------- */
+  .rail{
+    position:fixed;left:0;top:0;bottom:0;width:var(--rail);
+    background:#F2F3ED;border-right:1.5px solid var(--rule);
+    display:flex;flex-direction:column;align-items:center;justify-content:center;
+    gap:2px;padding:8px 0;z-index:20;
+  }
+  .rail button{
+    background:none;border:0;padding:0;width:100%;font-weight:500;
+    font-family:var(--mono);font-size:11px;line-height:1.7;
+    color:var(--ink-35);letter-spacing:.02em;
+  }
+  .rail button.has{color:var(--ink);font-weight:500}
+  .rail button.has::after{
+    content:"";display:block;width:4px;height:1px;background:var(--blue);
+    margin:0 auto;opacity:.7;
+  }
+
+  /* ---------- shell ---------- */
+  .wrap{max-width:640px;margin:0 auto;padding:22px 18px 100px;background:#F2F3ED;position:relative;z-index:1}
+  header{display:flex;align-items:baseline;justify-content:space-between;gap:12px;margin-bottom:4px}
+  h1{
+    font-family:var(--serif);font-weight:700;font-size:28px;letter-spacing:-.01em;
+    margin:0;font-variation-settings:"opsz" 100;
+  }
+  .stats{font-family:var(--mono);font-size:12px;color:var(--ink-60);letter-spacing:.02em;text-align:right;line-height:1.5}
+  .tabs{display:flex;gap:0;border-bottom:1.5px solid var(--ink);margin:18px 0 22px}
+  .tabs button{
+    background:none;border:0;border-bottom:2px solid transparent;
+    padding:10px 16px 9px;font-size:15px;font-family:var(--tc);color:var(--ink-60);margin-bottom:-1px;
+  }
+  .tabs button[aria-selected="true"]{color:var(--ink);border-bottom-color:var(--ink);font-weight:700}
+  .view{display:none}
+  .view.on{display:block}
+
+  /* ---------- storage banner ---------- */
+  .banner{
+    margin-top:16px;border:1.5px solid var(--warn);border-left-width:4px;border-radius:3px;
+    background:var(--card);padding:12px 14px;
+    font-family:var(--tc);font-size:13.5px;font-weight:500;line-height:1.7;color:var(--warn);
+  }
+  .banner b{display:block;font-size:14.5px;margin-bottom:3px}
+  .banner button{
+    background:none;border:1.5px solid var(--warn);border-radius:2px;color:var(--warn);
+    font-family:var(--tc);font-size:12.5px;font-weight:500;padding:5px 10px;margin-top:9px;
+  }
+
+  /* ---------- filters ---------- */
+  .filters{display:flex;flex-wrap:wrap;gap:6px;margin-bottom:18px}
+  .chip{
+    background:none;border:1.5px solid var(--ink-35);font-weight:500;border-radius:999px;
+    padding:6px 13px;font-size:13px;font-family:var(--tc);color:var(--ink-60);
+  }
+  .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+  .dir{
+    margin-left:auto;align-self:center;background:none;border:0;padding:5px 0;
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--ink-60);
+    border-bottom:1px solid var(--rule);
+  }
+
+  /* ---------- flashcard ---------- */
+  .stage{perspective:1400px;margin-bottom:16px}
+  .card{
+    position:relative;width:100%;min-height:330px;
+    transform-style:preserve-3d;transition:transform .5s cubic-bezier(.2,.7,.2,1);
+    cursor:pointer;
+  }
+  .card.flipped{transform:rotateY(180deg)}
+  .face{
+    position:absolute;inset:0;backface-visibility:hidden;-webkit-backface-visibility:hidden;
+    background:var(--card);border:1.5px solid var(--ink);border-radius:3px;
+    padding:26px 22px;display:flex;flex-direction:column;
+    box-shadow:0 1px 0 var(--rule);
+  }
+  .face.back{transform:rotateY(180deg)}
+  .face.back .headword{font-size:clamp(28px,7vw,38px)}
+  .cat{
+    font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
+    color:var(--ink-35);
+  }
+  .headword{
+    font-family:var(--serif);font-size:clamp(34px,9vw,46px);font-weight:700;line-height:1.05;
+    font-variation-settings:"opsz" 144;margin:auto 0 0;word-break:break-word;
+  }
+  .phon{font-family:var(--mono);font-size:15px;font-weight:500;color:var(--ink-60);margin-top:10px}
+  .pos{
+    font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;
+    border:1px solid var(--rule);border-radius:2px;padding:2px 6px;color:var(--ink-60);
+    display:inline-block;margin-top:14px;
+  }
+  .hint{margin-top:auto;padding-top:18px;font-size:12px;font-family:var(--mono);color:var(--ink-35)}
+  .hint .t-key{display:none}
+  @media (hover:hover) and (pointer:fine){
+    .hint .t-touch{display:none}
+    .hint .t-key{display:inline}
+  }
+  .say{
+    background:none;border:1px solid var(--rule);border-radius:999px;width:34px;height:34px;
+    font-size:14px;line-height:1;display:grid;place-items:center;flex:none;
+  }
+  .row{display:flex;align-items:center;gap:10px}
+  .zh{font-family:var(--tc);font-size:23px;font-weight:700;line-height:1.4;margin:auto 0 0}
+  .zh.big{font-size:clamp(26px,7.5vw,34px);line-height:1.35}
+  .ex{font-size:15.5px;line-height:1.7;margin-top:16px;color:var(--ink);font-weight:500}
+  .ex mark{
+    background:linear-gradient(transparent 55%,var(--marker) 55%);
+    color:inherit;padding:0 1px;
+  }
+  .ex .zhline{display:block;font-family:var(--tc);font-size:14px;font-weight:500;color:var(--ink-60);margin-top:5px}
+  .rel{margin-top:16px;display:flex;flex-wrap:wrap;gap:6px}
+  .rel span{
+    font-family:var(--mono);font-size:12.5px;color:var(--blue);
+    border-bottom:1px solid rgba(35,64,127,.3);
+  }
+  .actions{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .actions button{
+    border:1.5px solid var(--ink);font-weight:600;background:none;border-radius:3px;padding:13px;
+    font-family:var(--tc);font-size:14px;
+  }
+  .actions .yes{background:var(--ink);color:var(--paper)}
+  .meter{
+    display:flex;align-items:center;gap:8px;margin:14px 0 6px;
+    font-family:var(--mono);font-size:12px;color:var(--ink-60);
+  }
+  .bar{flex:1;height:2px;background:var(--rule);position:relative}
+  .bar i{position:absolute;left:0;top:0;bottom:0;background:var(--ink);transition:width .3s}
+
+  /* ---------- list ---------- */
+  .letter{margin:26px 0 8px;display:flex;align-items:center;gap:10px}
+  .letter b{font-family:var(--serif);font-size:20px;font-weight:700}
+  .letter hr{flex:1;border:0;border-top:1px solid var(--rule);margin:0}
+  .letter span{font-family:var(--mono);font-size:11px;color:var(--ink-60)}
+  .entry{border-bottom:1px solid var(--rule);padding:12px 0}
+  .entry summary{
+    list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
+  }
+  .entry summary::-webkit-details-marker{display:none}
+  .entry .w{font-family:var(--serif);font-size:19px;font-weight:600;font-variation-settings:"opsz" 144}
+  .entry .p{font-family:var(--mono);font-size:13px;color:var(--ink-60)}
+  .entry .m{font-family:var(--tc);font-size:15px;font-weight:500;color:var(--ink-60);margin-left:auto}
+  .entry .body{padding:12px 0 4px}
+  .lvl{display:inline-flex;gap:3px;align-self:center}
+  .lvl i{width:5px;height:5px;border-radius:50%;background:var(--rule)}
+  .lvl i.on{background:var(--blue)}
+  .mini{
+    background:none;border:1.5px solid var(--ink-35);font-weight:500;border-radius:2px;padding:6px 11px;
+    font-size:12.5px;font-family:var(--tc);color:var(--ink);margin-right:6px;
+  }
+  .mini.dark{background:var(--ink);border-color:var(--ink);color:var(--paper)}
+  .mini[disabled]{opacity:.5;cursor:default}
+  .editform{padding-top:2px}
+  .editform label{margin-top:12px}
+
+  /* ---------- forms ---------- */
+  label,.fieldhead{display:block;font-family:var(--mono);font-size:11.5px;letter-spacing:.09em;text-transform:uppercase;color:var(--ink);margin:16px 0 6px;font-weight:500}
+  input,textarea,select{
+    width:100%;background:var(--card);border:1.5px solid var(--ink);border-radius:3px;
+    padding:10px 11px;font-family:var(--sans);font-size:15px;color:var(--ink);
+  }
+  textarea{font-family:var(--mono);font-size:14px;line-height:1.6;resize:vertical}
+  .grid2{display:grid;grid-template-columns:1fr 1fr;gap:10px}
+  .save{
+    width:100%;margin-top:20px;background:var(--ink);color:#fff;border:0;border-radius:3px;
+    padding:15px;font-family:var(--tc);font-size:16px;font-weight:700;
+  }
+  .note{font-family:var(--tc);font-size:13.5px;font-weight:500;color:var(--ink-60);line-height:1.7;margin-top:8px}
+  .btnrow{display:flex;flex-wrap:wrap;gap:6px;margin-top:10px}
+  .btnrow .mini{margin-right:0}
+  .empty{
+    border:1px dashed var(--rule);border-radius:3px;padding:34px 20px;text-align:center;
+    font-family:var(--tc);font-size:15px;color:var(--ink-60);line-height:1.8;
+  }
+  .sep{display:flex;align-items:center;gap:12px;margin:34px 0 4px}
+  .sep::before,.sep::after{content:"";flex:1;border-top:1px solid var(--rule)}
+  .sep span{font-family:var(--mono);font-size:11px;letter-spacing:.1em;text-transform:uppercase;color:var(--ink-35)}
+  .save[disabled]{opacity:.5;cursor:default}
+  .spin{
+    display:inline-block;width:10px;height:10px;margin-right:7px;vertical-align:-1px;
+    border:1.5px solid var(--ink);border-right-color:transparent;border-radius:50%;
+    animation:sp .7s linear infinite;
+  }
+  @keyframes sp{to{transform:rotate(360deg)}}
+  .status{
+    margin-top:12px;border:1.5px solid var(--ink);border-radius:3px;padding:11px 13px;
+    font-family:var(--tc);font-size:14px;font-weight:500;line-height:1.6;background:var(--card);
+  }
+  .status.err{border-color:var(--warn);color:var(--warn)}
+  .status.ok{background:var(--ink);color:#fff;border-color:var(--ink)}
+  .prev{margin-top:14px;border-top:1px solid var(--rule)}
+  .prev div{
+    padding:9px 0;border-bottom:1px solid var(--rule);display:flex;gap:10px;align-items:baseline;
+  }
+  .prev .pw{font-family:var(--serif);font-size:16px;font-variation-settings:"opsz" 144}
+  .prev .pp{font-family:var(--mono);font-size:12px;color:var(--ink-60)}
+  .prev .pz{font-family:var(--tc);font-size:14px;color:var(--ink-60);margin-left:auto}
+  .toast{
+    position:fixed;left:50%;top:14px;transform:translateX(-50%) translateY(-20px);
+    background:var(--ink);color:var(--paper);padding:10px 18px;border-radius:3px;
+    font-family:var(--tc);font-size:13px;opacity:0;pointer-events:none;transition:.25s;z-index:50;
+    max-width:calc(100vw - 60px);text-align:center;line-height:1.5;
+  }
+  .toast.on{opacity:1;transform:translateX(-50%) translateY(0)}
+  @media (prefers-reduced-motion:reduce){*{transition:none!important;animation:none!important}}
+</style>
+</head>
+<body>
+
+<nav class="rail" id="rail" aria-label="字母索引"></nav>
+
+<div class="wrap">
+  <header>
+    <h1>單字本</h1>
+    <div class="stats" id="stats">載入中</div>
+  </header>
+
+  <div id="banner" role="status" aria-live="polite"></div>
+
+  <div class="tabs" role="tablist">
+    <button role="tab" aria-selected="true" data-view="review">複習</button>
+    <button role="tab" aria-selected="false" data-view="list">清單</button>
+    <button role="tab" aria-selected="false" data-view="add">新增</button>
+  </div>
+
+  <!-- REVIEW -->
+  <section class="view on" id="view-review">
+    <div class="filters" id="filters"></div>
+    <div id="reviewBody"></div>
+  </section>
+
+  <!-- LIST -->
+  <section class="view" id="view-list">
+    <div id="listBody"></div>
+    <button class="mini" id="exportBtn" style="margin-top:24px">複製成 Markdown</button>
+  </section>
+
+  <!-- ADD -->
+  <section class="view" id="view-add">
+    <div class="fieldhead" style="margin-top:0">備份與匯入</div>
+    <p class="note">單字只存在這台裝置的瀏覽器裡。換手機、清瀏覽資料之前，先匯出一份 JSON 收好。</p>
+    <div class="btnrow">
+      <button class="mini" id="exportJson">匯出 JSON</button>
+      <button class="mini" id="importBtn">匯入 JSON</button>
+      <button class="mini" id="copySchema">複製格式說明</button>
+    </div>
+    <input type="file" id="importFile" accept="application/json,.json" hidden>
+    <p class="note">要一次加很多字：按「複製格式說明」，貼進 Claude 對話請它產生 JSON，把檔案下載下來再用「匯入 JSON」讀進去。匯入是合併，不會蓋掉現有的單字；同一個字會更新內容，熟悉度取兩邊比較高的。</p>
+    <div class="status" id="autoStatus" hidden></div>
+    <div class="prev" id="autoOut" hidden></div>
+
+    <div class="sep"><span>或自己填</span></div>
+
+    <label for="f-word">單字</label>
+    <input id="f-word" autocapitalize="off" autocomplete="off" placeholder="itinerary">
+    <div class="btnrow"><button class="mini" id="dictBtn">查音標與詞性</button></div>
+    <p class="note">會把這個字送到 dictionaryapi.dev（免金鑰的公開英英字典）查音標和詞性。中文意思一律自己填。</p>
+    <div class="grid2">
+      <div>
+        <label for="f-phon">音標</label>
+        <input id="f-phon" placeholder="/aɪˈtɪnəreri/">
+      </div>
+      <div>
+        <label for="f-pos">詞性</label>
+        <input id="f-pos" placeholder="n.">
+      </div>
+    </div>
+    <label for="f-zh">中文意思</label>
+    <input id="f-zh" placeholder="行程表">
+    <label for="f-ex">例句</label>
+    <input id="f-ex" placeholder="Please send me the itinerary.">
+    <label for="f-exzh">例句中譯（可留空）</label>
+    <input id="f-exzh" placeholder="請把行程表寄給我。">
+    <div class="grid2">
+      <div>
+        <label for="f-rel">相關單字（逗號分隔）</label>
+        <input id="f-rel" placeholder="schedule, agenda">
+      </div>
+      <div>
+        <label for="f-cat">分類</label>
+        <select id="f-cat">
+          <option>多益</option><option>職場</option><option>日常</option>
+        </select>
+      </div>
+    </div>
+    <button class="save" id="saveOne">加進單字本</button>
+
+    <label for="f-bulk" style="margin-top:34px">一次貼多筆</label>
+    <textarea id="f-bulk" rows="5" placeholder="itinerary | /aɪˈtɪnəreri/ | n. | 行程表 | Send me the itinerary. | 把行程表寄給我。 | schedule, agenda
+reimburse | /ˌriːɪmˈbɜːrs/ | v. | 報銷"></textarea>
+    <p class="note">一行一個字，用 <b>|</b> 分隔：單字 | 音標 | 詞性 | 中文 | 例句 | 中譯 | 相關字。<br>後面欄位空著也沒關係，最少只要「單字 | 中文」。</p>
+    <button class="save" id="saveBulk">批次加入</button>
+  </section>
+</div>
+
+<div class="toast" id="toast"></div>
+
+<script>
+const KEY="vocab-notebook-v1";
+const CORRUPT_KEY=KEY+"-unreadable";
+const DATA_VERSION=2;
+const CATS=["多益","職場","日常"];
+let words=[], filter="全部", queue=[], qi=0, flipped=false;
+let prefs={dir:"en2zh"};        // en2zh 看英文想中文 / zh2en 反過來
+let daily={date:"",n:0};        // 今天複習了幾張
+let editingId=null;
+
+/* ---------- seed ---------- */
+const SEED=[
+ ["itinerary","/aɪˈtɪnəreri/","n.","行程表","Please email me the itinerary for the Taipei site visit.","請把台北場勘的行程表寄給我。","schedule, agenda, route","職場"],
+ ["reimburse","/ˌriːɪmˈbɜːrs/","v.","報銷；償還","The company will reimburse you for the taxi fare.","公司會幫你報銷計程車費。","reimbursement, expense, refund","職場"],
+ ["tentative","/ˈtentətɪv/","adj.","暫定的；試探性的","The interview time is still tentative.","面試時間還是暫定的。","provisional, confirm, subject to change","職場"],
+ ["invoice","/ˈɪnvɔɪs/","n. / v.","發票；請款單","We haven't received the invoice from the vendor yet.","我們還沒收到廠商的請款單。","receipt, billing, payment","多益"],
+ ["inventory","/ˈɪnvəntɔːri/","n.","庫存；存貨清單","They're doing inventory at the warehouse this week.","他們這週在倉庫盤點庫存。","stock, warehouse, supply","多益"],
+ ["feasible","/ˈfiːzəbl/","adj.","可行的","Building the booth in three days isn't feasible.","三天內把攤位搭完並不可行。","practical, viable, doable","多益"],
+ ["streamline","/ˈstriːmlaɪn/","v.","精簡；使流程更有效率","We streamlined the approval process.","我們把審核流程精簡了。","simplify, optimize, workflow","職場"],
+ ["delegate","/ˈdelɪɡeɪt/","v. / n.","分派（工作）；代表","A good lead knows how to delegate tasks.","好的主管懂得分派工作。","assign, representative, hand off","職場"],
+ ["deadline","/ˈdedlaɪn/","n.","截止期限","The client moved the deadline up by a week.","客戶把截止期限提前了一週。","due date, extend, meet","多益"],
+ ["proficient","/prəˈfɪʃnt/","adj.","精通的；熟練的","I'm proficient in Rhino and AutoCAD.","我熟練使用 Rhino 和 AutoCAD。","skilled, fluent, proficiency","職場"],
+ ["collaborate","/kəˈlæbəreɪt/","v.","合作","I collaborated with engineers on the exhibition build.","我和工程人員合作完成展場搭建。","cooperate, collaboration, team up","職場"],
+ ["adaptable","/əˈdæptəbl/","adj.","適應力強的","Freelance work made me more adaptable.","接案的經驗讓我適應力更強。","flexible, adapt, adjust","職場"],
+ ["portfolio","/pɔːrtˈfoʊlioʊ/","n.","作品集","My portfolio covers spatial and digital work.","我的作品集包含空間和數位的作品。","showcase, case study, resume","職場"],
+ ["commute","/kəˈmjuːt/","v. / n.","通勤","I commute by MRT every morning.","我每天早上搭捷運通勤。","rush hour, transfer, ride","日常"],
+ ["errand","/ˈerənd/","n.","跑腿；雜事","I have a few errands to run before dinner.","晚餐前我還有幾件雜事要辦。","chore, run errands, drop off","日常"],
+ ["leftover","/ˈleftoʊvər/","n. / adj.","剩菜；剩下的","We had leftovers for lunch.","我們中午吃剩菜。","takeout, reheat, fridge","日常"]
+].map(a=>mk(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7]));
+
+function rid(){return Math.random().toString(36).slice(2,7);}
+function str(v){return typeof v==="string"?v.trim():(v==null?"":String(v).trim());}
+
+function mk(w,p,pos,zh,ex,exzh,rel,cat){
+  return {id:w.toLowerCase()+"-"+rid(),
+    w:w.trim(),p:p||"",pos:pos||"",zh:zh||"",ex:ex||"",exzh:exzh||"",
+    rel:(rel||"").split(",").map(s=>s.trim()).filter(Boolean),cat:cat||"多益",lvl:0};
+}
+
+/* 把任何來源(localStorage、匯入檔)的一筆資料整理成合法的卡片,不合法就回 null */
+function normalize(o){
+  if(!o||typeof o!=="object") return null;
+  const w=str(o.w||o.word);
+  if(!w) return null;
+  let rel=o.rel;
+  if(typeof rel==="string") rel=rel.split(",");
+  rel=Array.isArray(rel)?rel.map(str).filter(Boolean):[];
+  let lvl=Number(o.lvl);
+  if(!Number.isFinite(lvl)) lvl=0;
+  lvl=Math.max(0,Math.min(3,Math.round(lvl)));
+  return {
+    id:str(o.id)||w.toLowerCase()+"-"+rid(),
+    w,p:str(o.p||o.phon),pos:str(o.pos),zh:str(o.zh),
+    ex:str(o.ex),exzh:str(o.exzh),rel,
+    cat:CATS.includes(o.cat)?o.cat:"多益",
+    lvl
+  };
+}
+
+function today(){
+  const d=new Date(),p=n=>String(n).padStart(2,"0");
+  return d.getFullYear()+"-"+p(d.getMonth()+1)+"-"+p(d.getDate());
+}
+/* 跨過午夜就自己歸零,不需要另外的排程 */
+function todayCount(){
+  if(daily.date!==today()) daily={date:today(),n:0};
+  return daily.n;
+}
+function bumpToday(){ todayCount(); daily.n++; }
+
+/* ---------- storage ---------- */
+/* 單一來源:localStorage。壞掉的時候要講清楚壞在哪,不要只說「沒存成功」。 */
+let storage={ok:true,title:"",detail:""};
+
+function storageProblem(e){
+  const n=(e&&e.name)||"", c=e&&e.code;
+  if(n==="QuotaExceededError"||n==="NS_ERROR_DOM_QUOTA_REACHED"||c===22||c===1014){
+    return {title:"存不下了：這個網站的儲存空間已滿",
+      detail:"剛才的改動只留在畫面上，重新整理就會不見。先按下面的「匯出 JSON」把現有的單字備份下來，再到清單刪掉一些字，就能繼續存。"};
+  }
+  if(n==="SecurityError"||n==="NS_ERROR_DOM_SECURITY_ERR"){
+    return {title:"瀏覽器封鎖了這個網站的儲存權限",
+      detail:"最常見的原因是用無痕／私密瀏覽開啟，或瀏覽器設定裡擋掉了網站資料。用一般視窗重新打開就會正常。在這個模式下加的單字，關掉分頁就會消失。"};
+  }
+  if(typeof localStorage==="undefined"){
+    return {title:"這個瀏覽器沒有提供本機儲存",
+      detail:"單字沒辦法留在裝置上。可以照常使用，但每次重新整理都會回到預設的 16 個字。"};
+  }
+  return {title:"存檔失敗"+(n?"（"+n+"）":""),
+    detail:(e&&e.message?e.message+"。":"")+"剛才的改動只留在畫面上，重新整理就會不見。建議先按「匯出 JSON」備份，再重新整理看看。"};
+}
+
+function setStorageProblem(e){
+  const p=storageProblem(e);
+  storage={ok:false,title:p.title,detail:p.detail};
+  renderBanner();
+}
+function clearStorageProblem(){
+  if(storage.ok) return;
+  storage={ok:true,title:"",detail:""};
+  renderBanner();
+}
+
+function renderBanner(){
+  const el=document.getElementById("banner");
+  if(!el) return;
+  if(storage.ok){el.innerHTML="";return;}
+  el.innerHTML='<div class="banner"><b>'+esc(storage.title)+"</b>"+esc(storage.detail)+
+    '<div><button id="bannerExport">匯出 JSON 備份</button></div></div>';
+}
+
+function load(){
+  let raw=null;
+  try{
+    raw=localStorage.getItem(KEY);
+  }catch(e){
+    setStorageProblem(e);
+    words=SEED;
+    return;
+  }
+  if(raw===null){          // 第一次開,還沒有東西
+    words=SEED;
+    save();
+    return;
+  }
+  let data;
+  try{
+    data=JSON.parse(raw);
+  }catch(e){
+    words=SEED;
+    keepUnreadable(raw,"存的內容不是合法的 JSON");
+    return;
+  }
+  const arr=Array.isArray(data)?data:(data&&Array.isArray(data.words)?data.words:null);
+  if(!arr){
+    words=SEED;
+    keepUnreadable(raw,"存的內容不是預期的格式");
+    return;
+  }
+  const good=arr.map(normalize).filter(Boolean);
+  if(!good.length){
+    words=SEED;
+    if(arr.length) keepUnreadable(raw,"存了 "+arr.length+" 筆，但每一筆都缺少單字欄位");
+    else save();
+    return;
+  }
+  words=good;
+  if(data&&data.prefs&&data.prefs.dir==="zh2en") prefs.dir="zh2en";
+  if(data&&data.daily&&typeof data.daily.date==="string"&&Number.isFinite(Number(data.daily.n)))
+    daily={date:data.daily.date,n:Math.max(0,Math.round(Number(data.daily.n)))};
+  const dropped=arr.length-good.length;
+  if(dropped) toast("有 "+dropped+" 筆資料壞掉，已跳過");
+}
+
+/* 讀不懂的舊資料先留一份,不要靜靜蓋掉 */
+function keepUnreadable(raw,why){
+  let stashed=false;
+  try{localStorage.setItem(CORRUPT_KEY,raw);stashed=true;}catch(e){}
+  storage={ok:false,
+    title:"讀不到之前存的單字",
+    detail:why+"，已經先回到預設的 16 個字。"+
+      (stashed?"原本那份沒有被刪掉，存放在瀏覽器的 "+CORRUPT_KEY+" 底下。在這個頁面加或刪任何一個字，才會正式覆蓋掉。"
+              :"而且沒辦法另外備份那份資料。先不要動這個頁面，如果那些單字很重要，換一台裝置或問人怎麼取出。")};
+  renderBanner();
+}
+
+function save(){
+  try{
+    localStorage.setItem(KEY,JSON.stringify({v:DATA_VERSION,savedAt:new Date().toISOString(),words,prefs,daily}));
+    clearStorageProblem();
+    renderStats();
+    return true;
+  }catch(e){
+    setStorageProblem(e);
+    renderStats();
+    toast(storage.title);
+    return false;
+  }
+}
+
+/* ---------- helpers ---------- */
+const $=s=>document.querySelector(s);
+function toast(t){const el=$("#toast");el.textContent=t;el.classList.add("on");clearTimeout(el._t);el._t=setTimeout(()=>el.classList.remove("on"),2600);}
+function esc(s){return (s||"").replace(/[&<>"]/g,c=>({"&":"&amp;","<":"&lt;",">":"&gt;",'"':"&quot;"}[c]));}
+function mark(ex,w){
+  if(!ex) return "";
+  const stem=w.replace(/(e|y)$/i,"");
+  const re=new RegExp("\\b"+stem.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\w*","gi");
+  return esc(ex).replace(re,m=>"<mark>"+m+"</mark>");
+}
+function pool(){
+  if(filter==="全部") return words;
+  if(filter==="待加強") return words.filter(w=>w.lvl<2);
+  return words.filter(w=>w.cat===filter);
+}
+function initial(w){
+  const c=(w.w[0]||"#").toUpperCase();
+  return /[A-Z]/.test(c)?c:"#";
+}
+
+/* ---------- render: rail ---------- */
+function renderRail(){
+  const have=new Set(words.map(initial));
+  $("#rail").innerHTML="ABCDEFGHIJKLMNOPQRSTUVWXYZ".split("").map(L=>
+    `<button class="${have.has(L)?"has":""}" data-l="${L}" aria-label="跳到 ${L}">${L}</button>`).join("");
+}
+
+/* ---------- render: stats ---------- */
+function renderStats(){
+  const m=words.filter(w=>w.lvl>=3).length;
+  const tag=storage.ok?"已存在裝置":"未存檔";
+  $("#stats").innerHTML=`${words.length} words<br>${m} 已熟<br><span style="color:${storage.ok?"inherit":"#9A2B2B"}">${tag}</span>`;
+}
+
+/* ---------- render: review ---------- */
+function renderFilters(){
+  const list=["全部",...CATS,"待加強"];
+  const dirLabel=prefs.dir==="en2zh"?"EN → 中":"中 → EN";
+  $("#filters").innerHTML=list.map(f=>
+    `<button class="chip" data-f="${f}" aria-pressed="${f===filter}">${f}</button>`).join("")+
+    `<button class="dir" id="dirBtn" aria-label="切換測驗方向，目前是${dirLabel}">${dirLabel}</button>`;
+}
+function buildQueue(){
+  queue=pool().slice().sort((a,b)=>(a.lvl-b.lvl)||(Math.random()-.5));
+  qi=0;flipped=false;
+}
+function hintFlip(){
+  return `<div class="hint"><span class="t-touch">tap to flip</span><span class="t-key">space to flip · ← → to mark</span></div>`;
+}
+function exBlock(c){
+  return c.ex?`<p class="ex">${mark(c.ex,c.w)}${c.exzh?`<span class="zhline">${esc(c.exzh)}</span>`:""}</p>`:"";
+}
+function relBlock(c){
+  return c.rel.length?`<div class="rel">${c.rel.map(r=>`<span>${esc(r)}</span>`).join("")}</div>`:"";
+}
+function sayBtn(c){
+  return `<button class="say" data-say="${esc(c.w)}" aria-label="發音">♪</button>`;
+}
+/* 英文那一面:單字、音標、詞性、發音 */
+function faceEN(c,side){
+  return `<div class="face ${side}">
+        <div class="cat">${esc(side==="front"?c.cat:c.zh)}</div>
+        <div class="headword">${esc(c.w)}</div>
+        <div class="row" style="margin-top:10px">
+          <div class="phon">${esc(c.p)}</div>
+          ${sayBtn(c)}
+        </div>
+        ${c.pos?`<div><span class="pos">${esc(c.pos)}</span></div>`:""}
+        ${side==="front"?hintFlip():`${exBlock(c)}${relBlock(c)}<div class="hint">記得了嗎？</div>`}
+      </div>`;
+}
+/* 中文那一面:意思、例句、相關字 */
+function faceZH(c,side){
+  return `<div class="face ${side}">
+        <div class="cat">${esc(side==="front"?c.cat:c.w)}</div>
+        <div class="zh${side==="front"?" big":""}">${esc(c.zh)}</div>
+        ${side==="front"
+          ?`${c.pos?`<div><span class="pos">${esc(c.pos)}</span></div>`:""}${hintFlip()}`
+          :`${exBlock(c)}${relBlock(c)}<div class="hint">記得了嗎？</div>`}
+      </div>`;
+}
+function renderReview(){
+  const body=$("#reviewBody");
+  const done=todayCount();
+  if(!queue.length){
+    body.innerHTML=`<div class="empty">這個分類還沒有單字。<br>到「新增」把今天做題目遇到的字加進來。${done?`<br>今天複習了 ${done} 張。`:""}</div>`;return;
+  }
+  if(qi>=queue.length){
+    body.innerHTML=`<div class="empty">這輪跑完了 — ${queue.length} 個字。${done?`<br>今天總共複習了 ${done} 張。`:""}<br><button class="mini" id="again" style="margin-top:14px">再來一輪</button></div>`;
+    $("#again").onclick=()=>{buildQueue();renderReview();};return;
+  }
+  const c=queue[qi];
+  const en2zh=prefs.dir==="en2zh";
+  body.innerHTML=`
+    <div class="meter">
+      <span>${qi+1} / ${queue.length}</span>
+      <div class="bar"><i style="width:${qi/queue.length*100}%"></i></div>
+      <span>今天 ${done}</span>
+    </div>
+    <div class="stage"><div class="card ${flipped?"flipped":""}" id="card" tabindex="0" role="button" aria-label="翻面">
+      ${en2zh?faceEN(c,"front"):faceZH(c,"front")}
+      ${en2zh?faceZH(c,"back"):faceEN(c,"back")}
+    </div></div>
+    <div class="actions">
+      <button data-mark="0">還不熟</button>
+      <button class="yes" data-mark="1">記得</button>
+    </div>`;
+  fitCard();
+}
+
+/* .face 是 inset:0 的絕對定位,撐不開卡片。量兩面取高的那個當 min-height,
+   不然反向模式(單字+音標+詞性+例句+相關字)或長例句會把最後一行切掉。 */
+function fitCard(){
+  const card=document.getElementById("card");
+  if(!card) return;
+  card.style.minHeight="";
+  let h=0;
+  card.querySelectorAll(".face").forEach(f=>{
+    const pad=parseFloat(getComputedStyle(f).paddingBottom)||0;
+    h=Math.max(h,f.scrollHeight+pad);      // 溢位時 scrollHeight 不一定含下內距
+  });
+  if(h) card.style.minHeight=h+"px";
+}
+window.addEventListener("resize",fitCard);
+if(document.fonts&&document.fonts.ready) document.fonts.ready.then(fitCard).catch(()=>{});
+
+/* ---------- render: list ---------- */
+function renderList(){
+  const body=$("#listBody");
+  if(!words.length){body.innerHTML=`<div class="empty">還沒有單字。</div>`;return;}
+  const groups={};
+  words.slice().sort((a,b)=>a.w.toLowerCase().localeCompare(b.w.toLowerCase()))
+    .forEach(w=>{const L=initial(w);(groups[L]=groups[L]||[]).push(w);});
+  body.innerHTML=Object.keys(groups).sort().map(L=>`
+    <div id="sec-${L}">
+      <div class="letter"><b>${L}</b><hr><span>${groups[L].length}</span></div>
+      ${groups[L].map(w=>`
+        <details class="entry"${w.id===editingId?" open":""}>
+          <summary>
+            <span class="w">${esc(w.w)}</span>
+            <span class="p">${esc(w.p)}</span>
+            <span class="lvl">${[0,1,2].map(i=>`<i class="${w.lvl>i?"on":""}"></i>`).join("")}</span>
+            <span class="m">${esc(w.zh)}</span>
+          </summary>
+          <div class="body">${w.id===editingId?editForm(w):`
+            ${w.pos?`<span class="pos">${esc(w.pos)}</span>`:""}
+            ${w.ex?`<p class="ex">${mark(w.ex,w.w)}${w.exzh?`<span class="zhline">${esc(w.exzh)}</span>`:""}</p>`:""}
+            ${w.rel.length?`<div class="rel">${w.rel.map(r=>`<span>${esc(r)}</span>`).join("")}</div>`:""}
+            <div style="margin-top:14px">
+              <button class="mini" data-say="${esc(w.w)}">發音</button>
+              <button class="mini" data-edit="${w.id}">編輯</button>
+              <button class="mini" data-reset="${w.id}">重設熟悉度</button>
+              <button class="mini" data-del="${w.id}">刪除</button>
+            </div>`}
+          </div>
+        </details>`).join("")}
+    </div>`).join("");
+}
+
+/* 編輯已存在的單字:就地展開成表單,一次只會有一筆在編輯 */
+function editForm(w){
+  return `<div class="editform">
+    <label for="e-w">單字</label>
+    <input id="e-w" autocapitalize="off" autocomplete="off" value="${esc(w.w)}">
+    <div class="grid2">
+      <div><label for="e-p">音標</label><input id="e-p" value="${esc(w.p)}"></div>
+      <div><label for="e-pos">詞性</label><input id="e-pos" value="${esc(w.pos)}"></div>
+    </div>
+    <label for="e-zh">中文意思</label>
+    <input id="e-zh" value="${esc(w.zh)}">
+    <label for="e-ex">例句</label>
+    <input id="e-ex" value="${esc(w.ex)}">
+    <label for="e-exzh">例句中譯</label>
+    <input id="e-exzh" value="${esc(w.exzh)}">
+    <div class="grid2">
+      <div><label for="e-rel">相關單字（逗號分隔）</label><input id="e-rel" value="${esc(w.rel.join(", "))}"></div>
+      <div><label for="e-cat">分類</label><select id="e-cat">${
+        CATS.map(c=>`<option${c===w.cat?" selected":""}>${c}</option>`).join("")
+      }</select></div>
+    </div>
+    <div class="btnrow" style="margin-top:16px">
+      <button class="mini dark" data-editsave="${w.id}">儲存</button>
+      <button class="mini" data-editcancel="1">取消</button>
+    </div>
+  </div>`;
+}
+
+function commitEdit(id){
+  const w=words.find(x=>x.id===id);
+  if(!w) return;
+  const val=i=>{const el=document.getElementById(i);return el?el.value.trim():"";};
+  const nw=val("e-w");
+  if(!nw){toast("單字不能空著");return;}
+  w.w=nw; w.p=val("e-p"); w.pos=val("e-pos"); w.zh=val("e-zh");
+  w.ex=val("e-ex"); w.exzh=val("e-exzh");
+  w.rel=val("e-rel").split(",").map(x=>x.trim()).filter(Boolean);
+  const cat=val("e-cat"); w.cat=CATS.includes(cat)?cat:w.cat;
+  editingId=null;
+  const stored=save();
+  renderAll();
+  renderReview();          // queue 存的是同一個物件,不重建才不會打斷這一輪
+  toast(stored?"已更新 "+w.w:storage.title);
+}
+
+/* ---------- actions ---------- */
+function say(t){
+  try{const u=new SpeechSynthesisUtterance(t);u.lang="en-US";u.rate=.9;speechSynthesis.cancel();speechSynthesis.speak(u);}catch(e){}
+}
+function renderAll(){renderRail();renderStats();renderList();}
+
+function doFlip(card){flipped=!flipped;card.classList.toggle("flipped",flipped);}
+
+function markCard(remembered){
+  const c=queue[qi];
+  if(!c) return;
+  c.lvl=remembered?Math.min(3,c.lvl+1):0;
+  bumpToday();
+  qi++;flipped=false;
+  renderReview();renderStats();renderList();save();
+}
+
+document.addEventListener("click",e=>{
+  const t=e.target.closest("button");
+  if(!t) return;
+
+  if(t.dataset.say!==undefined){say(t.dataset.say);return;}
+
+  if(t.dataset.view){
+    document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute("aria-selected",b===t));
+    document.querySelectorAll(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+t.dataset.view));
+    return;
+  }
+  if(t.dataset.f){filter=t.dataset.f;renderFilters();buildQueue();renderReview();return;}
+  if(t.id==="dirBtn"){
+    prefs.dir=prefs.dir==="en2zh"?"zh2en":"en2zh";
+    flipped=false;renderFilters();renderReview();save();return;
+  }
+  if(t.dataset.mark!==undefined){markCard(t.dataset.mark==="1");return;}
+  if(t.dataset.l){
+    document.querySelector('.tabs button[data-view="list"]').click();
+    const el=document.getElementById("sec-"+t.dataset.l);
+    if(el) el.scrollIntoView({behavior:"smooth",block:"start"}); else toast(t.dataset.l+" 還沒有單字");
+    return;
+  }
+  if(t.dataset.del){
+    words=words.filter(w=>w.id!==t.dataset.del);save();renderAll();buildQueue();renderReview();toast("已刪除");return;
+  }
+  if(t.dataset.reset){
+    const w=words.find(x=>x.id===t.dataset.reset);if(w){w.lvl=0;save();renderAll();}return;
+  }
+  if(t.dataset.edit){
+    editingId=t.dataset.edit;renderList();
+    const f=document.getElementById("e-w");
+    if(f){f.focus({preventScroll:true});f.scrollIntoView({behavior:"smooth",block:"center"});}
+    return;
+  }
+  if(t.dataset.editcancel){editingId=null;renderList();return;}
+  if(t.dataset.editsave){commitEdit(t.dataset.editsave);return;}
+  if(t.id==="bannerExport"){exportJSON();return;}
+});
+
+document.addEventListener("click",e=>{
+  const card=e.target.closest("#card");
+  if(card && !e.target.closest("[data-say]")) doFlip(card);
+});
+
+/* 桌機鍵盤:空白鍵翻面,左右鍵標記。打字的時候不要攔。 */
+document.addEventListener("keydown",e=>{
+  if(e.metaKey||e.ctrlKey||e.altKey) return;
+  const el=document.activeElement;
+  if(el&&/^(INPUT|TEXTAREA|SELECT)$/.test(el.tagName)) return;
+  if(!document.getElementById("view-review").classList.contains("on")) return;
+  const card=document.getElementById("card");
+  if(!card) return;
+  if(e.key===" "||e.key==="Spacebar"||e.key==="Enter"){e.preventDefault();doFlip(card);return;}
+  if(e.key==="ArrowLeft"){e.preventDefault();markCard(false);return;}
+  if(e.key==="ArrowRight"){e.preventDefault();markCard(true);return;}
+});
+
+/* ---------- 匯出 / 匯入 ---------- */
+function setStatus(msg,kind){
+  const el=$("#autoStatus");
+  if(!msg){el.hidden=true;return;}
+  el.hidden=false;el.className="status"+(kind?" "+kind:"");el.textContent=msg;
+}
+
+function exportJSON(){
+  try{
+    const payload={v:DATA_VERSION,savedAt:new Date().toISOString(),words};
+    const blob=new Blob([JSON.stringify(payload,null,2)],{type:"application/json"});
+    const url=URL.createObjectURL(blob);
+    const a=document.createElement("a");
+    a.href=url;a.download="vocab-notebook-"+today()+".json";
+    document.body.appendChild(a);a.click();a.remove();
+    setTimeout(()=>URL.revokeObjectURL(url),2000);
+    toast("已匯出 "+words.length+" 個字");
+  }catch(e){
+    toast("匯出失敗："+(e&&e.message?e.message:e));
+  }
+}
+
+const SCHEMA_PROMPT=`請幫我把下面的英文單字做成單字本可以匯入的 JSON，讀者是準備多益與職場英文的台灣學習者。
+
+只輸出一個 JSON 陣列，不要任何前言、說明或 markdown 標記。每個物件包含這些鍵：
+"w"    單字原形
+"p"    美式音標，前後加斜線
+"pos"  詞性縮寫，例如 n. / v. / adj. / phr.
+"zh"   繁體中文意思，最多兩個，用分號分隔
+"ex"   一句英文例句，20 字以內，優先使用辦公室、商務或展場情境
+"exzh" 例句的繁體中文翻譯
+"rel"  3 到 4 個相關字或常見搭配組成的字串陣列
+"cat"  只能是 "多益"、"職場"、"日常" 三者之一
+
+單字：`;
+
+$("#copySchema").onclick=()=>{
+  const done=()=>setStatus("格式說明已複製。貼到 Claude 對話，後面接上你要查的單字，把它給的 JSON 存成檔案再匯入。","ok");
+  const fail=()=>setStatus("這個瀏覽器不讓網頁複製到剪貼簿。格式很簡單：一個 JSON 陣列，每個物件有 w / p / pos / zh / ex / exzh / rel / cat 這幾個鍵。","err");
+  if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(SCHEMA_PROMPT).then(done,fail);
+  else fail();
+};
+
+$("#exportJson").onclick=exportJSON;
+$("#importBtn").onclick=()=>$("#importFile").click();
+
+$("#importFile").onchange=async e=>{
+  const file=e.target.files&&e.target.files[0];
+  e.target.value="";                     // 選同一個檔也要能再觸發
+  if(!file) return;
+  const out=$("#autoOut");
+  out.hidden=true;out.innerHTML="";
+
+  let text;
+  try{ text=await file.text(); }
+  catch(err){ setStatus("讀不到這個檔案："+(err&&err.message?err.message:err),"err");return; }
+
+  let data;
+  try{ data=JSON.parse(text); }
+  catch(err){ setStatus("這不是合法的 JSON："+(err&&err.message?err.message:err)+"。如果是從對話複製出來的，記得把前後的說明文字和 ``` 標記刪掉。","err");return; }
+
+  const arr=Array.isArray(data)?data:(data&&Array.isArray(data.words)?data.words:null);
+  if(!arr){ setStatus("格式不對。需要一個 JSON 陣列，或一個含 words 陣列的物件。","err");return; }
+  if(!arr.length){ setStatus("這個檔案裡沒有任何單字。","err");return; }
+
+  const cards=arr.map(normalize).filter(Boolean);
+  const skipped=arr.length-cards.length;
+  if(!cards.length){ setStatus("這 "+arr.length+" 筆都缺少 w（單字）欄位，沒有東西可以匯入。","err");return; }
+
+  const byWord=new Map(words.map(w=>[w.w.toLowerCase(),w]));
+  const added=[];
+  let updated=0;
+  cards.forEach(c=>{
+    const key=c.w.toLowerCase();
+    const cur=byWord.get(key);
+    if(cur){
+      cur.p=c.p||cur.p; cur.pos=c.pos||cur.pos; cur.zh=c.zh||cur.zh;
+      cur.ex=c.ex||cur.ex; cur.exzh=c.exzh||cur.exzh;
+      if(c.rel.length) cur.rel=c.rel;
+      cur.cat=c.cat;
+      cur.lvl=Math.max(cur.lvl,c.lvl);   // 合併不倒退已經記熟的進度
+      updated++;
+    }else{
+      c.id=c.w.toLowerCase()+"-"+rid();  // 避免跟現有的 id 撞在一起
+      words.push(c);byWord.set(key,c);added.push(c);
+    }
+  });
+
+  const stored=save();
+  renderAll();buildQueue();renderReview();
+
+  let msg="匯入完成：新增 "+added.length+" 個，更新 "+updated+" 個";
+  if(skipped) msg+="，略過 "+skipped+" 筆格式不符的";
+  msg+="。單字本現在有 "+words.length+" 個字。";
+  if(!stored) msg+="（但這次沒有存進裝置，看上方的說明。）";
+  setStatus(msg,stored?"ok":"err");
+
+  if(added.length){
+    out.hidden=false;
+    out.innerHTML=added.map(c=>
+      `<div><span class="pw">${esc(c.w)}</span><span class="pp">${esc(c.p)}</span><span class="pz">${esc(c.zh)}</span></div>`).join("");
+  }
+};
+
+/* ---------- dictionaryapi.dev:補音標與詞性 ---------- */
+/* 免金鑰的公開英英字典。中文意思查不到,一律手填。 */
+const POS_SHORT={noun:"n.",verb:"v.",adjective:"adj.",adverb:"adv.",pronoun:"pron.",
+  preposition:"prep.",conjunction:"conj.",interjection:"interj.",determiner:"det.",
+  article:"art.",numeral:"num.",exclamation:"excl."};
+
+function pickPhonetic(entry){
+  if(!entry) return "";
+  if(entry.phonetic) return String(entry.phonetic).trim();
+  const list=Array.isArray(entry.phonetics)?entry.phonetics:[];
+  const hit=list.find(x=>x&&typeof x.text==="string"&&x.text.trim());
+  return hit?hit.text.trim():"";
+}
+function pickPos(entry){
+  const out=[];
+  (entry&&Array.isArray(entry.meanings)?entry.meanings:[]).forEach(m=>{
+    if(!m||!m.partOfSpeech) return;
+    const short=POS_SHORT[String(m.partOfSpeech).toLowerCase()]||String(m.partOfSpeech);
+    if(!out.includes(short)) out.push(short);
+  });
+  return out.slice(0,3).join(" / ");
+}
+function pickExample(entry){
+  const ms=entry&&Array.isArray(entry.meanings)?entry.meanings:[];
+  for(const m of ms){
+    for(const d of (Array.isArray(m.definitions)?m.definitions:[])){
+      if(d&&typeof d.example==="string"&&d.example.trim()) return d.example.trim();
+    }
+  }
+  return "";
+}
+
+$("#dictBtn").onclick=async()=>{
+  const btn=$("#dictBtn");
+  const w=$("#f-word").value.trim();
+  if(!w){setStatus("先在「單字」欄打一個字，再按這顆。","err");return;}
+  const label=btn.textContent;
+  btn.disabled=true;btn.innerHTML='<span class="spin"></span>查詢中';
+  try{
+    const res=await fetch("https://api.dictionaryapi.dev/api/v2/entries/en/"+encodeURIComponent(w));
+    if(res.status===404){
+      setStatus("字典裡查不到 "+w+"。可能是拼法、變化形或是片語 — 音標和詞性手動填一樣可以。","err");
+      return;
+    }
+    if(!res.ok) throw new Error("HTTP "+res.status);
+    const data=await res.json();
+    const entry=Array.isArray(data)?data[0]:null;
+    if(!entry) throw new Error("回傳的格式看不懂");
+
+    const phon=pickPhonetic(entry), pos=pickPos(entry), ex=pickExample(entry);
+    const filled=[];
+    if(phon){$("#f-phon").value=phon;filled.push("音標 "+phon);}
+    if(pos){$("#f-pos").value=pos;filled.push("詞性 "+pos);}
+    if(ex&&!$("#f-ex").value.trim()){$("#f-ex").value=ex;filled.push("例句");}
+
+    if(!filled.length) setStatus("查到 "+w+" 了，但這筆沒有音標也沒有詞性。手動填吧。","err");
+    else setStatus("填好了："+filled.join("、")+"。中文意思要自己打。","ok");
+  }catch(err){
+    setStatus("查不到（"+(err&&err.message?err.message:err)+"）。可能是現在沒有網路，或字典服務不通。音標和詞性手動填一樣可以。","err");
+  }finally{
+    btn.disabled=false;btn.textContent=label;
+  }
+};
+
+/* ---------- 手動新增 ---------- */
+$("#saveOne").onclick=()=>{
+  const w=$("#f-word").value.trim();
+  if(!w){toast("至少要有單字");return;}
+  words.push(mk(w,$("#f-phon").value,$("#f-pos").value,$("#f-zh").value,$("#f-ex").value,$("#f-exzh").value,$("#f-rel").value,$("#f-cat").value));
+  const stored=save();
+  ["f-word","f-phon","f-pos","f-zh","f-ex","f-exzh","f-rel"].forEach(i=>$("#"+i).value="");
+  renderAll();buildQueue();renderReview();
+  setStatus("已加入 "+w+"，單字本現在有 "+words.length+" 個。"+(stored?"":"（沒有存進裝置，看上方的說明。）"),stored?"ok":"err");
+};
+
+$("#saveBulk").onclick=()=>{
+  const lines=$("#f-bulk").value.split("\n").map(l=>l.trim()).filter(Boolean);
+  if(!lines.length){toast("貼上內容再按一次");return;}
+  let n=0;
+  lines.forEach(l=>{
+    const p=l.split("|").map(s=>s.trim());
+    if(!p[0])return;
+    if(p.length===2) words.push(mk(p[0],"","",p[1],"","","",$("#f-cat").value));
+    else words.push(mk(p[0],p[1],p[2],p[3],p[4],p[5],p[6],$("#f-cat").value));
+    n++;
+  });
+  if(!n){toast("每一行都要有單字");return;}
+  const stored=save();
+  $("#f-bulk").value="";renderAll();buildQueue();renderReview();
+  setStatus("加入 "+n+" 個字，單字本現在有 "+words.length+" 個。"+(stored?"":"（沒有存進裝置，看上方的說明。）"),stored?"ok":"err");
+};
+
+$("#exportBtn").onclick=()=>{
+  const groups={};
+  words.slice().sort((a,b)=>a.w.localeCompare(b.w)).forEach(w=>{const L=initial(w);(groups[L]=groups[L]||[]).push(w);});
+  const md=Object.keys(groups).sort().map(L=>
+    `## ${L}\n\n`+groups[L].map(w=>
+      `### ${w.w} ${w.p}\n- 詞性：${w.pos}\n- 中文：${w.zh}\n- 例句：${w.ex}${w.exzh?"（"+w.exzh+"）":""}\n- 相關：${w.rel.join(", ")}\n`).join("\n")
+  ).join("\n");
+  const text="# 單字本\n\n"+md;
+  if(navigator.clipboard&&navigator.clipboard.writeText)
+    navigator.clipboard.writeText(text).then(()=>toast("已複製，可貼到 GoodNotes"),()=>toast("複製失敗，改用「匯出 JSON」"));
+  else toast("這個瀏覽器不讓網頁複製，改用「匯出 JSON」");
+};
+
+/* ---------- init ---------- */
+(function init(){
+  load();
+  renderBanner();
+  renderFilters();renderAll();buildQueue();renderReview();
+})();
+
+if("serviceWorker" in navigator){
+  window.addEventListener("load",()=>{
+    navigator.serviceWorker.register("./sw.js").catch(()=>{});
+  });
+}
+</script>
+</body>
+</html>
