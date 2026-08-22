@@ -189,7 +189,7 @@
     list-style:none;cursor:pointer;display:flex;align-items:baseline;gap:10px;flex-wrap:wrap;
   }
   .entry summary::-webkit-details-marker{display:none}
-  .entry .w{font-family:var(--serif);font-size:19px;font-weight:600;font-variation-settings:"opsz" 144}
+  .entry .w{font-family:var(--serif);font-size:19px;font-weight:600;font-variation-settings:"opsz" 144;overflow-wrap:anywhere}
   .entry .p{font-family:var(--mono);font-size:13px;color:var(--ink-60)}
   .entry .m{font-family:var(--tc);font-size:15px;font-weight:500;color:var(--ink-60);margin-left:auto}
   .entry .body{padding:12px 0 4px}
@@ -297,7 +297,7 @@
       <button class="mini" id="copySchema">複製格式說明</button>
     </div>
     <input type="file" id="importFile" accept="application/json,.json" hidden>
-    <p class="note">要一次加很多字：按「複製格式說明」，貼進 Claude 對話請它產生 JSON，把檔案下載下來再用「匯入 JSON」讀進去。匯入是合併，不會蓋掉現有的單字；同一個字會更新內容，熟悉度取兩邊比較高的。</p>
+    <p class="note">要一次加很多字：按「複製格式說明」，貼進 Claude 對話請它產生 JSON，然後把整段 JSON 貼到下面的「一次貼多筆」就好——不必存檔。已經存成檔案的話用「匯入 JSON」。兩種都是合併，不會蓋掉現有的單字；同一個字會更新內容，熟悉度取兩邊比較高的。</p>
     <div class="status" id="autoStatus" hidden></div>
     <div class="prev" id="autoOut" hidden></div>
 
@@ -338,9 +338,13 @@
     <button class="save" id="saveOne">加進單字本</button>
 
     <label for="f-bulk" style="margin-top:34px">一次貼多筆</label>
-    <textarea id="f-bulk" rows="5" placeholder="itinerary | /aɪˈtɪnəreri/ | n. | 行程表 | Send me the itinerary. | 把行程表寄給我。 | schedule, agenda
-reimburse | /ˌriːɪmˈbɜːrs/ | v. | 報銷"></textarea>
-    <p class="note">一行一個字，用 <b>|</b> 分隔：單字 | 音標 | 詞性 | 中文 | 例句 | 中譯 | 相關字。<br>後面欄位空著也沒關係，最少只要「單字 | 中文」。</p>
+    <textarea id="f-bulk" rows="5" placeholder='貼 JSON：[{"w":"itinerary","zh":"行程表"}, ...]
+
+或用 | 分隔：
+itinerary | /aɪˈtɪnəreri/ | n. | 行程表 | Send me the itinerary. | 把行程表寄給我。 | schedule, agenda
+reimburse | /ˌriːɪmˈbɜːrs/ | v. | 報銷'></textarea>
+    <p class="note"><b>直接貼 JSON</b>：Claude 給你的整段貼進來就好，會自動辨識，``` 圍籬和尾逗號都不用清。<br>
+    <b>或用 | 分隔</b>：一行一個字，單字 | 音標 | 詞性 | 中文 | 例句 | 中譯 | 相關字。後面空著沒關係，最少只要「單字 | 中文」。</p>
     <button class="save" id="saveBulk">批次加入</button>
   </section>
 </div>
@@ -843,7 +847,7 @@ const SCHEMA_PROMPT=`請幫我把下面的英文單字做成單字本可以匯�
 單字：`;
 
 $("#copySchema").onclick=()=>{
-  const done=()=>setStatus("格式說明已複製。貼到 Claude 對話，後面接上你要查的單字，把它給的 JSON 存成檔案再匯入。","ok");
+  const done=()=>setStatus("格式說明已複製。貼到 Claude 對話，後面接上你要查的單字，再把它回你的整段 JSON 貼到下面的「一次貼多筆」。","ok");
   const fail=()=>setStatus("這個瀏覽器不讓網頁複製到剪貼簿。格式很簡單：一個 JSON 陣列，每個物件有 w / p / pos / zh / ex / exzh / rel / cat 這幾個鍵。","err");
   if(navigator.clipboard&&navigator.clipboard.writeText) navigator.clipboard.writeText(SCHEMA_PROMPT).then(done,fail);
   else fail();
@@ -852,29 +856,29 @@ $("#copySchema").onclick=()=>{
 $("#exportJson").onclick=exportJSON;
 $("#importBtn").onclick=()=>$("#importFile").click();
 
-$("#importFile").onchange=async e=>{
-  const file=e.target.files&&e.target.files[0];
-  e.target.value="";                     // 選同一個檔也要能再觸發
-  if(!file) return;
-  const out=$("#autoOut");
-  out.hidden=true;out.innerHTML="";
-
-  let text;
-  try{ text=await file.text(); }
-  catch(err){ setStatus("讀不到這個檔案："+(err&&err.message?err.message:err),"err");return; }
-
+/* 從對話複製出來的東西不一定乾淨:可能包 ``` 圍籬、可能只是陣列中間的
+   一個物件、可能帶著尾逗號。這些都當作合法輸入處理。 */
+function parseJSONish(text){
+  let t=(text||"").trim();
+  if(!t) return null;
+  t=t.replace(/^```(?:json)?\s*/i,"").replace(/```\s*$/,"").trim();
+  if(!/^[\[{]/.test(t)) return null;          // 不像 JSON,讓管線格式去處理
+  t=t.replace(/,\s*$/,"");                    // 從陣列中間複製出來的尾逗號
   let data;
-  try{ data=JSON.parse(text); }
-  catch(err){ setStatus("這不是合法的 JSON："+(err&&err.message?err.message:err)+"。如果是從對話複製出來的，記得把前後的說明文字和 ``` 標記刪掉。","err");return; }
+  try{ data=JSON.parse(t); }
+  catch(err){ return {error:err&&err.message?err.message:String(err)}; }
+  if(Array.isArray(data)) return {arr:data};
+  if(data&&typeof data==="object"){
+    if(Array.isArray(data.words)) return {arr:data.words};   // 匯出的信封整份貼回來
+    return {arr:[data]};                                     // 只貼了一張卡
+  }
+  return {error:"看不懂這個結構"};
+}
 
-  const arr=Array.isArray(data)?data:(data&&Array.isArray(data.words)?data.words:null);
-  if(!arr){ setStatus("格式不對。需要一個 JSON 陣列，或一個含 words 陣列的物件。","err");return; }
-  if(!arr.length){ setStatus("這個檔案裡沒有任何單字。","err");return; }
-
+/* 合併進單字本:同一個字更新內容,熟悉度取兩邊較高的 */
+function mergeCards(arr){
   const cards=arr.map(normalize).filter(Boolean);
   const skipped=arr.length-cards.length;
-  if(!cards.length){ setStatus("這 "+arr.length+" 筆都缺少 w（單字）欄位，沒有東西可以匯入。","err");return; }
-
   const byWord=new Map(words.map(w=>[w.w.toLowerCase(),w]));
   const added=[];
   let updated=0;
@@ -886,28 +890,52 @@ $("#importFile").onchange=async e=>{
       cur.ex=c.ex||cur.ex; cur.exzh=c.exzh||cur.exzh;
       if(c.rel.length) cur.rel=c.rel;
       cur.cat=c.cat;
-      cur.lvl=Math.max(cur.lvl,c.lvl);   // 合併不倒退已經記熟的進度
+      cur.lvl=Math.max(cur.lvl,c.lvl);
       updated++;
     }else{
-      c.id=c.w.toLowerCase()+"-"+rid();  // 避免跟現有的 id 撞在一起
+      c.id=c.w.toLowerCase()+"-"+rid();
       words.push(c);byWord.set(key,c);added.push(c);
     }
   });
+  return {added,updated,skipped};
+}
 
+/* 把合併結果寫下去並回報,貼上和選檔共用 */
+function applyMerge(arr,where){
+  const out=$("#autoOut");
+  out.hidden=true;out.innerHTML="";
+  if(!arr.length){setStatus(where+"裡沒有任何單字。","err");return false;}
+  const {added,updated,skipped}=mergeCards(arr);
+  if(!added.length&&!updated){
+    setStatus("這 "+arr.length+" 筆都缺少 w（單字）欄位，沒有東西可以加。","err");
+    return false;
+  }
   const stored=save();
   renderAll();buildQueue();renderReview();
-
-  let msg="匯入完成：新增 "+added.length+" 個，更新 "+updated+" 個";
+  let msg="新增 "+added.length+" 個，更新 "+updated+" 個";
   if(skipped) msg+="，略過 "+skipped+" 筆格式不符的";
   msg+="。單字本現在有 "+words.length+" 個字。";
   if(!stored) msg+="（但這次沒有存進裝置，看上方的說明。）";
   setStatus(msg,stored?"ok":"err");
-
   if(added.length){
     out.hidden=false;
     out.innerHTML=added.map(c=>
       `<div><span class="pw">${esc(c.w)}</span><span class="pp">${esc(c.p)}</span><span class="pz">${esc(c.zh)}</span></div>`).join("");
   }
+  return true;
+}
+
+$("#importFile").onchange=async e=>{
+  const file=e.target.files&&e.target.files[0];
+  e.target.value="";                     // 選同一個檔也要能再觸發
+  if(!file) return;
+  let text;
+  try{ text=await file.text(); }
+  catch(err){ setStatus("讀不到這個檔案："+(err&&err.message?err.message:err),"err");return; }
+  const parsed=parseJSONish(text);
+  if(!parsed){ setStatus("這個檔案不是 JSON。","err");return; }
+  if(parsed.error){ setStatus("這個檔案的 JSON 有問題："+parsed.error,"err");return; }
+  applyMerge(parsed.arr,"這個檔案");
 };
 
 /* ---------- dictionaryapi.dev:補音標與詞性 ---------- */
@@ -986,20 +1014,47 @@ $("#saveOne").onclick=()=>{
 };
 
 $("#saveBulk").onclick=()=>{
-  const lines=$("#f-bulk").value.split("\n").map(l=>l.trim()).filter(Boolean);
-  if(!lines.length){toast("貼上內容再按一次");return;}
+  const raw=$("#f-bulk").value;
+  if(!raw.trim()){toast("貼上內容再按一次");return;}
+
+  // 直接貼 JSON 也可以 — 從對話複製出來最順手的就是這個
+  const parsed=parseJSONish(raw);
+  if(parsed){
+    if(parsed.error){
+      setStatus("這看起來是 JSON，但解不開："+parsed.error+"。整段複製時記得頭尾的中括號要一起帶到。","err");
+      return;
+    }
+    if(applyMerge(parsed.arr,"貼上的內容")) $("#f-bulk").value="";
+    return;
+  }
+
+  // 否則是 | 分隔的格式
+  const lines=raw.split("\n").map(l=>l.trim()).filter(Boolean);
+  const bad=[];
   let n=0;
-  lines.forEach(l=>{
-    const p=l.split("|").map(s=>s.trim());
+  lines.forEach((l,i)=>{
+    const p=l.split("|").map(x=>x.trim());
     if(!p[0])return;
+    // 沒有分隔線的一行只可能是英文單字或片語。太長、或含中日韓字元,
+    // 都表示整段貼錯了框,別把它做成一張卡。
+    if(p.length===1&&(p[0].length>40||/[\u3000-\u9fff\uff00-\uffef]/.test(p[0]))){bad.push(i+1);return;}
     if(p.length===2) words.push(mk(p[0],"","",p[1],"","","",$("#f-cat").value));
     else words.push(mk(p[0],p[1],p[2],p[3],p[4],p[5],p[6],$("#f-cat").value));
     n++;
   });
-  if(!n){toast("每一行都要有單字");return;}
+
+  if(!n){
+    setStatus(bad.length
+      ?"沒有加入任何字。這些內容看起來不是「單字 | 中文」的格式，也不是完整的 JSON。如果是從對話複製的 JSON，整段（含頭尾中括號）一起貼進來就會自動辨識。"
+      :"每一行至少要有單字。","err");
+    return;
+  }
   const stored=save();
   $("#f-bulk").value="";renderAll();buildQueue();renderReview();
-  setStatus("加入 "+n+" 個字，單字本現在有 "+words.length+" 個。"+(stored?"":"（沒有存進裝置，看上方的說明。）"),stored?"ok":"err");
+  let msg="加入 "+n+" 個字，單字本現在有 "+words.length+" 個。";
+  if(bad.length) msg+="第 "+bad.join("、")+" 行看起來不是單字，已略過。";
+  if(!stored) msg+="（沒有存進裝置，看上方的說明。）";
+  setStatus(msg,stored&&!bad.length?"ok":"err");
 };
 
 $("#exportBtn").onclick=()=>{
