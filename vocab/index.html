@@ -382,10 +382,17 @@ const SEED=[
 ].map(a=>mk(a[0],a[1],a[2],a[3],a[4],a[5],a[6],a[7]));
 
 function rid(){return Math.random().toString(36).slice(2,7);}
+/* id 會被寫進 HTML 屬性,只留安全字元。單字含引號時不能直接拿來用。 */
+function slug(w){
+  const t=(w||"").toLowerCase().replace(/[^a-z0-9]+/g,"-").replace(/^-+|-+$/g,"").slice(0,24);
+  return t||"w";
+}
+function newId(w){return slug(w)+"-"+rid();}
+const SAFE_ID=/^[A-Za-z0-9._-]+$/;
 function str(v){return typeof v==="string"?v.trim():(v==null?"":String(v).trim());}
 
 function mk(w,p,pos,zh,ex,exzh,rel,cat){
-  return {id:w.toLowerCase()+"-"+rid(),
+  return {id:newId(w),
     w:w.trim(),p:p||"",pos:pos||"",zh:zh||"",ex:ex||"",exzh:exzh||"",
     rel:(rel||"").split(",").map(s=>s.trim()).filter(Boolean),cat:cat||"多益",lvl:0};
 }
@@ -401,8 +408,9 @@ function normalize(o){
   let lvl=Number(o.lvl);
   if(!Number.isFinite(lvl)) lvl=0;
   lvl=Math.max(0,Math.min(3,Math.round(lvl)));
+  const rawId=str(o.id);
   return {
-    id:str(o.id)||w.toLowerCase()+"-"+rid(),
+    id:SAFE_ID.test(rawId)?rawId:newId(w),
     w,p:str(o.p||o.phon),pos:str(o.pos),zh:str(o.zh),
     ex:str(o.ex),exzh:str(o.exzh),rel,
     cat:CATS.includes(o.cat)?o.cat:"多益",
@@ -681,9 +689,9 @@ function renderList(){
             ${w.rel.length?`<div class="rel">${w.rel.map(r=>`<span>${esc(r)}</span>`).join("")}</div>`:""}
             <div style="margin-top:14px">
               <button class="mini" data-say="${esc(w.w)}">發音</button>
-              <button class="mini" data-edit="${w.id}">編輯</button>
-              <button class="mini" data-reset="${w.id}">重設熟悉度</button>
-              <button class="mini" data-del="${w.id}">刪除</button>
+              <button class="mini" data-edit="${esc(w.id)}">編輯</button>
+              <button class="mini" data-reset="${esc(w.id)}">重設熟悉度</button>
+              <button class="mini" data-del="${esc(w.id)}">刪除</button>
             </div>`}
           </div>
         </details>`).join("")}
@@ -712,7 +720,7 @@ function editForm(w){
       }</select></div>
     </div>
     <div class="btnrow" style="margin-top:16px">
-      <button class="mini dark" data-editsave="${w.id}">儲存</button>
+      <button class="mini dark" data-editsave="${esc(w.id)}">儲存</button>
       <button class="mini" data-editcancel="1">取消</button>
     </div>
   </div>`;
@@ -893,7 +901,7 @@ function mergeCards(arr){
       cur.lvl=Math.max(cur.lvl,c.lvl);
       updated++;
     }else{
-      c.id=c.w.toLowerCase()+"-"+rid();
+      c.id=newId(c.w);
       words.push(c);byWord.set(key,c);added.push(c);
     }
   });
