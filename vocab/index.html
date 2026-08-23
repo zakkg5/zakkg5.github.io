@@ -132,6 +132,9 @@
     font-family:var(--mono);font-size:11px;letter-spacing:.12em;text-transform:uppercase;
     color:var(--ink-35);
   }
+  .cardhead{display:flex;align-items:center;justify-content:space-between;gap:12px}
+  .cardhead .cat{min-width:0;overflow:hidden;text-overflow:ellipsis;white-space:nowrap}
+  .cardhead .lvl{flex:none}
   .headword{
     font-family:var(--serif);font-size:clamp(34px,9vw,46px);font-weight:700;line-height:1.05;
     font-variation-settings:"opsz" 144;margin:auto 0 0;word-break:break-word;
@@ -594,13 +597,21 @@ function exBlock(c){
 function relBlock(c){
   return c.rel.length?`<div class="rel">${c.rel.map(r=>`<span>${esc(r)}</span>`).join("")}</div>`:"";
 }
+/* 三顆點就是 0–3 的熟悉度。按一次「記得」亮一顆,三顆全亮才算已熟。 */
+function lvlDots(c){
+  return `<span class="lvl" role="img" aria-label="熟悉度 ${c.lvl} 級，滿級 3 級">${
+    [0,1,2].map(i=>`<i class="${c.lvl>i?"on":""}"></i>`).join("")}</span>`;
+}
+function cardHead(c,label){
+  return `<div class="cardhead"><span class="cat">${esc(label)}</span>${lvlDots(c)}</div>`;
+}
 function sayBtn(c){
   return `<button class="say" data-say="${esc(c.w)}" aria-label="發音">♪</button>`;
 }
 /* 英文那一面:單字、音標、詞性、發音 */
 function faceEN(c,side){
   return `<div class="face ${side}">
-        <div class="cat">${esc(side==="front"?c.cat:c.zh)}</div>
+        ${side==="front"?cardHead(c,c.cat):`<div class="cat">${esc(c.zh)}</div>`}
         <div class="headword">${esc(c.w)}</div>
         <div class="row" style="margin-top:10px">
           <div class="phon">${esc(c.p)}</div>
@@ -613,7 +624,7 @@ function faceEN(c,side){
 /* 中文那一面:意思、例句、相關字 */
 function faceZH(c,side){
   return `<div class="face ${side}">
-        <div class="cat">${esc(side==="front"?c.cat:c.w)}</div>
+        ${side==="front"?cardHead(c,c.cat):`<div class="cat">${esc(c.w)}</div>`}
         <div class="zh${side==="front"?" big":""}">${esc(c.zh)}</div>
         ${side==="front"
           ?`${c.pos?`<div><span class="pos">${esc(c.pos)}</span></div>`:""}${hintFlip()}`
