@@ -1,6 +1,6 @@
 /* 單字本 service worker — 靜態殼快取，讓通勤沒網路時也能複習。
    改版時把 VERSION 加一，舊快取會在 activate 時清掉。 */
-const VERSION = "v1";
+const VERSION = "v2";
 const SHELL = "vocab-shell-" + VERSION;
 const FONTS = "vocab-fonts-" + VERSION;
 const KEEP = [SHELL, FONTS];

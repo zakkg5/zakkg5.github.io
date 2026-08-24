@@ -106,11 +106,13 @@
     padding:6px 13px;font-size:13px;font-family:var(--tc);color:var(--ink-60);
   }
   .chip[aria-pressed="true"]{background:var(--ink);border-color:var(--ink);color:var(--paper)}
-  .dir{
-    margin-left:auto;align-self:center;background:none;border:0;padding:5px 0;
-    font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--ink-60);
-    border-bottom:1px solid var(--rule);
+  .modes{display:flex;flex-wrap:wrap;justify-content:flex-end;gap:16px;margin:-4px 0 18px}
+  .mode{
+    background:none;border:0;padding:4px 0;
+    font-family:var(--mono);font-size:11.5px;letter-spacing:.06em;color:var(--ink-35);
+    border-bottom:1px solid transparent;
   }
+  .mode.on{color:var(--ink);border-bottom-color:var(--ink)}
 
   /* ---------- flashcard ---------- */
   .stage{perspective:1400px;margin-bottom:16px}
@@ -300,6 +302,7 @@
   <!-- REVIEW -->
   <section class="view on" id="view-review">
     <div class="filters" id="filters"></div>
+    <div class="modes" id="modes" role="group" aria-label="測驗方式"></div>
     <div id="reviewBody"></div>
   </section>
 
@@ -608,12 +611,19 @@ function renderStats(){
 }
 
 /* ---------- render: review ---------- */
+const DIR_LABEL={en2zh:"EN → 中",zh2en:"中 → EN",spell:"✎ 拼寫"};
+
 function renderFilters(){
   const list=["全部",...CATS,"待加強"];
-  const dirLabel=prefs.dir==="en2zh"?"EN → 中":prefs.dir==="zh2en"?"中 → EN":"✎ 拼寫";
   $("#filters").innerHTML=list.map(f=>
-    `<button class="chip" data-f="${f}" aria-pressed="${f===filter}">${f}</button>`).join("")+
-    `<button class="dir" id="dirBtn" aria-label="切換測驗方向，目前是${dirLabel}">${dirLabel}</button>`;
+    `<button class="chip" data-f="${f}" aria-pressed="${f===filter}">${f}</button>`).join("");
+}
+
+/* 三種測驗方式都露出來。循環鈕一次只看得到一個,不知道還有別的。 */
+function renderModes(){
+  $("#modes").innerHTML=DIRS.map(d=>
+    `<button class="mode${d===prefs.dir?" on":""}" data-dir="${d}" aria-pressed="${d===prefs.dir}">${DIR_LABEL[d]}</button>`
+  ).join("");
 }
 function buildQueue(){
   queue=pool().slice().sort((a,b)=>(a.lvl-b.lvl)||(Math.random()-.5));
@@ -895,9 +905,12 @@ document.addEventListener("click",e=>{
     return;
   }
   if(t.dataset.f){filter=t.dataset.f;renderFilters();buildQueue();renderReview();return;}
-  if(t.id==="dirBtn"){
-    prefs.dir=DIRS[(DIRS.indexOf(prefs.dir)+1)%DIRS.length];
-    flipped=false;resetSpell();renderFilters();renderReview();save();return;
+  if(t.dataset.dir){
+    if(t.dataset.dir!==prefs.dir){
+      prefs.dir=t.dataset.dir;
+      flipped=false;resetSpell();renderModes();renderReview();save();
+    }
+    return;
   }
   if(t.id==="hintBtn"){
     const c=queue[qi];
@@ -1238,7 +1251,7 @@ $("#exportBtn").onclick=()=>{
 (function init(){
   load();
   renderBanner();
-  renderFilters();renderAll();buildQueue();renderReview();
+  renderFilters();renderModes();renderAll();buildQueue();renderReview();
 })();
 
 if("serviceWorker" in navigator){
