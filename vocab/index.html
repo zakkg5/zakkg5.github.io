@@ -158,12 +158,31 @@
   .row{display:flex;align-items:center;gap:10px}
   .zh{font-family:var(--tc);font-size:23px;font-weight:700;line-height:1.4;margin:auto 0 0}
   .zh.big{font-size:clamp(26px,7.5vw,34px);line-height:1.35}
+  .zh.tight{margin:0}
   .ex{font-size:15.5px;line-height:1.7;margin-top:16px;color:var(--ink);font-weight:500}
   .ex mark{
     background:linear-gradient(transparent 55%,var(--marker) 55%);
     color:inherit;padding:0 1px;
   }
   .ex .zhline{display:block;font-family:var(--tc);font-size:14px;font-weight:500;color:var(--ink-60);margin-top:5px}
+  /* 挖空就是一段還沒寫字的螢光筆 */
+  .ex .blank{
+    display:inline-block;min-width:5.5em;
+    background:linear-gradient(transparent 55%,var(--marker) 55%);
+  }
+  .spellbox{margin-top:auto;padding-top:18px}
+  .spellbox input{
+    width:100%;background:transparent;border:0;border-bottom:1.5px solid var(--ink);
+    border-radius:0;padding:7px 2px;
+    font-family:var(--serif);font-size:24px;font-weight:600;font-variation-settings:"opsz" 144;
+  }
+  .spellbox .btnrow{margin-top:12px}
+  .hintline{
+    margin-top:9px;min-height:1.3em;
+    font-family:var(--mono);font-size:13px;letter-spacing:.22em;color:var(--ink-35);
+  }
+  .verdict{font-family:var(--mono);font-size:11.5px;letter-spacing:.08em;margin-top:9px;color:var(--ink-60)}
+  .verdict.no{color:var(--warn)}
   .rel{margin-top:16px;display:flex;flex-wrap:wrap;gap:6px}
   .rel span{
     font-family:var(--mono);font-size:12.5px;color:var(--blue);
@@ -360,9 +379,11 @@ const CORRUPT_KEY=KEY+"-unreadable";
 const DATA_VERSION=2;
 const CATS=["多益","職場","日常"];
 let words=[], filter="全部", queue=[], qi=0, flipped=false;
-let prefs={dir:"en2zh"};        // en2zh 看英文想中文 / zh2en 反過來
+const DIRS=["en2zh","zh2en","spell"];   // 看英文想中文 / 看中文想英文 / 看例句拼字
+let prefs={dir:"en2zh"};
 let daily={date:"",n:0};        // 今天複習了幾張
 let editingId=null;
+let spellAnswer="", hintN=0;    // 拼寫模式:這張卡打了什麼、提示放了幾個字母
 
 /* ---------- seed ---------- */
 const SEED=[
@@ -393,6 +414,16 @@ function slug(w){
 function newId(w){return slug(w)+"-"+rid();}
 const SAFE_ID=/^[A-Za-z0-9._-]+$/;
 function str(v){return typeof v==="string"?v.trim():(v==null?"":String(v).trim());}
+
+/* 中日韓字元。「單字」那格填到中文的話要攔下來。 */
+const CJK=/[\u2e80-\u9fff\uf900-\ufaff\u3000-\u303f\uff01-\uff60]/;
+/* "外部稽核員 external auditors" → {en:"external auditors", zh:"外部稽核員"} */
+function splitMixed(v){
+  const parts=String(v||"").split(/([\u2e80-\u9fff\uf900-\ufaff\u3000-\u303f\uff01-\uff60]+)/);
+  let en="",zh="";
+  parts.forEach((part,i)=>{ if(i%2) zh+=part; else en+=" "+part; });
+  return {en:en.replace(/\s+/g," ").trim(),zh:zh.trim()};
+}
 
 function mk(w,p,pos,zh,ex,exzh,rel,cat){
   return {id:newId(w),
@@ -509,7 +540,7 @@ function load(){
     return;
   }
   words=good;
-  if(data&&data.prefs&&data.prefs.dir==="zh2en") prefs.dir="zh2en";
+  if(data&&data.prefs&&DIRS.includes(data.prefs.dir)) prefs.dir=data.prefs.dir;
   if(data&&data.daily&&typeof data.daily.date==="string"&&Number.isFinite(Number(data.daily.n)))
     daily={date:data.daily.date,n:Math.max(0,Math.round(Number(data.daily.n)))};
   const dropped=arr.length-good.length;
@@ -579,7 +610,7 @@ function renderStats(){
 /* ---------- render: review ---------- */
 function renderFilters(){
   const list=["全部",...CATS,"待加強"];
-  const dirLabel=prefs.dir==="en2zh"?"EN → 中":"中 → EN";
+  const dirLabel=prefs.dir==="en2zh"?"EN → 中":prefs.dir==="zh2en"?"中 → EN":"✎ 拼寫";
   $("#filters").innerHTML=list.map(f=>
     `<button class="chip" data-f="${f}" aria-pressed="${f===filter}">${f}</button>`).join("")+
     `<button class="dir" id="dirBtn" aria-label="切換測驗方向，目前是${dirLabel}">${dirLabel}</button>`;
@@ -604,6 +635,63 @@ function lvlDots(c){
 }
 function cardHead(c,label){
   return `<div class="cardhead"><span class="cat">${esc(label)}</span>${lvlDots(c)}</div>`;
+}
+/* 目標字在例句裡的位置挖成空白。和 mark() 用同一套字根比對,所以
+   詞形變化(collaborated / auditors)一樣抓得到。 */
+function blankOut(ex,w){
+  const stem=w.replace(/(e|y)$/i,"");
+  const re=new RegExp("\\b"+stem.replace(/[.*+?^${}()|[\]\\]/g,"\\$&")+"\\w*","gi");
+  return esc(ex).replace(re,()=>`<span class="blank">&nbsp;</span>`);
+}
+function resetSpell(){spellAnswer="";hintN=0;}
+function normAns(v){return String(v||"").trim().toLowerCase().replace(/\s+/g," ");}
+function spellRight(){
+  const c=queue[qi];
+  return !!c&&!!spellAnswer&&normAns(spellAnswer)===normAns(c.w);
+}
+/* 提示:前 hintN 個字母,其餘用點代替,永遠留最後一個不給。 */
+function hintText(c){
+  if(!hintN) return "";
+  const shown=c.w.slice(0,hintN);
+  const rest=Math.max(0,c.w.length-hintN);
+  return shown+" "+"·".repeat(rest);
+}
+function faceSpell(c){
+  const clue=c.ex?`<p class="ex">${blankOut(c.ex,c.w)}${c.exzh?`<span class="zhline">${esc(c.exzh)}</span>`:""}</p>`
+                 :`<p class="ex"><span class="blank">&nbsp;</span></p>`;
+  // 翻面之後就不要再留一個看不見但仍可 tab 到的輸入框
+  const form=flipped?"":`
+    <div class="spellbox">
+      <input id="spellIn" type="text" inputmode="latin" autocapitalize="off" autocorrect="off"
+             autocomplete="off" spellcheck="false" aria-label="打出這個單字" value="${esc(spellAnswer)}">
+      <div class="hintline" aria-live="polite">${esc(hintText(c))}</div>
+      <div class="btnrow">
+        <button class="mini" id="hintBtn">提示</button>
+        <button class="mini dark" id="checkBtn">對答案</button>
+      </div>
+    </div>`;
+  return `<div class="face front">
+        ${cardHead(c,c.cat)}
+        ${c.zh?`<div class="zh big tight" style="margin-top:18px">${esc(c.zh)}</div>`:""}
+        ${clue}
+        ${form}
+      </div>`;
+}
+function faceSpellBack(c){
+  const right=spellRight();
+  const said=spellAnswer?`你打的是「${esc(spellAnswer)}」`:"沒有作答";
+  return `<div class="face back">
+        <div class="cat">${esc(c.zh)}</div>
+        <div class="verdict ${right?"":"no"}">${right?"答對了":said}${hintN?"（用了提示）":""}</div>
+        <div class="headword">${esc(c.w)}</div>
+        <div class="row" style="margin-top:10px">
+          <div class="phon">${esc(c.p)}</div>
+          ${sayBtn(c)}
+        </div>
+        ${c.pos?`<div><span class="pos">${esc(c.pos)}</span></div>`:""}
+        ${exBlock(c)}${relBlock(c)}
+        <div class="hint">記得了嗎？</div>
+      </div>`;
 }
 function sayBtn(c){
   return `<button class="say" data-say="${esc(c.w)}" aria-label="發音">♪</button>`;
@@ -639,35 +727,58 @@ function renderReview(){
   }
   if(qi>=queue.length){
     body.innerHTML=`<div class="empty">這輪跑完了 — ${queue.length} 個字。${done?`<br>今天總共複習了 ${done} 張。`:""}<br><button class="mini" id="again" style="margin-top:14px">再來一輪</button></div>`;
-    $("#again").onclick=()=>{buildQueue();renderReview();};return;
+    $("#again").onclick=()=>{buildQueue();resetSpell();renderReview();};return;
   }
   const c=queue[qi];
+  const spell=prefs.dir==="spell";
   const en2zh=prefs.dir==="en2zh";
+  const front=spell?faceSpell(c):en2zh?faceEN(c,"front"):faceZH(c,"front");
+  const back=spell?faceSpellBack(c):en2zh?faceZH(c,"back"):faceEN(c,"back");
   body.innerHTML=`
     <div class="meter">
       <span>${qi+1} / ${queue.length}</span>
       <div class="bar"><i style="width:${qi/queue.length*100}%"></i></div>
       <span>今天 ${done}</span>
     </div>
-    <div class="stage"><div class="card ${flipped?"flipped":""}" id="card" tabindex="0" role="button" aria-label="翻面">
-      ${en2zh?faceEN(c,"front"):faceZH(c,"front")}
-      ${en2zh?faceZH(c,"back"):faceEN(c,"back")}
+    <div class="stage"><div class="card ${flipped?"flipped":""}" id="card" tabindex="0"${
+      spell?"":' role="button" aria-label="翻面"'}>
+      ${front}
+      ${back}
     </div></div>
     <div class="actions">
       <button data-mark="0">還不熟</button>
       <button class="yes" data-mark="1">記得</button>
     </div>`;
   fitCard();
+  if(prefs.dir==="spell"&&!flipped){
+    const el=document.getElementById("spellIn");
+    if(el){
+      el.onkeydown=ev=>{ if(ev.key==="Enter"){ev.preventDefault();checkSpell();} };
+      // 桌機自動聚焦;手機不搶,不然每張卡都彈一次鍵盤
+      if(window.matchMedia&&window.matchMedia("(hover:hover) and (pointer:fine)").matches)
+        el.focus({preventScroll:true});
+    }
+  }
+}
+
+function checkSpell(){
+  const el=document.getElementById("spellIn");
+  spellAnswer=el?el.value:"";
+  flipped=true;
+  renderReview();
 }
 
 /* .face 是 inset:0 的絕對定位,撐不開卡片。量兩面取高的那個當 min-height,
    不然反向模式(單字+音標+詞性+例句+相關字)或長例句會把最後一行切掉。 */
 function fitCard(){
   const card=document.getElementById("card");
-  if(!card) return;
+  // 分頁切走時整區是 display:none,量到的都是 0。這時不能動已經算好的高度 —
+  // 下內距的補償會讓 h 變成 26 之類的非零值,把卡片壓扁。
+  if(!card||!card.offsetParent) return;
   card.style.minHeight="";
   let h=0;
   card.querySelectorAll(".face").forEach(f=>{
+    if(!f.scrollHeight) return;
     const pad=parseFloat(getComputedStyle(f).paddingBottom)||0;
     h=Math.max(h,f.scrollHeight+pad);      // 溢位時 scrollHeight 不一定含下內距
   });
@@ -767,7 +878,7 @@ function markCard(remembered){
   if(!c) return;
   c.lvl=remembered?Math.min(3,c.lvl+1):0;
   bumpToday();
-  qi++;flipped=false;
+  qi++;flipped=false;resetSpell();
   renderReview();renderStats();renderList();save();
 }
 
@@ -780,13 +891,20 @@ document.addEventListener("click",e=>{
   if(t.dataset.view){
     document.querySelectorAll('.tabs button').forEach(b=>b.setAttribute("aria-selected",b===t));
     document.querySelectorAll(".view").forEach(v=>v.classList.toggle("on",v.id==="view-"+t.dataset.view));
+    if(t.dataset.view==="review") fitCard();
     return;
   }
   if(t.dataset.f){filter=t.dataset.f;renderFilters();buildQueue();renderReview();return;}
   if(t.id==="dirBtn"){
-    prefs.dir=prefs.dir==="en2zh"?"zh2en":"en2zh";
-    flipped=false;renderFilters();renderReview();save();return;
+    prefs.dir=DIRS[(DIRS.indexOf(prefs.dir)+1)%DIRS.length];
+    flipped=false;resetSpell();renderFilters();renderReview();save();return;
   }
+  if(t.id==="hintBtn"){
+    const c=queue[qi];
+    if(c&&hintN<Math.max(1,c.w.length-1)){hintN++;renderReview();}
+    return;
+  }
+  if(t.id==="checkBtn"){checkSpell();return;}
   if(t.dataset.mark!==undefined){markCard(t.dataset.mark==="1");return;}
   if(t.dataset.l){
     document.querySelector('.tabs button[data-view="list"]').click();
@@ -812,8 +930,14 @@ document.addEventListener("click",e=>{
 });
 
 document.addEventListener("click",e=>{
-  const card=e.target.closest("#card");
-  if(card && !e.target.closest("[data-say]")) doFlip(card);
+  // 拼寫模式只有「對答案」能翻面,不然按提示就把答案翻出來了
+  if(prefs.dir==="spell") return;
+  // 卡片裡的按鈕和輸入框(發音、提示、對答案)有自己的事要做,不要順便翻面
+  if(e.target.closest("button,input,select,textarea")) return;
+  // 用活的節點判斷:重繪之後 e.target 可能已經脫離文件,closest 還是會
+  // 撈到那張舊卡,把 flipped 翻成跟畫面相反
+  const card=document.getElementById("card");
+  if(card&&card.contains(e.target)) doFlip(card);
 });
 
 /* 桌機鍵盤:空白鍵翻面,左右鍵標記。打字的時候不要攔。 */
@@ -824,7 +948,10 @@ document.addEventListener("keydown",e=>{
   if(!document.getElementById("view-review").classList.contains("on")) return;
   const card=document.getElementById("card");
   if(!card) return;
-  if(e.key===" "||e.key==="Spacebar"||e.key==="Enter"){e.preventDefault();doFlip(card);return;}
+  if(e.key===" "||e.key==="Spacebar"||e.key==="Enter"){
+    if(prefs.dir==="spell") return;   // 答案由「對答案」揭曉
+    e.preventDefault();doFlip(card);return;
+  }
   if(e.key==="ArrowLeft"){e.preventDefault();markCard(false);return;}
   if(e.key==="ArrowRight"){e.preventDefault();markCard(true);return;}
 });
@@ -1023,13 +1150,31 @@ $("#dictBtn").onclick=async()=>{
 
 /* ---------- 手動新增 ---------- */
 $("#saveOne").onclick=()=>{
-  const w=$("#f-word").value.trim();
+  let w=$("#f-word").value.trim();
+  let zh=$("#f-zh").value.trim();
   if(!w){toast("至少要有單字");return;}
-  words.push(mk(w,$("#f-phon").value,$("#f-pos").value,$("#f-zh").value,$("#f-ex").value,$("#f-exzh").value,$("#f-rel").value,$("#f-cat").value));
+
+  // 中文打進「單字」那格是最常見的手滑。能拆就自動拆開,不能拆就講清楚。
+  let moved="";
+  if(CJK.test(w)){
+    const split=splitMixed(w);
+    if(!split.en){
+      setStatus("「單字」這格要填英文。中文意思填在下面那格。","err");
+      $("#f-word").focus();
+      return;
+    }
+    w=split.en;
+    if(!zh){ zh=split.zh; moved=split.zh; }
+  }
+
+  words.push(mk(w,$("#f-phon").value,$("#f-pos").value,zh,$("#f-ex").value,$("#f-exzh").value,$("#f-rel").value,$("#f-cat").value));
   const stored=save();
   ["f-word","f-phon","f-pos","f-zh","f-ex","f-exzh","f-rel"].forEach(i=>$("#"+i).value="");
   renderAll();buildQueue();renderReview();
-  setStatus("已加入 "+w+"，單字本現在有 "+words.length+" 個。"+(stored?"":"（沒有存進裝置，看上方的說明。）"),stored?"ok":"err");
+  let msg="已加入 "+w+"，單字本現在有 "+words.length+" 個。";
+  if(moved) msg="幫你分開了：單字「"+w+"」，中文「"+moved+"」。不對的話到清單編輯。";
+  if(!stored) msg+="（沒有存進裝置，看上方的說明。）";
+  setStatus(msg,stored?"ok":"err");
 };
 
 $("#saveBulk").onclick=()=>{
