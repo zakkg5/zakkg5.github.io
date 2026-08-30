@@ -2645,6 +2645,15 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   .dragon-side { display: block; }
 }
 
+/* 🔴 窄視窗(iPad)也要顯示。⚠️ 這條要跟 js/main.js 的門檻一致,改一邊就要改另一邊。
+   位置從「右邊 30%」改成「右邊 38%」—— 這個帶的 About / Works 都已經收窄,
+   內容結束在 x 816(1180 寬),骨頭往左一點才站得住。
+   ⚠️ 只給 1024–1199。1200 以上內容本來就是 78% / 70%,
+      套 62vw 會讓骨頭壓進內容(實測 1366 壓 218px)。 */
+@media (min-width: 1024px) and (max-width: 1199px) {
+  .is-scroll .dragon-side { display: block; left: 62vw; width: 38vw; }
+}
+
 
 /* ═══════════ 1200–1440:骨頭看得到,但內容不能被擠爛 ═══════════
    Zakk 要在筆電上也看到右邊的龍骨,所以「內容 70%」那條規則從 1441 降到 1200。
@@ -3451,6 +3460,94 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
   #how  .how { grid-template-columns: repeat(4, minmax(0, 1fr)); }
   #how2 .how { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
+
+/* 🔴 iPad 與中等視窗:一排硬塞四格,在 1180 寬時每格只有 253px,
+   縮圖列縮到 **69×39px** —— 那是指甲大小,而且觸控裝置沒有 hover,
+   放大檢視也是關掉的,等於那幾張照片根本看不到。
+   (Zakk 面試都是先給對方看 iPad,所以這是主場不是邊緣情況。)
+
+   改成 2 欄之後實測:縮圖 156×88px、中文一行從 8 字變 28 字。
+
+   ⚠️ 只在 .is-scroll 下改。上面那條「一定要排成一排」的理由是
+   幀系統的 .frame__pin 會把折行的部分裁掉(實測溢出 370px)——
+   但 .is-scroll 是正常捲動的長頁,沒有框也不會裁,變長沒有關係。
+   ⚠️ 限 901px 以上。900 以下本來就是單欄(下面那條),
+      不加這個下限的話,這條權重比較高會把手機也變成 2 欄。 */
+/* ═══════════ .is-scroll 的兩個帶 ═══════════
+   幀系統關掉的原因有兩種,版面需求完全不同:
+
+   ① 太窄(< 1200,例如 iPad 1180)
+      CSS 沒有「內容 70/78%」那條規則,內容會吃到 92%,右邊沒有留白。
+      → About 要改直向堆疊、Works 要收窄,才騰得出骨頭的地盤。
+
+   ② 夠寬但太矮(>= 1200,例如 1366x768、1536x739、1440x790)
+      內容本來就被收到 78% / 70%,右邊的留白**已經存在** ——
+      這裡不需要動版面,只是少了釘住的動畫而已。
+      ⚠️ 我一度把兩種情況混為一談,結果 1366 上骨頭被推到 x 847,
+         壓進內容 218px。分帶處理才對。
+
+   兩個帶共通的只有一件事:How I work 一排四格在這些尺寸都太擠。 */
+
+/* ── 共通:How I work 改兩欄 ──
+   🔴 一排硬塞四格,1180 寬時每格只有 253px,縮圖列縮到 69x39px ——
+   那是指甲大小,而且觸控裝置沒有 hover,放大檢視也是關掉的,
+   等於那幾張照片根本看不到。(Zakk 面試都是先給對方看 iPad。)
+   改成 2 欄:1180 → 縮圖 156px、1366 → 183px。
+
+   ⚠️ 只在 .is-scroll 下改。上面那條「一定要排成一排」的理由是
+   幀系統的 .frame__pin 會把折行的部分裁掉(實測溢出 370px)——
+   .is-scroll 是正常捲動的長頁,沒有框也不會裁,變長沒有關係。
+   ⚠️ 限 901px 以上。900 以下本來就是單欄,不加下限會把手機也變成 2 欄。 */
+@media (min-width: 901px) {
+  .is-scroll #how  .how,
+  .is-scroll #how2 .how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+}
+
+/* ── 帶 ①:窄視窗(iPad)才需要重排版面 ── */
+@media (min-width: 901px) and (max-width: 1199px) {
+
+  /* About:實測 1180,Profile 卡和 Experience 卡並排一路撐到 x 1057,
+     跟骨頭的地盤(x 880 起)重疊 177px。
+     解法是**改直向堆疊**,不是把東西縮小 ——
+     ⚠️ 試過把欄寬壓到 262px,校名折成四行、
+        「UI / UX · PRODUCT · SPATIAL」被裁掉。
+        780px 的可用寬度裡,人像欄和兩欄卡片不可能並存。 */
+  .is-scroll #about .about {
+    grid-template-columns: 225px minmax(0, 510px);
+    column-gap: 34px;
+    align-items: start;
+  }
+  .is-scroll #about .about__body { grid-template-columns: 1fr; row-gap: 22px; }
+  .is-scroll #about .panel { padding: 18px 20px; }
+
+  /* 人像下面本來空著八百多像素。改成 sticky —— 捲動時它停在左邊陪著讀,
+     那片留白就變成刻意的,不是沒排完。 */
+  .is-scroll #about .about__portrait { position: sticky; top: 96px; }
+
+  /* 只留短版中文:英文那段和長版中文講的是同一件事,
+     卡片高度從約 250px 降到 120px,骨頭才有地方站。 */
+  .is-scroll #about .about__intro > p:not(.panel__label):not(.about__intro-zh--short) { display: none; }
+  .is-scroll .about__intro-zh--short { display: block; }
+
+  /* Works 收窄,右邊讓給翅膀。
+     🔴 不收的話 Works 是滿版清單:左邊標題、右邊分類與年份,整行從頭吃到尾,
+        翅膀放上去就是壓在「PRODUCT · GRADUATION 2025」那排小字上(實測)。
+     ⚠️ 880 是從欄位分配反推的,不是抓的。這一列是四欄 grid:
+        編號 52 + 標題 1fr + 分類 198 + 年份 64,加三個 24px 欄距。
+        最長那列「VEGIC — Near-expiry Produce」在 30.7px 字級需要 465px,
+        所以容器至少要 52+465+198+64+72 = 851。
+        我先試 769 再試 820,兩次標題都折成兩行
+        (「VEGIC — Near-/expiry Produce」從連字號斷開,很醜)。 */
+  .is-scroll #works .works,
+  .is-scroll #works .section__head { max-width: 880px; }
+  /* ⚠️ .works 本身還有 76px 的右內距(桌機版預留給骨頭的),
+     容器雖然是 880,列真正只有 804,標題欄拿到 418 —— 還是不夠 465。
+     這個帶右邊的留白已經由 max-width 讓出來了,內距歸零,
+     標題欄才拿得到 494px,八列全部一行排完。 */
+  .is-scroll #works .works { padding-right: 0; }
+}
+
+.about__intro-zh--short { display: none; }
 
 @media (max-width: 900px) {
   .how { grid-template-columns: 1fr; gap: var(--s3); }

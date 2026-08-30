@@ -2444,7 +2444,15 @@ window.__fragSprites = (function () {
      CSS 已經降到 1441(版面保證右邊留 30%),JS 還卡在 1720 的話,
      1441–1719 之間會出現「格線畫得出來、碎片一顆都沒有」——
      因為引擎在這裡就 return 了,連骨頭圖都不會下載。 */
-  if (!window.matchMedia('(min-width: 1200px)').matches) return;
+  /* 🔴 iPad(.is-scroll)也要看得到骨頭 —— Zakk 面試都是先給對方看 iPad,
+     那是主場不是邊緣情況。他的 iPad 橫放是 1180,原本差 20px 就被這條擋掉,
+     連畫布都不會建立(Works 之後一根骨頭都沒有)。
+     ⚠️ 這個門檻要跟 CSS 的 .dragon-side 顯示條件一致,改一邊就要改另一邊。 */
+  var SIDE_SCROLL = document.documentElement.classList.contains('is-scroll');
+  /* 窄帶 = 幀系統關掉**而且**視窗窄到 CSS 沒有「內容 78%」那條規則的情形。
+     只有這個帶需要改骨頭的位置;1200 以上右邊的留白本來就在。 */
+  var SIDE_NARROW = SIDE_SCROLL && window.matchMedia('(max-width: 1199px)').matches;
+  if (!window.matchMedia(SIDE_SCROLL ? '(min-width: 1024px)' : '(min-width: 1200px)').matches) return;
 
   /* 碎片改成跟首屏一樣大(Zakk 指定)。首屏的算式是
      sz = gap*(0.3~0.7) 再 ×2.1,在 2000px 寬時約 7~17px ——
@@ -2526,7 +2534,7 @@ window.__fragSprites = (function () {
        所以方向轉回來、切口回到右邊(anchor right),空格改由 wFrac 控制。 */
     works:  { src: 'bones-wing.webp', crop: [0.15, 0.00, 1.00, 0.88],
               drop: [[0.00, 0.60, 0.44, 1.00]], flip: true, tilt: -12,
-              anchor: 'right', wFrac: 0.86, cy: 0.42, dens: 1.25,
+              anchor: 'right', wFrac: 0.86, wFracNarrow: 0.58, cy: 0.42, dens: 1.25,
               tag: 'WING', tagSub: 'FROM “DRAGON SKULL”' },
     /* 腳掌:⚠️ 原本整條腿(含髖)一起放,看起來只是一根斜的骨頭
        (Zakk:「about 那頁的碎片看不太出來是腳了」)。
@@ -2856,12 +2864,25 @@ window.__fragSprites = (function () {
     /* ⚠️ 這個比例必須跟 CSS 的內容欄寬**完全一致**,骨頭才會剛好待在空欄裡。
        1200–1440 之間 CSS 給的是 78%(70% 在那個尺寸會把 About 擠爛),
        1441 以上才是 70%。改其中一邊就要改另一邊。 */
+    /* ⚠️ 這個比例必須跟 CSS 的內容右界**完全一致**,骨頭才會剛好待在空欄裡:
+         < 1200(.is-scroll 窄帶)  About 769px / Works 880px,骨頭用 62%
+         1200–1440                CSS 給 78%
+         >= 1441                  CSS 給 70%
+       我一度把整個 .is-scroll 都當成 62%,結果 1366 上骨頭壓進內容 218px。 */
     var CONTENT_R = window.innerWidth *
-      (window.matchMedia('(min-width: 1441px)').matches ? 0.70 : 0.78);
+      (SIDE_NARROW ? 0.62
+       : (window.matchMedia('(min-width: 1441px)').matches ? 0.70 : 0.78));
     var freeW = Math.max(160, window.innerWidth - CONTENT_R);
     var canvasL = canvas.getBoundingClientRect().left;
 
-    var boxW = freeW * (sg.wFrac || 0.8);
+    /* ⚠️ 窄帶裡三段骨頭的需求不一樣,不能用同一個 CONTENT_R 解決:
+       About / Photos 右邊空得多,骨頭要夠大才看得出是爪子和尾巴;
+       Works 是清單,收窄後右界在 x 927(1180 寬),翅膀太大就會伸回字上面。
+       我一度把 CONTENT_R 從 0.62 拉到 0.76 想遷就 Works ——
+       結果 About 的爪子被畫布右緣切掉半截。
+       正解是只把**翅膀**縮小,位置維持 0.62。 */
+    var wf = (SIDE_NARROW && sg.wFracNarrow != null) ? sg.wFracNarrow : (sg.wFrac || 0.8);
+    var boxW = freeW * wf;
     var boxH = boxW / ratio;
 
     /* ⚠️ 這裡原本有「boxW 超過畫布 92% 就整個縮小」的保護 ——
@@ -3272,15 +3293,22 @@ window.__fragSprites = (function () {
    整層 pointer-events: none —— 它不擋滑鼠,所以移開一定關得掉,
    不會出現「彈窗卡住、找不到 X」那種情況。
 
-   ⚠️ 只在有精準指標(滑鼠)時啟用。
-   觸控裝置沒有 hover,mouseover 會在點下去時觸發、而且不會有對應的 mouseout,
-   結果就是一個黏住不動的遮罩 —— 比不做還糟。
-   ⚠️ 也要求 hover: hover;`pointer: fine` 單獨看還會抓到某些手寫筆。
+   🔴 觸控裝置走另一條路:點一下開、再點一次(或點別處)關。
+   這裡原本整支直接 return —— 理由是「觸控沒有 hover,mouseover 會在點下去時
+   觸發、而且不會有對應的 mouseout,結果是一個黏住不動的遮罩」。
+   那個判斷沒錯,錯在結論:不該整個關掉,該換一種開關方式。
+   ⚠️ 後果很實際:Zakk 面試都是先給對方看 iPad,而 iPad 上這些縮圖只有
+      156px —— 看不清楚,又放不大,等於那幾張佐證照片白放。
+
+   ⚠️ 兩條路互斥,不要同時綁:同時綁的話觸控裝置會先收到 mouseover
+      再收到 click,等於開了又關。
+   ⚠️ `pointer: fine` 單獨看還會抓到某些手寫筆,所以要跟 hover: hover 一起判。
+   ⚠️ 縮圖沒有包在 <a> 裡(查過 index.html),所以 click 不會誤觸連結。
    ═══════════════════════════════════════════════════════ */
 (function () {
-  if (!window.matchMedia('(hover: hover) and (pointer: fine)').matches) return;
+  var FINE = window.matchMedia('(hover: hover) and (pointer: fine)').matches;
 
-  var box, imgEl, readEl, hideT;
+  var box, imgEl, readEl, hideT, openFig = null;
 
   function build() {
     box = document.createElement('div');
@@ -3349,21 +3377,48 @@ window.__fragSprites = (function () {
      全部掛上去只會讓整個站到處跳出遮罩。 */
   var SEL = '#how .how__strip figure, #how2 .how__strip figure';
 
-  document.addEventListener('mouseover', function (e) {
-    if (!e.target.closest) return;
-    var fig = e.target.closest(SEL);
-    if (!fig) { if (box && box.classList.contains('is-on')) hide(); return; }
-    var img = fig.querySelector('img');
-    if (img) show(fig, img);
-  }, { passive: true });
+  /* 立刻關掉。hide() 有 90ms 的延遲,那是為了滑鼠掃過縮圖間隙時不要閃 ——
+     用點的沒有那個問題,拖一下反而像沒反應。 */
+  function hideNow() {
+    clearTimeout(hideT);
+    openFig = null;
+    if (box) box.classList.remove('is-on');
+  }
 
-  /* 捲動時關掉 —— 畫面已經換了,還留著一張放大圖會很突兀 */
+  if (FINE) {
+    /* 滑鼠:停留就看,移開就走。 */
+    document.addEventListener('mouseover', function (e) {
+      if (!e.target.closest) return;
+      var fig = e.target.closest(SEL);
+      if (!fig) { if (box && box.classList.contains('is-on')) hide(); return; }
+      var img = fig.querySelector('img');
+      if (img) show(fig, img);
+    }, { passive: true });
+  } else {
+    /* 觸控:點一下開,再點同一張或點別處關。
+       ⚠️ 不用 passive —— 這裡要能 preventDefault,免得某些瀏覽器
+          把這一下再合成一次延遲的滑鼠事件。 */
+    document.addEventListener('click', function (e) {
+      var fig = e.target.closest && e.target.closest(SEL);
+      if (!fig) { hideNow(); return; }
+      e.preventDefault();
+      if (openFig === fig) { hideNow(); return; }   // 再點一次收起來
+      var img = fig.querySelector('img');
+      if (!img) return;
+      openFig = fig;
+      show(fig, img);
+    });
+  }
+
+  /* 捲動時關掉 —— 畫面已經換了,還留著一張放大圖會很突兀。
+     ⚠️ 觸控要一起把 openFig 清掉,不然捲回來再點同一張會被當成
+        「第二次點擊」而直接關掉,看起來像沒反應。 */
   window.addEventListener('scroll', function () {
-    if (box && box.classList.contains('is-on')) box.classList.remove('is-on');
+    if (openFig || (box && box.classList.contains('is-on'))) hideNow();
   }, { passive: true });
 
   document.addEventListener('keydown', function (e) {
-    if (e.key === 'Escape' && box) box.classList.remove('is-on');
+    if (e.key === 'Escape') hideNow();
   });
 }());
 
