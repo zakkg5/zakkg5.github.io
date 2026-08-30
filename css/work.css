@@ -286,6 +286,17 @@
   background: var(--mist);
 }
 
+/* ── 網格裡的照片:限高 ──
+   ⚠️ 直幅照片(900x1600)放進半欄會變成一根一千七百像素高的柱子,
+   整頁被撐開,滑很久只看到一張圖 —— Zakk 說的「又大又亂」就是這個。
+   限高之後它靠左站在自己那一欄裡,橫幅的圖完全不受影響。
+   開場那張不在 .plates 裡,所以不會被限到。 */
+.plates .plate--render img {
+  width: auto;
+  max-width: 100%;
+  max-height: 620px;
+}
+
 /* ── 去背的實物照 ──
    白底在轉檔時就挖成透明了(build_work_images.py 的 knockout),
    所以**不能**再墊 --mist 的底 —— 那會變成一塊有顏色的方塊,白底就白挖了。
@@ -310,6 +321,17 @@
 .plate--opening.plate--cutout {
   border-bottom: 1px solid var(--hair);
   padding-bottom: var(--s3);
+}
+
+/* 內縮那一欄的線稿(例如應變中心的平面圖)本來會拉到 980px 寬、一千多像素高,
+   一張圖就吃掉一個畫面。限高並置中,讓它像一張放在紙上的圖面。
+   ⚠️ 只限 .plate--inset —— 三分之一欄的小圖已經夠小,再限就看不清楚了。 */
+.plates .plate--drawing.plate--inset img {
+  display: block;
+  width: auto;
+  max-width: 100%;
+  max-height: 560px;
+  margin-inline: auto;
 }
 
 /* 圖版網格裡的去背實物照:同理限高,靠左站在自己那一欄裡。 */
