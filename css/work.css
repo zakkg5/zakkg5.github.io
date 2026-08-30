@@ -200,6 +200,47 @@
 }
 
 
+/* ═══════════ 線上版連結 ═══════════
+   這件作品有一個他們自己做的網站,原本只是 facts 表裡的一行小字。
+   拉出來做成一條看得見的橫幅:左邊是標籤、中間是網址、右邊是中文註。
+   ⚠️ 不做成填色按鈕 —— 整頁沒有任何實心色塊,加一顆會像外來的元件。
+      用細線 + 藍字,跟站上其他「可點的東西」同一個語彙。 */
+.work-live {
+  display: flex;
+  align-items: baseline;
+  flex-wrap: wrap;
+  gap: var(--s2) var(--s3);
+  margin: var(--s5) 0 var(--s4);
+  padding: var(--s3) 0;
+  border-top: 1px solid var(--blue-line);
+  border-bottom: 1px solid var(--hair);
+}
+.work-live__k {
+  font-family: var(--mono);
+  font-size: 11px;
+  letter-spacing: 0.16em;
+  text-transform: uppercase;
+  color: var(--slate);
+}
+.work-live__a {
+  font-size: clamp(18px, 2vw, 26px);
+  font-weight: 600;
+  letter-spacing: -0.01em;
+  color: var(--slate);
+  text-decoration: none;
+  border-bottom: 1px solid transparent;
+  transition: border-color 0.25s var(--ease);
+}
+.work-live__a i { font-style: normal; }
+.work-live__a:hover { border-bottom-color: currentColor; }
+/* ⚠️ 原本用 margin-left:auto 把它推到最右邊 —— 在 1440 寬時它會離網址
+   八百多像素遠,看起來像兩件不相干的東西。跟在連結後面就好。 */
+.work-live__zh {
+  font-family: var(--han);
+  font-size: 13px;
+  color: var(--stone);
+}
+
 /* ═══════════ 圖版網格 ═══════════ */
 
 .plates {

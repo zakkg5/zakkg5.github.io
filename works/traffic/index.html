@@ -11,7 +11,7 @@
   <link rel="preload" href="../../assets/3d/dragon.webp" as="image" type="image/webp">
 
   <link rel="stylesheet" href="../../css/style.css?v=183">
-  <link rel="stylesheet" href="../../css/work.css?v=49">
+  <link rel="stylesheet" href="../../css/work.css?v=51">
 </head>
 
 <body>
@@ -51,6 +51,17 @@
         <span class="work-lede-zh" lang="zh-Hant">一支有動態螢幕、能藍芽連線應變中心的號誌,成本一定會高,材質也要防水。我負責的是號誌本體 —— 怎麼裝得上去、打得開、換得掉。</span>
       </p>
 
+      <!-- 🔴 線上版拉出來單獨放。原本只是 facts 表格最後一行,
+           字級跟「Type」「Year」一樣小,看的人不會注意到 ——
+           但那個站是他們自己做的,是這件作品的一部分,不是附註。
+           (Zakk:「還可以再強調我們做的網址」) -->
+      <p class="work-live reveal" style="--delay: 170ms">
+        <span class="work-live__k">Live site</span>
+        <a class="work-live__a" href="https://cyd2025.framer.website"
+           target="_blank" rel="noopener">cyd2025.framer.website <i aria-hidden="true">&nearr;</i></a>
+        <span class="work-live__zh" lang="zh-Hant">線上版也是我們自己做的</span>
+      </p>
+
       <dl class="facts reveal" style="--delay: 200ms">
         <div class="facts__row">
           <dt class="facts__k">Type</dt>
@@ -72,10 +83,6 @@
         <div class="facts__row">
           <dt class="facts__k">Submitted to</dt>
           <dd class="facts__v">iF Design Student Award &middot; Red Dot Design Concept</dd>
-        </div>
-        <div class="facts__row">
-          <dt class="facts__k">Live site</dt>
-          <dd class="facts__v"><a href="https://cyd2025.framer.website" target="_blank" rel="noopener">cyd2025.framer.website &nearr;</a></dd>
         </div>
       </dl>
     </section>
@@ -110,7 +117,11 @@
                alt="早期草圖:號誌立柱與可升降橫桿,綠色箭頭標示升降方向"
                width="1600" height="1113">
         </figure>
-        <figure class="plate plate--drawing plate--half reveal">
+        <!-- ⚠️ 這張是**數位草圖**,底是整片淡紫,不是紙上的線稿。
+             用 plate--drawing 會墊一層紙色再暈開、進場還走掃描式描繪 ——
+             那套是為透明線稿設計的,套在有底的圖上會跟旁邊那張真線稿打架。
+             改用 plate--render(照片處理:淡底 + 對焦式進場)。 -->
+        <figure class="plate plate--render plate--half reveal">
           <img src="../../assets/works/traffic/sketch-02.webp" loading="lazy"
                alt="造型發想:數種柱體剖面與燈號配置的比較"
                width="1024" height="712">
@@ -154,14 +165,14 @@
           <figcaption class="plate__cap" lang="zh-Hant">第一版:面板四塊、上方三色燈條</figcaption>
         </figure>
 
-        <figure class="plate plate--render plate--half reveal">
-          <img src="../../assets/works/traffic/modeling.webp" loading="lazy"
-               alt="建模中的螢幕畫面:號誌的 3D 模型與燈號配置"
-               width="900" height="448">
-          <figcaption class="plate__cap" lang="zh-Hant">建模中</figcaption>
-        </figure>
+        <!-- 🔴 這裡原本放 modeling.webp(拍螢幕的照片)。拿掉了 ——
+             Zakk 兩次說它很醜,而且它旁邊就是同一支號誌的正式渲染圖,
+             一張翻拍的 Rhino 視窗在旁邊只會拉低整段的質感。
+             檔案還在 assets/,首頁的 How I work 縮圖列仍然有用到。 -->
 
-        <figure class="plate plate--render plate--half reveal">
+        <!-- 直式照片配半欄,右邊會空掉一整塊(限高之後更明顯)。
+             收成三分之一欄,那片留白就變成版面的邊距,不是漏掉的東西。 -->
+        <figure class="plate plate--render plate--third reveal">
           <img src="../../assets/works/traffic/review.webp" loading="lazy"
                alt="第一次評分:組員在展板前向老師說明"
                width="900" height="1600">
