@@ -335,7 +335,7 @@
 .plates .plate--render img {
   width: auto;
   max-width: 100%;
-  max-height: 620px;
+  max-height: 520px;
 }
 
 /* ── 去背的實物照 ──
@@ -357,6 +357,10 @@
   max-height: 620px;
 }
 
+/* 開場圖不論哪一種,都不該比一個畫面還高 —— 不然一進頁面只看得到一張圖,
+   連標題都被推出去。72vh 留了空間讓下一段露出一角,人才知道還有東西。 */
+.plate--opening img { max-height: 72vh; width: auto; margin-inline: auto; }
+
 /* 去背的東西置中放在一大片紙上會「飄」—— 沒有著力點。
    底下這條貫穿版面的細線就是它站著的檯面(跟 .plate--object 同一招)。 */
 .plate--opening.plate--cutout {
@@ -371,7 +375,7 @@
   display: block;
   width: auto;
   max-width: 100%;
-  max-height: 560px;
+  max-height: 460px;
   margin-inline: auto;
 }
 
@@ -556,9 +560,12 @@
 
 @media (min-width: 1441px) {
 
-  /* 貼左,不再置中 —— 跟 topbar / 首頁的 gutter 對齊 */
+  /* 貼左,不再置中 —— 跟 topbar / 首頁的 gutter 對齊。
+     ⚠️ 70vw 沒有上限,2560 的螢幕上內容欄會變成 1792px,
+     開場圖跟著撐到 1680x1210 —— 比整個螢幕還高(Zakk:「圖都太大」)。
+     加一個 1480px 的天花板:大螢幕是「看得舒服」,不是「看得大」。 */
   .work {
-    max-width: 70vw;
+    max-width: min(70vw, 1480px);
     margin: 0;
   }
 

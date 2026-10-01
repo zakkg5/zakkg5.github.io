@@ -2223,7 +2223,7 @@ window.__fragSprites = (function () {
      看起來像「線跑出按鈕」(Zakk 原話)。橫排就沒有這個問題,
      而且 topbar 已經拿掉,上緣正好空著。 */
   /* 第三個欄位 = 這顆按鈕「認領」哪幾個區塊。
-     🔴 About 有三頁(#about / #how / #how2),但導覽只有一顆 About。
+     🔴 About 有四頁(#about / #how / #how1b / #how2),但導覽只有一顆 About。
      沒有這個對應的話,標記邏輯是「找離視窗中央最近的**清單內**區塊」——
      捲到 How I work 時清單裡最近的是 Photos,結果人在 On site、
      上面卻亮著 PHOTOS(Zakk 回報)。
@@ -2231,7 +2231,7 @@ window.__fragSprites = (function () {
   var items = [
     ['hero-b', 'Intro',   ['hero-b']],
     ['works',  'Works',   ['works']],
-    ['about',  'About',   ['about', 'how', 'how2']],
+    ['about',  'About',   ['about', 'how', 'how1b', 'how2']],
     ['photos', 'Photos',  ['photos']],
     ['contact', 'Contact', ['contact']]
   ].filter(function (it) { return document.getElementById(it[0]); });
@@ -2790,7 +2790,14 @@ window.__fragSprites = (function () {
      那是內容自己在用的能見度,所以骨頭跟文字必然同進同出。
      以前這裡自己用 getBoundingClientRect 再算一次,兩條曲線對不起來。
      內頁沒有幀系統(它是一般捲動的長頁),那邊退回舊的算法。 */
-  function state() {
+  /* 平滑曲線:0→1 之間走 S 形,兩端的斜率是 0。
+     折線在轉折點上斜率會瞬間改變,看起來就是「卡一下」。 */
+  function smoothstep(x) {
+    x = x < 0 ? 0 : (x > 1 ? 1 : x);
+    return x * x * (3 - 2 * x);
+  }
+
+  function rawState() {
     var fv = window.__frameVis, best = null;
     if (fv) {
       ['works', 'about', 'photos'].forEach(function (id) {
@@ -2807,10 +2814,44 @@ window.__fragSprites = (function () {
       var p = (vh * 0.5 - r.top) / Math.max(1, r.height);
       if (p < -0.15 || p > 1.15) return;
       p = p < 0 ? 0 : (p > 1 ? 1 : p);
-      var v = Math.min(1, p / 0.18) * (p < 0.72 ? 1 : 1 - (p - 0.72) / 0.28);
+      /* 🔴 原本是折線:min(1, p/0.18) * (p<0.72 ? 1 : 1-(p-0.72)/0.28)
+         —— 在 p=0.18 和 p=0.72 兩處斜率瞬間改變,骨頭進場和退場都會「頓一下」
+         (Zakk:「換頁跑的動畫太僵硬,而且很不順」)。
+         改成兩段 smoothstep:進場與退場的頭尾都是零斜率,銜接看不出接縫。 */
+      var v = smoothstep(p / 0.22) * (1 - smoothstep((p - 0.70) / 0.30));
       if (!best || v > best.vis) best = { id: id, vis: v < 0 ? 0 : v };
     });
     return best;
+  }
+
+  /* 🔴 第二層:逐幀緩動。
+     沒有幀系統的時候(iPad / 中小視窗),能見度是直接換算自捲動位置 ——
+     觸控的慣性滑動本身就是一跳一跳的,骨頭就跟著抖。
+     這裡讓畫面上的值每幀往目標靠近一小段,把抖動吸收掉。
+     ⚠️ 只在備援路徑做。桌機的幀系統算出來的 __frameVis 本來就是平滑的,
+        再疊一層只會讓骨頭慢半拍、跟文字不同步。
+     ⚠️ 換段時不要硬切:先把舊的那段淡出,再讓新的那段淡入,
+        不然會看到一塊骨頭瞬間變成另一塊。 */
+  var smooth = { id: null, vis: 0 };
+  function state() {
+    var st = rawState();
+    if (window.__frameVis) return st;          // 幀系統:原樣放行
+
+    if (!st) {
+      smooth.vis += (0 - smooth.vis) * 0.16;
+      if (smooth.vis < 0.004) { smooth.id = null; return null; }
+      return smooth.id ? { id: smooth.id, vis: smooth.vis } : null;
+    }
+    if (st.id !== smooth.id) {
+      if (smooth.id && smooth.vis > 0.02) {     // 舊的還看得見 → 先淡出
+        smooth.vis += (0 - smooth.vis) * 0.16;
+        return { id: smooth.id, vis: smooth.vis };
+      }
+      smooth.id = st.id;
+      smooth.vis = 0;
+    }
+    smooth.vis += (st.vis - smooth.vis) * 0.11;
+    return { id: smooth.id, vis: smooth.vis };
   }
 
   function render() {
@@ -3375,7 +3416,7 @@ window.__fragSprites = (function () {
   /* ⚠️ 只給 About 兩頁的**縮圖列**(Zakk:「只有about那邊的縮圖檢視」)。
      主圖本來就夠大,不需要放大;作品內頁的 .plate 也是滿版的,
      全部掛上去只會讓整個站到處跳出遮罩。 */
-  var SEL = '#how .how__strip figure, #how2 .how__strip figure';
+  var SEL = '#how .how__strip figure, #how1b .how__strip figure, #how2 .how__strip figure';
 
   /* 立刻關掉。hide() 有 90ms 的延遲,那是為了滑鼠掃過縮圖間隙時不要閃 ——
      用點的沒有那個問題,拖一下反而像沒反應。 */
@@ -3422,6 +3463,96 @@ window.__fragSprites = (function () {
   });
 }());
 
+
+
+/* ═══════════════════════════════════════════════════════
+   卡片放大檢視
+   Zakk:「可以點進去 放大框框內的內容跟圖片 方便人去閱讀」
+
+   一屏要塞三到四張卡,字和圖就一定得壓小 —— 那是版面的物理限制,
+   不是排版沒做好。所以給一條出路:點一張卡,把它單獨攤開來看,
+   文字照原樣、圖放到看得清楚為止。
+
+   做法是**複製那張卡的 DOM**,不另外維護一份內容 ——
+   卡片改了內容,放大檢視自動跟著改,不會有兩邊不同步的問題。
+
+   ⚠️ 縮圖列的點擊要讓給既有的「縮圖放大檢視」,不要搶。
+   ⚠️ 複製過來的卡片要把 grid 的擺放規則全部取消(見 style.css 的 .cardview__card),
+      不然它會繼承寬欄版型的左右並排,在直向的面板裡擠成一團。
+   ═══════════════════════════════════════════════════════ */
+(function () {
+  'use strict';
+  var SEL = '#how .how__item, #how1b .how__item, #how2 .how__item';
+  var box, sheet, lastFocus = null;
+
+  function build() {
+    if (box) return;
+    box = document.createElement('div');
+    box.className = 'cardview';
+    box.setAttribute('aria-hidden', 'true');
+    box.innerHTML =
+      '<div class="cardview__back"></div>' +
+      '<div class="cardview__sheet" role="dialog" aria-modal="true" tabindex="-1">' +
+        '<button class="cardview__close" type="button" aria-label="關閉">&times;</button>' +
+        '<div class="cardview__body"></div>' +
+      '</div>';
+    document.body.appendChild(box);
+    sheet = box.querySelector('.cardview__body');
+    box.querySelector('.cardview__close').addEventListener('click', close);
+  }
+
+  function open(item) {
+    build();
+    sheet.innerHTML = '';
+    var clone = item.cloneNode(true);
+    clone.className = 'how__item cardview__card';
+    clone.removeAttribute('style');
+    /* 複製品裡的 loading="lazy" 會讓圖在面板打開的瞬間還沒下載 —— 直接取消。 */
+    clone.querySelectorAll('img').forEach(function (im) { im.removeAttribute('loading'); });
+    sheet.appendChild(clone);
+    lastFocus = document.activeElement;
+    box.classList.add('is-on');
+    box.setAttribute('aria-hidden', 'false');
+    document.documentElement.classList.add('cardview-open');
+    box.querySelector('.cardview__sheet').focus();
+  }
+
+  function close() {
+    if (!box || !box.classList.contains('is-on')) return;
+    box.classList.remove('is-on');
+    box.setAttribute('aria-hidden', 'true');
+    document.documentElement.classList.remove('cardview-open');
+    if (lastFocus && lastFocus.focus) lastFocus.focus();
+  }
+
+  document.addEventListener('click', function (e) {
+    if (!e.target.closest) return;
+    if (box && box.classList.contains('is-on')) {
+      if (!e.target.closest('.cardview__sheet')) close();
+      return;
+    }
+    /* 縮圖列有自己的放大檢視,讓給它 */
+    if (e.target.closest('.how__strip')) return;
+    var item = e.target.closest(SEL);
+    if (item) open(item);
+  });
+
+  document.addEventListener('keydown', function (e) {
+    if (e.key === 'Escape') close();
+    /* 鍵盤:卡片聚焦時按 Enter 或空白鍵也能打開 */
+    if ((e.key === 'Enter' || e.key === ' ') && e.target.closest &&
+        e.target.matches(SEL)) { e.preventDefault(); open(e.target); }
+  });
+
+  /* 讓鍵盤走得到,也讓滑鼠看得出可以點 */
+  document.addEventListener('DOMContentLoaded', function () {
+    document.querySelectorAll(SEL).forEach(function (it) {
+      it.tabIndex = 0;
+      it.setAttribute('role', 'button');
+      it.setAttribute('aria-label', '放大檢視這一段');
+    });
+  });
+}());
 
 /* ═══════════════════════════════════════════════════════
    縮圖列:滑鼠在上面時,滾輪改成左右捲

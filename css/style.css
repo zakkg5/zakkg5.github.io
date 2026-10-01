@@ -3316,15 +3316,111 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    ⚠️ 這一區的重點是**證據**,不是形容詞 ——
    所以每一段都配一張真的工作圖,而不是圖示。 */
 
+/* 🔴 用 subgrid 讓每張卡的五個部分各自對齊到同一條水平線。
+   每張卡的結構都一樣:小標 → 英文 → 中文 → 主圖 → 縮圖列(查過 DOM,五個都在)。
+   不用 subgrid 的話每張卡各自長大,文字長短和圖片比例不同就會錯開 ——
+   實測 2560 四格時高度是 817/766/847/718,底下的縮圖列高低參差。
+
+   ⚠️ 主圖那一列要限高。欄位變寬之後 aspect-ratio: 4/3 會讓圖跟著暴衝:
+      2560 兩欄時每欄 1086px,圖就變成 814px 高,整張卡 1365px ——
+      比視窗還高,會被畫框的 overflow 直接裁掉。
+      改成由這一列的高度決定,圖片用 cover 填滿。 */
 .how {
   display: grid;
   grid-template-columns: repeat(3, minmax(0, 1fr));
+  /* ⚠️ 主圖這一列不能寫死。字級在 1600 以上放大之後,1920x1080 實測
+     #how 超出畫框 21px、#how1b 超出 49px —— 幀系統會直接裁掉而且沒有捲軸。
+     改成跟著視窗高度走:矮螢幕自動讓出空間,高螢幕最多 360px。 */
+  /* 四列:小標 / 文字塊 / 主圖 / 縮圖列。
+     ⚠️ 主圖那一列不能寫死 —— 字級在 1600 以上放大之後,1920x1080 實測
+     #how 超出畫框 21px、#how1b 超出 49px,幀系統會直接裁掉而且沒有捲軸。
+     跟著視窗高度走:矮螢幕自動讓出空間,高螢幕最多 360px。 */
+  grid-template-rows: auto auto minmax(0, min(360px, 24vh)) auto;
   gap: var(--s4);
   margin-top: var(--s5);
   align-items: start;
 }
 
-.how__item { display: flex; flex-direction: column; }
+.how__item {
+  display: grid;
+  grid-row: span 4;
+  grid-template-rows: subgrid;
+  align-content: start;
+}
+.how__text { min-width: 0; }
+
+/* ⚠️ 不支援 subgrid 的瀏覽器會退回原本的直向堆疊,不會壞,只是不對齊。 */
+@supports not (grid-template-rows: subgrid) {
+  .how { grid-template-rows: none; }
+  .how__item { display: flex; flex-direction: column; grid-row: auto; }
+}
+
+/* ═══════════ 寬欄的卡片:內部改成左右並排 ═══════════
+   🔴 畢製拆成兩頁之後,2560 上每欄有 1086px —— 這張卡原本是為四欄(390px)設計的。
+   還用「文字在上、圖在下」的話,主圖會被拉成 1050x296(3.5:1)的扁長條,
+   草圖上下各被裁掉一大截,燈桿的頂端和底座整個不見(實測)。
+
+   多出來的寬度應該拿來**並排**,不是把圖拉寬:
+     ┌───────────────────────────────┐
+     │ 小標 ───────────────────────  │
+     │ 英文 + 中文      │    主圖     │
+     │ 縮圖列 ──────────────────────  │
+     └───────────────────────────────┘
+   主圖回到接近正常的比例,文字一行也不會太長。
+
+   ⚠️ 只給兩格的那兩頁(#how / #how1b)。On site 是三格、每欄 716px,
+      再拆左右會變成 340+340,兩邊都太窄。
+   ⚠️ 父層的列改成四列(小標 / 英文 / 中文 / 縮圖列),主圖跨第 2~3 列 ——
+      subgrid 的對齊才不會被破壞。 */
+@media (min-width: 1600px) {
+  /* 三列就夠了:小標 / (文字 | 主圖) / 縮圖列。
+     文字包成 .how__text 之後,「文字一塊、圖一塊」就是單純的左右兩欄,
+     不必再用格線的列去猜高度 —— 前面兩版都是栽在這裡。 */
+  /* 🔴 中間那一列要給**明確的高度範圍**,不能用 auto。
+     auto 的話高度由內容決定,而圖片的「內容高度」是它的原始比例 ——
+     直式照片(1200x1600)在 500px 寬的欄位裡自然高度是 667px,
+     整張卡直接爆出畫面(實測,踩了三次)。
+     給了範圍之後 height:100% 才有東西可以對齊,圖才會乖乖填滿。 */
+  #how .how, #how1b .how {
+    grid-template-rows: auto minmax(340px, min(500px, 40vh)) auto;
+  }
+  #how .how__item, #how1b .how__item {
+    grid-row: span 3;
+    grid-template-columns: minmax(0, 1.05fr) minmax(0, 1fr);
+    column-gap: var(--s4);
+  }
+  /* ⚠️ 一定要用 >(直接子元素)。寫成後代選擇器的話,
+     「兩張並排」裡面的那兩個 .how__fig 也會被抓到,
+     兩張都被指定到同一格 grid-column:2 / grid-row:2 —— 完全重疊,
+     看起來就只剩一張小圖浮在那裡(Zakk:「甚至會有單張照片在一格上面」)。 */
+  #how .how__item > .how__lead,  #how1b .how__item > .how__lead  { grid-column: 1 / -1; grid-row: 1; }
+  #how .how__item > .how__text,  #how1b .how__item > .how__text  { grid-column: 1; grid-row: 2; }
+  #how .how__item > .how__fig,   #how1b .how__item > .how__fig,
+  #how .how__item > .how__pair,  #how1b .how__item > .how__pair  {
+    grid-column: 2; grid-row: 2; margin-top: 0; align-self: stretch;
+  }
+  #how .how__item > .how__strip, #how1b .how__item > .how__strip { grid-column: 1 / -1; grid-row: 3; }
+
+  /* 🔴 高度由**文字那一塊**定下限。「Shown」那張卡只有兩行字,
+     不給下限的話圖會跟著縮成一條。
+     ⚠️ 下限不要放在圖上 —— 試過,圖會反過來把文字撐開;
+        也不要用 1fr —— 在高度由內容決定的格線裡它會失控長高,整張卡爆出畫面。 */
+  #how .how__item > .how__text, #how1b .how__item > .how__text { min-height: 0; overflow: hidden; }
+  #how .how__item > .how__fig,  #how1b .how__item > .how__fig,
+  #how .how__item > .how__pair, #how1b .how__item > .how__pair { min-height: 0; }
+  #how .how__fig img, #how1b .how__fig img { height: 100%; object-fit: cover; }
+  #how .how__fig--tall img, #how1b .how__fig--tall img { object-fit: contain; }
+
+  /* 兩張並排的對照圖:圖欄只剩約 500px,再左右並排每張只有 240px ——
+     實測一張被擠到只剩一條(Zakk:「甚至會有單張照片在一格上面」)。
+     改成上下疊,兩張等寬等高,對照還在。 */
+  #how .how__item > .how__pair, #how1b .how__item > .how__pair {
+    grid-template-columns: minmax(0, 1fr);
+    grid-template-rows: minmax(0, 1fr) minmax(0, 1fr);
+  }
+  #how .how__pair .how__fig img,
+  #how1b .how__pair .how__fig img { aspect-ratio: auto; height: 100%; object-fit: cover; }
+}
 
 /* 大標:短詞,不是句子。
    🔴 原本每格有兩層標題 —— 9px 的藍色小標(PROBLEMS & FIXES)
@@ -3375,18 +3471,89 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
 }
 /* ⚠️ 直幅與橫幅的照片混在一起,不裁的話三欄會高低差很多。
    固定比例 + object-fit,讓三張一樣高。 */
+.how__fig { min-height: 0; }
 .how__fig img {
   display: block;
   width: 100%;
-  aspect-ratio: 4 / 3;
+  /* 高度由 subgrid 那一列決定,不再用固定比例 ——
+     固定比例會讓圖跟著欄寬暴衝(見上面 .how 的註解)。 */
+  height: 100%;
+  min-height: 0;
   object-fit: cover;
-  height: auto;
   transition: transform var(--t-base) var(--ease);
 }
 .how__item:hover .how__fig img { transform: scale(1.02); }
 
-/* 上下疊的比較圖:固定 4/3 會把兩排裁掉一排,所以照原比例走 */
-.how__fig--tall img { aspect-ratio: auto; }
+/* 上下疊的比較圖:不裁,整張縮進那一列裡 */
+.how__fig--tall img { object-fit: contain; }
+
+/* ═══════════ 卡片放大檢視 ═══════════
+   一屏要塞三到四張卡,字和圖就一定得壓小。點一張卡把它攤開來看,
+   是給「想讀仔細」的人一條出路(Zakk:「可以點進去放大框框內的內容跟圖片」)。 */
+.how__item { cursor: zoom-in; }
+.how__item:focus-visible { outline: 2px solid var(--slate); outline-offset: 3px; }
+
+.cardview { position: fixed; inset: 0; z-index: 60; display: none; }
+.cardview.is-on { display: block; }
+.cardview__back {
+  position: absolute; inset: 0;
+  background: rgba(23, 27, 30, 0.42);
+  -webkit-backdrop-filter: blur(3px); backdrop-filter: blur(3px);
+}
+.cardview__sheet {
+  position: relative;
+  margin: 4vh auto; padding: var(--s5) var(--s5) var(--s6);
+  width: min(1040px, 92vw); max-height: 92vh; overflow: auto;
+  background: var(--paper);
+  border: 1px solid var(--blue-line); border-radius: 10px;
+  box-shadow: 0 24px 60px rgba(23, 27, 30, 0.18);
+}
+.cardview__close {
+  position: sticky; top: 0; float: right;
+  width: 34px; height: 34px; margin: -8px -8px 0 0;
+  display: grid; place-items: center;
+  background: var(--paper); border: 1px solid var(--hair); border-radius: 50%;
+  color: var(--stone); font-size: 20px; line-height: 1; cursor: pointer;
+  transition: color var(--t-quick) var(--ease), border-color var(--t-quick) var(--ease);
+}
+.cardview__close:hover { color: var(--slate); border-color: var(--blue-line); }
+/* 捲動鎖在面板上,背景不要跟著動 */
+.cardview-open body { overflow: hidden; }
+
+/* 🔴 複製過來的卡片要把所有 grid 擺放規則取消。
+   不取消的話它會繼承寬欄版型的「文字在左、圖在右」,
+   在這個直向面板裡會擠成一團。這裡一律改成由上往下讀。 */
+.cardview__card {
+  display: block !important;
+  cursor: default;
+  background: none; border: 0; padding: 0;
+}
+.cardview__card > * { grid-column: auto !important; grid-row: auto !important; }
+.cardview__card .how__lead { font-size: clamp(22px, 2.4vw, 30px); margin-bottom: var(--s4); }
+.cardview__card .how__text { max-width: 68ch; min-height: 0 !important; overflow: visible !important; }
+.cardview__card .how__body { font-size: 1.06rem; line-height: 1.7; }
+.cardview__card .how__zh   { font-size: 1rem;    line-height: 1.95; }
+/* 圖:完整顯示,不裁。這裡的重點就是「看清楚」。 */
+.cardview__card .how__fig,
+.cardview__card .how__pair { margin-top: var(--s5); min-height: 0 !important; }
+.cardview__card .how__fig img {
+  width: 100%; height: auto !important; max-height: none !important;
+  aspect-ratio: auto !important; object-fit: contain !important;
+}
+.cardview__card .how__pair {
+  display: grid; grid-template-columns: repeat(auto-fit, minmax(260px, 1fr));
+  grid-template-rows: none; gap: var(--s3);
+}
+/* 縮圖列在這裡不再橫向滑 —— 攤成格狀,一次看得到全部 */
+.cardview__card .how__strip {
+  display: grid !important;
+  grid-template-columns: repeat(auto-fill, minmax(230px, 1fr));
+  gap: var(--s3); overflow: visible !important; margin-top: var(--s4);
+}
+.cardview__card .how__strip figure { flex: none !important; width: auto !important; }
+.cardview__card .how__strip img {
+  width: 100%; height: auto; aspect-ratio: 4 / 3; object-fit: cover; opacity: 1;
+}
 
 /* ═══════════ 佐證縮圖列 ═══════════
    主圖底下一排小圖。⚠️ 它們是**佐證**,不是第二張主圖 ——
@@ -3442,14 +3609,47 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
      那 30% 就真的是一片空的(2560 寬時右邊空了 768px,Zakk 回報)。
      留白的理由不成立時就不該留 —— 這兩頁放寬到 88vw。
      ⚠️ 標題那一列也要一起放寬,不然大標的右側註記會跟面板的右緣對不齊。 */
-  #how  .how, #how2 .how,
-  #how  .section__head, #how2 .section__head { max-width: calc(88vw - var(--gutter)); }
+  #how  .how, #how1b .how, #how2 .how,
+  #how  .section__head, #how1b .section__head,
+  #how2 .section__head { max-width: calc(88vw - var(--gutter)); }
 
   /* ⚠️ 放寬之後第二頁只有三格,欄寬會來到 716px —— 一行快 95 個字,太長了。
      所以只限制**文字**的寬度,圖片照樣吃滿整欄:
      多出來的寬度就變成更大的圖,正好是他要的「看得更清楚」。 */
-  #how .how__lead,  #how .how__body,  #how .how__zh,
-  #how2 .how__lead, #how2 .how__body, #how2 .how__zh { max-width: 30rem; }
+  #how   .how__lead, #how   .how__body, #how   .how__zh,
+  #how1b .how__lead, #how1b .how__body, #how1b .how__zh,
+  #how2  .how__lead, #how2  .how__body, #how2  .how__zh { max-width: 30rem; }
+}
+
+/* ═══════════ 大螢幕:字要跟著變大 ═══════════
+   🔴 .how__body 是 0.92rem、.how__zh 是 0.84rem,而 html 從來沒設過字級 ——
+   所以 rem 永遠是 16px,**螢幕再大字也一樣小**。
+   實測 1920 和 2560 量到的都是 14.7px / 13.4px,一個字都沒變。
+   2560 上欄寬 700 多配 13.4px 的中文,又小又長,很難讀。(Zakk 回報)
+
+   ⚠️ 不動 html 的根字級 —— 那會一次放大整個站(導覽、標籤、頁碼都會跟著跑),
+      風險太大。只調這一區的內文。
+   ⚠️ max-width 用的是 rem,字變大時它不會跟著變,行會塞更少字 —— 一起放寬。 */
+@media (min-width: 1600px) {
+  /* 字變大之後高度吃緊 —— 大標到卡片之間的間距從 40px 收到 24px,
+     省下來的高度留給圖(實測 1920x1080 #how1b 原本會被裁 9px)。 */
+  .how { margin-top: var(--s4); }
+  .how__body { font-size: 1.0rem;  line-height: 1.65; }
+  .how__zh   { font-size: 0.94rem; line-height: 1.85; }
+  .how__lead { font-size: 1.32rem; }
+  .how__strip figcaption { font-size: 0.78rem; }
+  #how .how__lead, #how .how__body, #how .how__zh,
+  #how1b .how__lead, #how1b .how__body, #how1b .how__zh,
+  #how2 .how__lead, #how2 .how__body, #how2 .how__zh { max-width: 33rem; }
+}
+@media (min-width: 2000px) {
+  .how__body { font-size: 1.1rem;  line-height: 1.68; }
+  .how__zh   { font-size: 1.04rem; line-height: 1.9; }
+  .how__lead { font-size: 1.45rem; }
+  .how__strip figcaption { font-size: 0.84rem; }
+  #how .how__lead, #how .how__body, #how .how__zh,
+  #how1b .how__lead, #how1b .how__body, #how1b .how__zh,
+  #how2 .how__lead, #how2 .how__body, #how2 .how__zh { max-width: 36rem; }
 }
 
 /* 🔴 一定要排成**一排**,不能折行。
@@ -3457,8 +3657,11 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    實測四格折 2×2 時溢出 370px,第三、四格不是變醜,是直接看不到。
    第一頁(畢製)四格,第二頁(去年的工作)三格,各自一排。 */
 @media (min-width: 1024px) {
-  #how  .how { grid-template-columns: repeat(4, minmax(0, 1fr)); }
-  #how2 .how { grid-template-columns: repeat(3, minmax(0, 1fr)); }
+  /* 🔴 畢製原本四格擠一頁(每欄 531px / 2560),拆成兩頁之後各兩格,
+     欄寬變成約 880px —— 字和圖都大很多,也容易對齊。 */
+  #how   .how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #how1b .how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  #how2  .how { grid-template-columns: repeat(3, minmax(0, 1fr)); }
 }
 
 /* 🔴 iPad 與中等視窗:一排硬塞四格,在 1180 寬時每格只有 253px,
@@ -3499,8 +3702,9 @@ body::-webkit-scrollbar { width: 0; height: 0; display: none; }
    .is-scroll 是正常捲動的長頁,沒有框也不會裁,變長沒有關係。
    ⚠️ 限 901px 以上。900 以下本來就是單欄,不加下限會把手機也變成 2 欄。 */
 @media (min-width: 901px) {
-  .is-scroll #how  .how,
-  .is-scroll #how2 .how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
+  .is-scroll #how   .how,
+  .is-scroll #how1b .how,
+  .is-scroll #how2  .how { grid-template-columns: repeat(2, minmax(0, 1fr)); }
 }
 
 /* ── 帶 ①:窄視窗(iPad)才需要重排版面 ── */
