@@ -1269,7 +1269,7 @@ Zakk:「周遭有點太空,可能因為網站是純白,如果是有點米灰呢�
 `Brightness 0.82 + Contrast 1.14`,天空和雪地回到有層次的灰。
 
 **⑥ 經歷加中文大標**(只有機構名,職務描述維持英文):
-國立雲林科技大學 / **endesign 一森室內設計**(原本寫 "Interior Design Studio" 是佔位字)。
+國立雲林科技大學 / **esdesign 一森室內設計**(原本寫 "Interior Design Studio" 是佔位字)。
 ⚠️ Sasaki Ken 那筆 Zakk 沒給中文,**不要自己編**。
 
 ---
