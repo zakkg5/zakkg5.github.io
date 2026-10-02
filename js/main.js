@@ -3544,6 +3544,31 @@ window.__fragSprites = (function () {
         e.target.matches(SEL)) { e.preventDefault(); open(e.target); }
   });
 
+  /* 🔴 滾輪要捲面板,不是捲後面的網頁。
+     這個站的滾輪是被全域接管的(平滑捲動 / 換頁),所以面板雖然有 overflow:auto,
+     滾輪事件還是會被全域那支拿去捲頁面 —— 面板不動,後面的網頁在動
+     (Zakk 回報)。
+     照站上既有的做法攔:監聽在**元素上** + preventDefault,
+     全域那支看到 e.defaultPrevented 就會讓開。
+     ⚠️ 跟縮圖列不一樣,這裡捲到頭也**不交還**給頁面 ——
+        面板是蓋在上面的,背後不該跟著動。 */
+  document.addEventListener('wheel', function (e) {
+    if (!box || !box.classList.contains('is-on')) return;
+    if (e.ctrlKey) return;                       // 縮放手勢不要攔
+    e.preventDefault();
+    var sh = box.querySelector('.cardview__sheet');
+    if (!sh) return;
+    var d = Math.abs(e.deltaY) > Math.abs(e.deltaX) ? e.deltaY : e.deltaX;
+    if (e.deltaMode === 1) d *= 16;              // 有些滑鼠回報的是「行」不是像素
+    sh.scrollTop += d;
+  }, { passive: false });
+
+  /* 觸控:面板裡面照常捲,但碰到背景時不要讓後面的網頁跟著動 */
+  document.addEventListener('touchmove', function (e) {
+    if (!box || !box.classList.contains('is-on')) return;
+    if (!e.target.closest || !e.target.closest('.cardview__sheet')) e.preventDefault();
+  }, { passive: false });
+
   /* 讓鍵盤走得到,也讓滑鼠看得出可以點 */
   document.addEventListener('DOMContentLoaded', function () {
     document.querySelectorAll(SEL).forEach(function (it) {
