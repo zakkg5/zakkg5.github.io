@@ -1,0 +1,213 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+
+  <title>Chester — Zakk</title>
+  <meta name="description" content="A self-initiated tribute poster for Chester Bennington, built around Linkin Park&#39;s Meteora. Three colours, halftoned photography, 2026.">
+
+  <link rel="preload" href="../../assets/fonts/archivo-latin.woff2" as="font" type="font/woff2" crossorigin>
+  <!-- 🔴 碎片引擎要等這張圖載完才開始畫 —— 沒有它就是一顆粒子都沒有。 -->
+  <link rel="preload" href="../../assets/3d/dragon.webp" as="image" type="image/webp">
+
+  <!-- ?v= 是快取版本號:改完 CSS/JS 記得 +1 -->
+  <link rel="stylesheet" href="../../css/style.css?v=196">
+  <link rel="stylesheet" href="../../css/work.css?v=52">
+</head>
+
+<body>
+  <a class="skip-link" href="#main">Skip to content</a>
+
+  <div class="page-atmos" aria-hidden="true"></div>
+
+  <canvas class="fragments" aria-hidden="true"></canvas>
+  <canvas class="dragon-side" aria-hidden="true"></canvas>
+  <canvas class="ambient" aria-hidden="true"></canvas>
+
+  <header class="topbar">
+    <a class="wordmark" href="../../">Zakk</a>
+    <nav class="nav" aria-label="Sections">
+      <a href="../../#works" aria-label="Works"><span class="nav__num">01</span><span class="nav__label">Works</span></a>
+      <a href="../../#about" aria-label="About"><span class="nav__num">02</span><span class="nav__label">About</span></a>
+      <a href="../../#photos" aria-label="Photos"><span class="nav__num">03</span><span class="nav__label">Photos</span></a>
+    </nav>
+  </header>
+
+  <main id="main" class="work">
+
+    <a class="work-back" href="../../#works"><i>&larr;</i> Works</a>
+
+    <!-- ══════════ 開場 ══════════
+         ⚠️ 這件是**自主練習**,不是接案也不是官方合作,而且照片不是他拍的。
+         頁面上一定要標清楚(facts 的 Brief 那一列 + 最後的 note)——
+         被面試官問到的時候,答案要在頁面上就看得到,不是臨場解釋。 -->
+    <section class="work-hero">
+      <p class="work-eyebrow reveal">2026 &middot; Visual &middot; Poster</p>
+
+      <h1 class="work-title reveal" style="--delay: 60ms">Chester
+        <span class="work-title-zh" lang="zh-Hant">致敬海報 —— Meteora</span>
+      </h1>
+
+      <p class="work-lede reveal" style="--delay: 140ms">
+        A self-initiated poster about Chester Bennington and Linkin Park&rsquo;s Meteora.
+        The photographs are reference, not my own. I pushed them to high contrast and
+        halftone so they would sit with the type, and kept the whole thing to red,
+        black and off white.
+        <span class="work-lede-zh" lang="zh-Hant">2026 年 10 月的自主練習,主題是 Chester Bennington
+          和 Linkin Park 的 Meteora。照片是參考用的,不是我拍的。我把它們推到高對比和網點,
+          讓它們跟字搭得起來,整張只用紅、黑、灰白三個顏色。</span>
+      </p>
+
+      <dl class="facts reveal" style="--delay: 200ms">
+        <div class="facts__row">
+          <dt class="facts__k">Type</dt>
+          <dd class="facts__v">Visual design &middot; Poster</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Year</dt>
+          <dd class="facts__v">2026</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Brief</dt>
+          <dd class="facts__v">Self-initiated &mdash;
+            <span class="zh" lang="zh-Hant">自主練習,非委託案</span></dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Subject</dt>
+          <dd class="facts__v">Chester Bennington &middot; Meteora, released 25 March 2003</dd>
+        </div>
+        <div class="facts__row">
+          <dt class="facts__k">Palette</dt>
+          <dd class="facts__v">Red, black, off white</dd>
+        </div>
+      </dl>
+    </section>
+
+    <figure class="plate plate--render plate--opening reveal">
+      <img src="../../assets/works/chester/chester-poster.webp"
+           alt="Chester 致敬海報:黑底上有紅色的 CHESTER 字樣、半調網點的人像、現場照與 Meteora 十三首曲目"
+           width="1600" height="2000">
+    </figure>
+
+
+    <!-- ══════════ 01 字 ══════════ -->
+    <section class="ch" id="type">
+      <div class="ch__head reveal">
+        <span class="ch__num">01</span>
+        <h2 class="ch__title">Type <span class="zh" lang="zh-Hant">字</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        CHESTER is set large enough to read before anything else on the poster.
+        The two dates sit above it on a thin rule, kept small so they do not compete.
+        <span class="zh" lang="zh-Hant">CHESTER 放到最大,讓人第一眼先讀到名字。
+          上面那兩個日期壓在一條細線上,刻意做小,不跟名字搶。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/chester/chester-wordmark.webp" loading="lazy"
+               alt="紅色的 CHESTER 筆刷字,上方一條細線分開出生與過世日期"
+               width="1400" height="608">
+          <figcaption class="plate__cap" lang="zh-Hant">標題與日期</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 02 圖像 ══════════ -->
+    <section class="ch" id="image">
+      <div class="ch__head reveal">
+        <span class="ch__num">02</span>
+        <h2 class="ch__title">Image <span class="zh" lang="zh-Hant">圖像處理</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        Three photographs, each treated differently. The portrait keeps its mid tones
+        and sits over a red spiral. The small panel is pushed to pure black and white
+        until the face breaks up. The live shot keeps the most detail, because on that
+        one the motion is the point.
+        <span class="zh" lang="zh-Hant">三張照片各自處理。人像保留中間調,底下壓一圈紅色螺旋。
+          中間那張推到只剩黑白兩階,臉會碎掉。現場照留最多細節,因為那張要的是動態。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/chester/chester-portrait.webp" loading="lazy"
+               alt="黑白人像,雙手合十,背後是一圈紅色同心螺旋"
+               width="1200" height="1910">
+          <figcaption class="plate__cap" lang="zh-Hant">人像:保留中間調</figcaption>
+        </figure>
+        <figure class="plate plate--render plate--half reveal">
+          <img src="../../assets/works/chester/chester-live.webp" loading="lazy"
+               alt="演出中的黑白照片,仰頭對著麥克風"
+               width="1200" height="1788">
+          <figcaption class="plate__cap" lang="zh-Hant">現場照:細節留最多</figcaption>
+        </figure>
+
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/chester/chester-halftone.webp" loading="lazy"
+               alt="推到只剩黑白兩階的臉部特寫,五官已經碎成色塊"
+               width="1400" height="733">
+          <figcaption class="plate__cap" lang="zh-Hant">推到兩階,讓臉碎掉</figcaption>
+        </figure>
+      </div>
+    </section>
+
+
+    <!-- ══════════ 03 資訊 ══════════ -->
+    <section class="ch" id="tracks">
+      <div class="ch__head reveal">
+        <span class="ch__num">03</span>
+        <h2 class="ch__title">Tracks <span class="zh" lang="zh-Hant">曲目</span></h2>
+        <span class="ch__rule" aria-hidden="true"></span>
+      </div>
+
+      <p class="ch__note reveal">
+        Thirteen tracks in two columns under the album title.
+        <span class="zh" lang="zh-Hant">十三首曲目分兩欄,排在專輯名下面。</span>
+      </p>
+
+      <div class="plates">
+        <figure class="plate plate--render plate--inset reveal">
+          <img src="../../assets/works/chester/chester-tracks.webp" loading="lazy"
+               alt="紅色的 METEORA 標題,下方是分成兩欄的十三首曲目"
+               width="1200" height="1079">
+          <figcaption class="plate__cap" lang="zh-Hant">Meteora,13 首</figcaption>
+        </figure>
+      </div>
+
+      <!-- 🔴 版權說明。放在內容最後、字級比內文小,讀得到但不搶戲。
+           這段是保護他自己的:面試被問「這是官方的嗎」時,答案頁面上就有。 -->
+      <p class="ch__note reveal" style="--delay: 80ms">
+        <small>The photographs used here are reference material and belong to their
+        photographers. This poster is a self-initiated exercise, not an official or
+        commercial release, and is not for sale.
+        <span class="zh" lang="zh-Hant">本作使用的照片屬於原攝影者。
+          這是自主練習,非官方或商業作品,不作販售。</span></small>
+      </p>
+    </section>
+
+
+    <!-- ══════════ 下一件 ══════════ -->
+    <nav class="work-next reveal" aria-label="More work">
+      <span class="work-next__k">More</span>
+      <a class="work-next__link" href="../../#works">
+        <span class="work-next__name">All works</span>
+        <i class="work-next__arrow" aria-hidden="true">&rarr;</i>
+      </a>
+    </nav>
+
+  </main>
+
+  <footer class="footer">
+    <p>Designed &amp; built by Zakk with Claude Code</p>
+    <p>&copy; 2026</p>
+  </footer>
+
+  <script src="../../js/main.js?v=230"></script>
+</body>
+</html>
